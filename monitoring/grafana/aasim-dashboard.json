@@ -1,0 +1,119 @@
+{
+  "dashboard": {
+    "title": "Aasim AI - Production Monitoring",
+    "tags": ["aasim", "laravel", "production"],
+    "timezone": "UTC",
+    "schemaVersion": 38,
+    "panels": [
+      {
+        "id": 1,
+        "title": "HTTP Request Rate",
+        "type": "graph",
+        "gridPos": {"x": 0, "y": 0, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "rate(aasim_http_requests_total[5m])",
+            "legendFormat": "Requests/sec"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Average Response Time",
+        "type": "graph",
+        "gridPos": {"x": 12, "y": 0, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "aasim_http_request_duration_seconds",
+            "legendFormat": "Avg Response Time (s)"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Memory Usage",
+        "type": "graph",
+        "gridPos": {"x": 0, "y": 8, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "aasim_memory_usage_bytes / 1024 / 1024",
+            "legendFormat": "Memory (MB)"
+          },
+          {
+            "expr": "aasim_memory_peak_bytes / 1024 / 1024",
+            "legendFormat": "Peak Memory (MB)"
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Queue Sizes",
+        "type": "graph",
+        "gridPos": {"x": 12, "y": 8, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "aasim_queue_default_size",
+            "legendFormat": "Default Queue"
+          },
+          {
+            "expr": "aasim_queue_high_size",
+            "legendFormat": "High Priority"
+          },
+          {
+            "expr": "aasim_queue_webhooks_size",
+            "legendFormat": "Webhooks"
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "title": "Cache Hit Rate",
+        "type": "stat",
+        "gridPos": {"x": 0, "y": 16, "w": 6, "h": 4},
+        "targets": [
+          {
+            "expr": "aasim_cache_hits_total / (aasim_cache_hits_total + aasim_cache_misses_total) * 100",
+            "legendFormat": "Hit Rate %"
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "title": "Failed Jobs",
+        "type": "stat",
+        "gridPos": {"x": 6, "y": 16, "w": 6, "h": 4},
+        "targets": [
+          {
+            "expr": "aasim_queue_failed_jobs_total"
+          }
+        ]
+      },
+      {
+        "id": 7,
+        "title": "Database Connections",
+        "type": "stat",
+        "gridPos": {"x": 12, "y": 16, "w": 6, "h": 4},
+        "targets": [
+          {
+            "expr": "aasim_database_connections_active"
+          }
+        ]
+      },
+      {
+        "id": 8,
+        "title": "CPU Load",
+        "type": "gauge",
+        "gridPos": {"x": 18, "y": 16, "w": 6, "h": 4},
+        "targets": [
+          {
+            "expr": "aasim_cpu_load_average"
+          }
+        ],
+        "options": {
+          "minValue": 0,
+          "maxValue": 8
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,63 @@
+# Prometheus configuration for Aasim AI monitoring
+
+global:
+  scrape_interval: 15s # Scrape targets every 15 seconds
+  evaluation_interval: 15s # Evaluate rules every 15 seconds
+  external_labels:
+    environment: 'production'
+    application: 'aasim-ai'
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - alertmanager:9093
+
+# Load rules once and periodically evaluate them
+rule_files:
+  - "alerts/*.yml"
+
+# Scrape configurations
+scrape_configs:
+  # Aasim AI Application
+  - job_name: 'aasim-api'
+    metrics_path: '/api/metrics'
+    scheme: 'http'
+    static_configs:
+      - targets: ['aasim-api:8000'] # Update with your app host
+        labels:
+          service: 'api'
+          tier: 'backend'
+
+  # Redis
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis:6379']
+        labels:
+          service: 'cache'
+          tier: 'data'
+
+  # PostgreSQL
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres:5432']
+        labels:
+          service: 'database'
+          tier: 'data'
+
+  # Laravel Queue Workers
+  - job_name: 'queue-workers'
+    static_configs:
+      - targets: ['worker-1:8001', 'worker-2:8002']
+        labels:
+          service: 'queue'
+          tier: 'workers'
+
+  # Node Exporter (system metrics)
+  - job_name: 'node'
+    static_configs:
+      - targets: ['node-exporter:9100']
+        labels:
+          service: 'system'
+          tier: 'infrastructure'

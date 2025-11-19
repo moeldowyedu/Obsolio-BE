@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Api\HealthCheckController;
+use App\Http\Controllers\Api\MetricsController;
 use App\Http\Controllers\Api\V1\AgentController;
 use App\Http\Controllers\Api\V1\AgentExecutionController;
 use App\Http\Controllers\Api\V1\AuthController;
@@ -28,6 +30,13 @@ use Illuminate\Support\Facades\Route;
 | be assigned to the "api" middleware group. Make something great!
 |
 */
+
+// Health & Monitoring endpoints (no auth required)
+Route::get('/health', [HealthCheckController::class, 'index']); // Lightweight health check
+Route::get('/health/detailed', [HealthCheckController::class, 'detailed']); // Detailed health check
+Route::get('/health/ready', [HealthCheckController::class, 'ready']); // Kubernetes readiness probe
+Route::get('/health/alive', [HealthCheckController::class, 'alive']); // Kubernetes liveness probe
+Route::get('/metrics', MetricsController::class); // Prometheus metrics
 
 // Public routes
 Route::prefix('v1')->group(function () {
