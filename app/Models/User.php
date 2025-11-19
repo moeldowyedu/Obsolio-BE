@@ -120,7 +120,7 @@ class User extends Authenticatable
      */
     public function webhooks(): HasMany
     {
-        return $this->hasMany(Webhook::class, 'created_by_user_id');
+        return $this->hasMany(Webhook::class, 'user_id');
     }
 
     /**
@@ -128,6 +128,6 @@ class User extends Authenticatable
      */
     public function apiKeys(): HasMany
     {
-        return $this->hasMany(APIKey::class, 'created_by_user_id');
+        return $this->hasMany(APIKey::class, 'user_id');
     }
 }

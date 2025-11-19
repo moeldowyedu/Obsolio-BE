@@ -17,17 +17,18 @@ class APIKey extends Model
 
     protected $fillable = [
         'tenant_id',
-        'created_by_user_id',
+        'user_id',
         'name',
         'key',
-        'permissions',
+        'key_prefix',
+        'scopes',
         'last_used_at',
         'expires_at',
         'is_active',
     ];
 
     protected $casts = [
-        'permissions' => 'array',
+        'scopes' => 'array',
         'last_used_at' => 'datetime',
         'expires_at' => 'datetime',
         'is_active' => 'boolean',
@@ -45,6 +46,6 @@ class APIKey extends Model
 
     public function createdBy(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'created_by_user_id');
+        return $this->belongsTo(User::class, 'user_id');
     }
 }

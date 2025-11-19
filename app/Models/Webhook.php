@@ -13,18 +13,24 @@ class Webhook extends Model
 
     protected $fillable = [
         'tenant_id',
-        'created_by_user_id',
+        'user_id',
         'name',
         'url',
         'events',
+        'headers',
         'secret',
         'is_active',
+        'total_calls',
+        'failed_calls',
         'last_triggered_at',
     ];
 
     protected $casts = [
         'events' => 'array',
+        'headers' => 'array',
         'is_active' => 'boolean',
+        'total_calls' => 'integer',
+        'failed_calls' => 'integer',
         'last_triggered_at' => 'datetime',
     ];
 
@@ -35,6 +41,6 @@ class Webhook extends Model
 
     public function createdBy(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'created_by_user_id');
+        return $this->belongsTo(User::class, 'user_id');
     }
 }
