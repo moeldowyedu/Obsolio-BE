@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\StoreConnectedAppRequest;
-use App\Http\Requests\UpdateConnectedAppRequest;
+use App\Http\Requests\Integrations\StoreConnectedAppRequest;
+use App\Http\Requests\Integrations\UpdateConnectedAppRequest;
 use App\Models\ConnectedApp;
 use App\Models\ConnectedAppLog;
 use App\Models\UserActivity;

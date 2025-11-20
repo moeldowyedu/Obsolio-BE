@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\StoreAPIKeyRequest;
-use App\Http\Requests\UpdateAPIKeyRequest;
+use App\Http\Requests\Integrations\StoreAPIKeyRequest;
+use App\Http\Requests\Integrations\UpdateAPIKeyRequest;
 use App\Models\APIKey;
 use App\Models\UserActivity;
 use Illuminate\Http\JsonResponse;
