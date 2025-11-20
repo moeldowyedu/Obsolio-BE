@@ -21,6 +21,8 @@ use App\Http\Controllers\Api\V1\WorkflowController;
 use App\Http\Controllers\Api\V1\APIKeyController;
 use App\Http\Controllers\Api\V1\ConnectedAppController;
 use App\Http\Controllers\Api\V1\UserActivityController;
+use App\Http\Controllers\Api\V1\RoleController;
+use App\Http\Controllers\Api\V1\PermissionController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -94,6 +96,12 @@ Route::prefix('v1')->middleware(['auth:sanctum'])->group(function () {
     Route::put('/users/{id}/status', [UserController::class, 'updateStatus']);
     Route::post('/users/{id}/assign', [UserController::class, 'assign']);
     Route::get('/users/{id}/assignments', [UserController::class, 'assignments']);
+
+    // Roles & Permissions
+    Route::apiResource('roles', RoleController::class);
+    Route::get('/permissions', [PermissionController::class, 'index']);
+    Route::get('/permissions/list', [PermissionController::class, 'list']);
+    Route::get('/permissions/{id}', [PermissionController::class, 'show']);
 
     // Engines & Rubrics
     Route::get('/engines/{id}', [EngineController::class, 'show']);
