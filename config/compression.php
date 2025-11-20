@@ -53,7 +53,7 @@ return [
          * BROTLI_GENERIC = general purpose
          * BROTLI_FONT = optimized for fonts
          */
-        'mode' => BROTLI_TEXT,
+        'mode' => defined('BROTLI_TEXT') ? BROTLI_TEXT : 0,
     ],
 
     /**

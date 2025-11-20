@@ -12,8 +12,9 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
+use Tymon\JWTAuth\Contracts\JWTSubject;
 
-class User extends Authenticatable
+class User extends Authenticatable implements JWTSubject
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, HasUuids, HasApiTokens, HasRoles;
@@ -129,5 +130,47 @@ class User extends Authenticatable
     public function apiKeys(): HasMany
     {
         return $this->hasMany(APIKey::class, 'user_id');
+    }
+
+    /**
+     * Get the connected apps created by the user.
+     */
+    public function connectedApps(): HasMany
+    {
+        return $this->hasMany(ConnectedApp::class, 'user_id');
+    }
+
+    /**
+     * Get the user activities.
+     */
+    public function activities(): HasMany
+    {
+        return $this->hasMany(UserActivity::class, 'user_id');
+    }
+
+    /**
+     * Get the user sessions.
+     */
+    public function sessions(): HasMany
+    {
+        return $this->hasMany(UserSession::class, 'user_id');
+    }
+
+    /**
+     * Get the identifier that will be stored in the subject claim of the JWT.
+     */
+    public function getJWTIdentifier()
+    {
+        return $this->getKey();
+    }
+
+    /**
+     * Return a key value array, containing any custom claims to be added to the JWT.
+     */
+    public function getJWTCustomClaims()
+    {
+        return [
+            'tenant_id' => $this->tenant_id,
+        ];
     }
 }

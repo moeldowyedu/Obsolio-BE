@@ -18,6 +18,9 @@ use App\Http\Controllers\Api\V1\TeamController;
 use App\Http\Controllers\Api\V1\UserController;
 use App\Http\Controllers\Api\V1\WebhookController;
 use App\Http\Controllers\Api\V1\WorkflowController;
+use App\Http\Controllers\Api\V1\APIKeyController;
+use App\Http\Controllers\Api\V1\ConnectedAppController;
+use App\Http\Controllers\Api\V1\UserActivityController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -140,6 +143,30 @@ Route::prefix('v1')->middleware(['auth:sanctum'])->group(function () {
     // Webhooks
     Route::apiResource('webhooks', WebhookController::class);
     Route::post('/webhooks/{id}/test', [WebhookController::class, 'test']);
+
+    // API Keys
+    Route::apiResource('api-keys', APIKeyController::class);
+    Route::post('/api-keys/{id}/regenerate', [APIKeyController::class, 'regenerate']);
+    Route::post('/api-keys/{id}/toggle', [APIKeyController::class, 'toggle']);
+
+    // Connected Apps
+    Route::apiResource('connected-apps', ConnectedAppController::class);
+    Route::post('/connected-apps/{id}/sync', [ConnectedAppController::class, 'sync']);
+    Route::post('/connected-apps/{id}/test', [ConnectedAppController::class, 'testConnection']);
+    Route::post('/connected-apps/{id}/refresh-token', [ConnectedAppController::class, 'refreshToken']);
+    Route::get('/connected-apps/{id}/logs', [ConnectedAppController::class, 'logs']);
+    Route::post('/connected-apps/{id}/revoke', [ConnectedAppController::class, 'revoke']);
+
+    // User Activities
+    Route::get('/activities', [UserActivityController::class, 'index']);
+    Route::get('/activities/{id}', [UserActivityController::class, 'show']);
+    Route::get('/activities/user/{userId}', [UserActivityController::class, 'byUser']);
+    Route::get('/activities/export', [UserActivityController::class, 'export']);
+
+    // User Sessions
+    Route::get('/sessions', [UserActivityController::class, 'sessions']);
+    Route::get('/sessions/active', [UserActivityController::class, 'activeSessions']);
+    Route::post('/sessions/{id}/terminate', [UserActivityController::class, 'terminateSession']);
 
     // Subscriptions & Billing
     Route::get('/subscriptions', [SubscriptionController::class, 'index']);
