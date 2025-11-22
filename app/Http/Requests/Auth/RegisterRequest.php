@@ -27,6 +27,11 @@ class RegisterRequest extends FormRequest
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             'avatar_url' => ['nullable', 'url', 'max:500'],
             'phone' => ['nullable', 'string', 'max:20'],
+            'tenant_type' => ['nullable', 'string', 'in:individual,organization'],
+            'organization_name' => ['nullable', 'string', 'max:255'],
+            'plan' => ['nullable', 'array'],
+            'plan.planId' => ['nullable', 'string'],
+            'plan.billingCycle' => ['nullable', 'string', 'in:monthly,yearly'],
         ];
     }
 
