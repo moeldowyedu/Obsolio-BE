@@ -26,7 +26,7 @@ class DashboardController extends Controller
                 ],
                 'agents' => [
                     'total' => Agent::where('tenant_id', $user->tenant_id)->count(),
-                    'active' => Agent::where('tenant_id', $user->tenant_id)->where('is_active', true)->count(),
+                    'active' => Agent::where('tenant_id', $user->tenant_id)->where('status', 'active')->count(),
                 ],
                 'workflows' => [
                     'total' => Workflow::where('tenant_id', $user->tenant_id)->count(),

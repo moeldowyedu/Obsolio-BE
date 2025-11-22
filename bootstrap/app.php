@@ -14,6 +14,13 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         // JWT authentication - no need for Sanctum middleware
 
+        // Register middleware aliases
+        $middleware->alias([
+            'auth' => \Illuminate\Auth\Middleware\Authenticate::class,
+            'jwt.auth' => \Tymon\JWTAuth\Http\Middleware\Authenticate::class,
+            'jwt.refresh' => \Tymon\JWTAuth\Http\Middleware\RefreshToken::class,
+        ]);
+
         // Add global middleware
         $middleware->append(\App\Http\Middleware\CDNHeaders::class);
         $middleware->append(\App\Http\Middleware\CompressResponse::class);
