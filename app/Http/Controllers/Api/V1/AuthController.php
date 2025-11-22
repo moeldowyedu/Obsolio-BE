@@ -215,7 +215,7 @@ class AuthController extends Controller
                 ]);
 
             // Log logout activity
-            $this->logActivity($user->id, 'logout', 'update', 'User', $user->id, "User logged out: {$user->email}", $request);
+            $this->logActivity($user->id, 'logout', 'update', 'User', $user->id, "User logged out: {$user->email}", $request, 'success', null, false, $user->tenant_id);
 
             auth('api')->logout();
 
