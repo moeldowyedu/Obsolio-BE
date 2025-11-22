@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('name');
             $table->text('location')->nullable();
             $table->string('branch_code', 50)->nullable();
-            $table->uuid('branch_manager_id')->nullable();
+            $table->unsignedBigInteger('branch_manager_id')->nullable();
             $table->enum('status', ['active', 'inactive'])->default('active');
             $table->timestamps();
 
@@ -35,7 +35,7 @@ return new class extends Migration
             $table->uuid('branch_id')->nullable();
             $table->uuid('parent_department_id')->nullable();
             $table->string('name');
-            $table->uuid('department_head_id')->nullable();
+            $table->unsignedBigInteger('department_head_id')->nullable();
             $table->text('description')->nullable();
             $table->decimal('budget', 15, 2)->nullable();
             $table->enum('status', ['active', 'inactive'])->default('active');
@@ -60,7 +60,7 @@ return new class extends Migration
             $table->uuid('organization_id');
             $table->uuid('department_id')->nullable();
             $table->string('name');
-            $table->uuid('project_manager_id')->nullable();
+            $table->unsignedBigInteger('project_manager_id')->nullable();
             $table->text('description')->nullable();
             $table->date('start_date')->nullable();
             $table->date('end_date')->nullable();
@@ -79,7 +79,7 @@ return new class extends Migration
             $table->string('tenant_id');
             $table->uuid('organization_id');
             $table->string('name');
-            $table->uuid('team_lead_id')->nullable();
+            $table->unsignedBigInteger('team_lead_id')->nullable();
             $table->text('description')->nullable();
             $table->timestamps();
 
