@@ -26,7 +26,7 @@ class RegisterRequest extends FormRequest
             'email' => ['required', 'email', 'unique:users,email', 'max:255'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             'avatar_url' => ['nullable', 'url', 'max:500'],
-            'phone' => ['nullable', 'string', 'max:20'],
+            'phone' => ['required', 'string', 'max:20'],
             'tenant_type' => ['nullable', 'string', 'in:individual,organization'],
             'organization_name' => ['nullable', 'string', 'max:255'],
             'plan' => ['nullable', 'array'],
@@ -48,6 +48,7 @@ class RegisterRequest extends FormRequest
             'password.required' => 'Please enter a password.',
             'password.min' => 'Password must be at least 8 characters long.',
             'password.confirmed' => 'Password confirmation does not match.',
+            'phone.required' => 'Please enter your phone number.',
             'avatar_url.url' => 'Please enter a valid avatar URL.',
         ];
     }
