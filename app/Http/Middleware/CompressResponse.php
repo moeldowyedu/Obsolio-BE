@@ -229,7 +229,7 @@ class CompressResponse
             $response->setContent($compressed);
             $response->headers->set('Content-Encoding', $encoding);
             $response->headers->set('Content-Length', strlen($compressed));
-            $response->headers->add('Vary', 'Accept-Encoding');
+            $response->headers->set('Vary', 'Accept-Encoding');
 
             // Add compression stats in debug mode
             if (config('app.debug')) {
