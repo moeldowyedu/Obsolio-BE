@@ -20,6 +20,7 @@ use App\Http\Controllers\Api\V1\WebhookController;
 use App\Http\Controllers\Api\V1\WorkflowController;
 use App\Http\Controllers\Api\V1\APIKeyController;
 use App\Http\Controllers\Api\V1\ConnectedAppController;
+use App\Http\Controllers\Api\V1\DashboardController;
 use App\Http\Controllers\Api\V1\UserActivityController;
 use App\Http\Controllers\Api\V1\RoleController;
 use App\Http\Controllers\Api\V1\PermissionController;
@@ -204,7 +205,7 @@ Route::prefix('v1')->middleware(['auth:api'])->group(function () {
     Route::get('/subscriptions/usage/{date}', [SubscriptionController::class, 'usageByDate']);
 
     // Analytics & Dashboard
-    Route::get('/dashboard/stats', [AuthController::class, 'dashboardStats']);
+    Route::get('/dashboard/stats', [DashboardController::class, 'dashboardStats']);
     Route::get('/analytics/agents', [AgentController::class, 'analytics']);
     Route::get('/analytics/executions', [AgentExecutionController::class, 'analytics']);
 });
