@@ -21,7 +21,7 @@ class EngineController extends Controller
         $query = Engine::query();
 
         // Only show active engines for non-admin users
-        if (!auth()->user()->hasRole('super-admin')) {
+        if (!auth()->user()?->hasRole('super-admin')) {
             $query->where('is_active', true);
         }
 

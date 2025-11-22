@@ -5,11 +5,13 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Models\Tenant;
 use App\Models\User;
 use App\Models\UserActivity;
 use App\Models\UserSession;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Tymon\JWTAuth\Facades\JWTAuth;
@@ -17,62 +19,71 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 class AuthController extends Controller
 {
     /**
-     * Create a new AuthController instance.
-     */
-    public function __construct()
-    {
-        $this->middleware('auth:api', ['except' => ['login', 'register']]);
-    }
-
-    /**
      * Register a new user.
      */
     public function register(RegisterRequest $request): JsonResponse
     {
         try {
-            $user = User::create([
-                'tenant_id' => tenant('id'),
-                'name' => $request->name,
-                'email' => $request->email,
-                'password' => Hash::make($request->password),
-                'avatar_url' => $request->avatar_url,
-                'status' => 'active',
-            ]);
+            return DB::transaction(function () use ($request) {
+                // Create tenant if organization_name is provided
+                $tenantId = null;
+                if ($request->has('organization_name')) {
+                    $tenant = Tenant::create([
+                        'id' => Str::uuid()->toString(),
+                        'data' => [
+                            'name' => $request->organization_name,
+                        ],
+                    ]);
+                    $tenantId = $tenant->id;
+                } else {
+                    // Use current tenant context if available
+                    $tenantId = tenant('id');
+                }
 
-            // Auto-login: generate JWT token
-            $token = JWTAuth::fromUser($user);
+                $user = User::create([
+                    'tenant_id' => $tenantId,
+                    'name' => $request->name,
+                    'email' => $request->email,
+                    'password' => Hash::make($request->password),
+                    'avatar_url' => $request->avatar_url,
+                    'status' => 'active',
+                ]);
 
-            // Create session
-            $sessionId = Str::uuid()->toString();
-            $session = UserSession::create([
-                'tenant_id' => tenant('id'),
-                'user_id' => $user->id,
-                'session_id' => $sessionId,
-                'ip_address' => $request->ip(),
-                'user_agent' => $request->userAgent(),
-                'device_type' => $this->detectDeviceType($request->userAgent()),
-                'browser' => $this->detectBrowser($request->userAgent()),
-                'platform' => $this->detectPlatform($request->userAgent()),
-                'location' => $this->detectLocation($request->ip()),
-                'started_at' => now(),
-                'last_activity_at' => now(),
-                'is_active' => true,
-            ]);
+                // Auto-login: generate JWT token
+                $token = JWTAuth::fromUser($user);
 
-            // Log registration activity
-            $this->logActivity($user->id, 'login', 'create', 'User', $user->id, "User registered: {$user->email}", $request);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Registration successful',
-                'data' => [
-                    'user' => $user->load('tenant'),
-                    'token' => $token,
-                    'token_type' => 'bearer',
-                    'expires_in' => config('jwt.ttl') * 60, // Convert minutes to seconds
+                // Create session
+                $sessionId = Str::uuid()->toString();
+                $session = UserSession::create([
+                    'tenant_id' => $tenantId,
+                    'user_id' => $user->id,
                     'session_id' => $sessionId,
-                ],
-            ], 201);
+                    'ip_address' => $request->ip(),
+                    'user_agent' => $request->userAgent(),
+                    'device_type' => $this->detectDeviceType($request->userAgent()),
+                    'browser' => $this->detectBrowser($request->userAgent()),
+                    'platform' => $this->detectPlatform($request->userAgent()),
+                    'location' => $this->detectLocation($request->ip()),
+                    'started_at' => now(),
+                    'last_activity_at' => now(),
+                    'is_active' => true,
+                ]);
+
+                // Log registration activity
+                $this->logActivity($user->id, 'login', 'create', 'User', $user->id, "User registered: {$user->email}", $request);
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Registration successful',
+                    'data' => [
+                        'user' => $user->load('tenant'),
+                        'token' => $token,
+                        'token_type' => 'bearer',
+                        'expires_in' => (int) config('jwt.ttl') * 60, // Convert minutes to seconds
+                        'session_id' => $sessionId,
+                    ],
+                ], 201);
+            });
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
