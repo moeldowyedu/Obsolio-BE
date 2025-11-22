@@ -44,9 +44,13 @@ return new class extends Migration
             $table->foreign('tenant_id')->references('id')->on('tenants')->cascadeOnDelete();
             $table->foreign('organization_id')->references('id')->on('organizations')->cascadeOnDelete();
             $table->foreign('branch_id')->references('id')->on('branches')->nullOnDelete();
-            $table->foreign('parent_department_id')->references('id')->on('departments')->nullOnDelete();
             $table->index('parent_department_id');
             $table->index('branch_id');
+        });
+
+        // Add self-referencing foreign key for departments after table is created
+        Schema::table('departments', function (Blueprint $table) {
+            $table->foreign('parent_department_id')->references('id')->on('departments')->nullOnDelete();
         });
 
         // Projects table
