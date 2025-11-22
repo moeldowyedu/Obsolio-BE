@@ -12,8 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            // Change ID to UUID
-            $table->uuid('id')->primary()->change();
+            // Keep ID as bigint (do not change to UUID)
+            // $table->uuid('id')->primary()->change();
 
             // Add multi-tenancy support
             $table->string('tenant_id')->after('id')->index();
@@ -42,8 +42,8 @@ return new class extends Migration
                 'last_login_at',
             ]);
 
-            // Revert ID back to bigInteger
-            $table->id()->change();
+            // ID remains as bigint - no change needed
+            // $table->id()->change();
         });
     }
 };
