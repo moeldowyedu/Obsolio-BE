@@ -179,20 +179,21 @@ return new class extends Migration
     private function foreignKeyExists(string $table, string $foreignKey): bool
     {
         $conn = Schema::getConnection();
-        $schemaManager = $conn->getDoctrineSchemaManager();
 
         try {
-            $foreignKeys = $schemaManager->listTableForeignKeys($table);
-            foreach ($foreignKeys as $fk) {
-                if ($fk->getName() === $foreignKey) {
-                    return true;
-                }
-            }
-        } catch (\Exception $e) {
-            // Table might not exist
-        }
+            $result = $conn->select(
+                "SELECT constraint_name
+                 FROM information_schema.table_constraints
+                 WHERE table_name = ?
+                 AND constraint_type = 'FOREIGN KEY'
+                 AND constraint_name = ?",
+                [$table, $foreignKey]
+            );
 
-        return false;
+            return count($result) > 0;
+        } catch (\Exception $e) {
+            return false;
+        }
     }
 
     /**
@@ -201,15 +202,19 @@ return new class extends Migration
     private function indexExists(string $table, string $indexName): bool
     {
         $conn = Schema::getConnection();
-        $schemaManager = $conn->getDoctrineSchemaManager();
 
         try {
-            $indexes = $schemaManager->listTableIndexes($table);
-            return isset($indexes[$indexName]);
-        } catch (\Exception $e) {
-            // Table might not exist
-        }
+            $result = $conn->select(
+                "SELECT indexname
+                 FROM pg_indexes
+                 WHERE tablename = ?
+                 AND indexname = ?",
+                [$table, $indexName]
+            );
 
-        return false;
+            return count($result) > 0;
+        } catch (\Exception $e) {
+            return false;
+        }
     }
 };
