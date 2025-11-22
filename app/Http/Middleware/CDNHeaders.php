@@ -4,7 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /**
@@ -72,7 +72,7 @@ class CDNHeaders
     /**
      * Add headers for static assets
      */
-    private function addStaticAssetHeaders(Response $response, Request $request): void
+    private function addStaticAssetHeaders($response, Request $request): void
     {
         $extension = strtolower(pathinfo($request->path(), PATHINFO_EXTENSION));
         $cacheControl = $this->getCacheControlForAsset($extension);
@@ -100,7 +100,7 @@ class CDNHeaders
     /**
      * Add headers for API responses
      */
-    private function addAPIHeaders(Response $response): void
+    private function addAPIHeaders($response): void
     {
         // API responses should not be cached by CDN by default
         $response->headers->set('Cache-Control', 'private, no-cache, no-store, must-revalidate');
@@ -114,7 +114,7 @@ class CDNHeaders
     /**
      * Add security headers
      */
-    private function addSecurityHeaders(Response $response): void
+    private function addSecurityHeaders($response): void
     {
         $securityHeaders = config('cdn.security_headers', []);
 
@@ -128,7 +128,7 @@ class CDNHeaders
     /**
      * Add CDN-specific headers
      */
-    private function addCDNHeaders(Response $response, Request $request): void
+    private function addCDNHeaders($response, Request $request): void
     {
         if (!config('cdn.enabled')) {
             return;
@@ -157,7 +157,7 @@ class CDNHeaders
     /**
      * Add CORS headers
      */
-    private function addCORSHeaders(Response $response): void
+    private function addCORSHeaders($response): void
     {
         $allowedOrigins = config('cdn.cors.allowed_origins', '*');
         $allowedMethods = implode(', ', config('cdn.cors.allowed_methods', ['GET']));
