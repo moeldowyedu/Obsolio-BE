@@ -43,6 +43,22 @@ Route::get('/health/ready', [HealthCheckController::class, 'ready']); // Kuberne
 Route::get('/health/alive', [HealthCheckController::class, 'alive']); // Kubernetes liveness probe
 Route::get('/metrics', MetricsController::class); // Prometheus metrics
 
+// API v1 welcome endpoint
+Route::get('/v1', function () {
+    return response()->json([
+        'message' => 'Welcome to Aasim AI API v1',
+        'version' => '1.0.0',
+        'documentation' => url('/api/documentation'),
+        'endpoints' => [
+            'auth' => '/api/v1/auth',
+            'agents' => '/api/v1/agents',
+            'workflows' => '/api/v1/workflows',
+            'marketplace' => '/api/v1/marketplace',
+            'organizations' => '/api/v1/organizations',
+        ],
+    ]);
+});
+
 // Public routes
 Route::prefix('v1')->group(function () {
     // Authentication
