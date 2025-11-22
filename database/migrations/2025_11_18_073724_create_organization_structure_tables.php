@@ -90,7 +90,7 @@ return new class extends Migration
         // Team Members pivot table
         Schema::create('team_members', function (Blueprint $table) {
             $table->uuid('team_id');
-            $table->uuid('user_id');
+            $table->unsignedBigInteger('user_id');
             $table->timestamp('joined_at')->useCurrent();
 
             $table->primary(['team_id', 'user_id']);

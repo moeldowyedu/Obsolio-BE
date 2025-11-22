@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('webhooks', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('tenant_id');
-            $table->uuid('user_id');
+            $table->unsignedBigInteger('user_id');
             $table->string('name');
             $table->string('url');
             $table->json('events');

@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('agents', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('tenant_id');
-            $table->uuid('created_by_user_id')->nullable();
+            $table->unsignedBigInteger('created_by_user_id')->nullable();
             $table->string('name');
             $table->text('description')->nullable();
             $table->enum('type', ['custom', 'marketplace', 'template'])->default('custom');

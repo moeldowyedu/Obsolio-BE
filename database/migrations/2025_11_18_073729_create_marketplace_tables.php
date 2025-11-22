@@ -44,7 +44,7 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->uuid('listing_id');
             $table->string('buyer_tenant_id');
-            $table->uuid('purchased_by_user_id')->nullable();
+            $table->unsignedBigInteger('purchased_by_user_id')->nullable();
             $table->decimal('price_paid', 10, 2);
             $table->string('currency', 3);
             $table->timestamp('purchased_at')->useCurrent();

@@ -15,7 +15,7 @@ return new class extends Migration
         Schema::create('workflows', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('tenant_id');
-            $table->uuid('created_by_user_id')->nullable();
+            $table->unsignedBigInteger('created_by_user_id')->nullable();
             $table->string('name');
             $table->text('description')->nullable();
             $table->uuid('organization_id')->nullable();
@@ -39,7 +39,7 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->uuid('workflow_id');
             $table->string('tenant_id');
-            $table->uuid('triggered_by_user_id')->nullable();
+            $table->unsignedBigInteger('triggered_by_user_id')->nullable();
             $table->enum('status', ['running', 'completed', 'failed', 'cancelled'])->default('running');
             $table->timestamp('started_at')->useCurrent();
             $table->timestamp('completed_at')->nullable();

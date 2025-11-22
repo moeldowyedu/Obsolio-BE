@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('user_assignments', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->uuid('user_id');
+            $table->unsignedBigInteger('user_id');
             $table->string('tenant_id');
             $table->uuid('organization_id')->nullable();
             $table->uuid('branch_id')->nullable();

@@ -18,7 +18,7 @@ return new class extends Migration
             $table->uuid('job_flow_id')->nullable();
             $table->uuid('workflow_execution_id')->nullable();
             $table->string('triggered_by', 50);
-            $table->uuid('triggered_by_user_id')->nullable();
+            $table->unsignedBigInteger('triggered_by_user_id')->nullable();
             $table->jsonb('input_data');
             $table->jsonb('output_data')->nullable();
             $table->enum('status', ['pending', 'running', 'completed', 'failed', 'cancelled'])->default('pending');

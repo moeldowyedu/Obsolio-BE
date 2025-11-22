@@ -15,7 +15,7 @@ return new class extends Migration
         Schema::create('webhooks', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('tenant_id');
-            $table->uuid('created_by_user_id')->nullable();
+            $table->unsignedBigInteger('created_by_user_id')->nullable();
             $table->string('name');
             $table->string('url', 500);
             $table->jsonb('events');
@@ -32,7 +32,7 @@ return new class extends Migration
         Schema::create('api_keys', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('tenant_id');
-            $table->uuid('created_by_user_id')->nullable();
+            $table->unsignedBigInteger('created_by_user_id')->nullable();
             $table->string('name');
             $table->string('key', 100)->unique();
             $table->jsonb('permissions')->default('{}');

@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('user_activities', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('tenant_id');
-            $table->uuid('user_id');
+            $table->unsignedBigInteger('user_id');
             $table->uuid('organization_id')->nullable();
             $table->string('activity_type'); // 'login', 'logout', 'api_call', 'data_access', 'data_modification', 'settings_change', 'app_connection', 'export', etc.
             $table->string('action'); // 'create', 'read', 'update', 'delete', 'download', 'upload', 'share', etc.
@@ -53,7 +53,7 @@ return new class extends Migration
         Schema::create('user_sessions', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('tenant_id');
-            $table->uuid('user_id');
+            $table->unsignedBigInteger('user_id');
             $table->string('session_id')->unique();
             $table->string('ip_address', 45)->nullable();
             $table->string('user_agent')->nullable();

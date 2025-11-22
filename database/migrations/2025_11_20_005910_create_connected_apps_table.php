@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('connected_apps', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('tenant_id');
-            $table->uuid('user_id');
+            $table->unsignedBigInteger('user_id');
             $table->uuid('organization_id');
             $table->string('app_name');
             $table->string('app_type'); // 'oauth', 'api_key', 'webhook', 'custom'
