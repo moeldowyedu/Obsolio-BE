@@ -4,8 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
-use Illuminate\Http\JsonResponse;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -80,7 +79,7 @@ class CompressResponse
     /**
      * Check if compression should be skipped
      */
-    private function shouldSkipCompression(Response $response): bool
+    private function shouldSkipCompression($response): bool
     {
         // Skip if response is not successful
         if ($response->status() < 200 || $response->status() >= 300) {
@@ -108,7 +107,7 @@ class CompressResponse
     /**
      * Check if response content is compressible
      */
-    private function isCompressible(Response $response): bool
+    private function isCompressible($response): bool
     {
         // Check content type
         $contentType = $response->headers->get('Content-Type', '');
@@ -195,7 +194,7 @@ class CompressResponse
     /**
      * Compress response content
      */
-    private function compressResponse(Response $response, string $encoding): Response
+    private function compressResponse($response, string $encoding)
     {
         $content = $response->getContent();
         $compressed = null;
