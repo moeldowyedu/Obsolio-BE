@@ -25,27 +25,9 @@ class AuthController extends Controller
     {
         try {
             return DB::transaction(function () use ($request) {
-                // Create tenant for organization or individual users
-                $tenantType = $request->input('tenant_type', 'organization');
-
-                // Always create a tenant for new users
-                $organizationName = $request->organization_name
-                    ?? ($tenantType === 'organization'
-                        ? $request->name . "'s Organization"
-                        : $request->name . "'s Workspace");
-
-                $tenant = Tenant::create(['id' => Str::uuid()->toString()]);
-
-                // Set tenant data using the proper method
-                $tenant->name = $organizationName;
-                $tenant->type = $tenantType;
-                $tenant->plan = $request->plan;
-                $tenant->save();
-
-                $tenantId = $tenant->id;
-
+                // Create user without tenant - tenant will be created during setup
                 $user = User::create([
-                    'tenant_id' => $tenantId,
+                    'tenant_id' => null, // Will be set during tenant setup
                     'name' => $request->name,
                     'email' => $request->email,
                     'password' => Hash::make($request->password),
@@ -57,10 +39,10 @@ class AuthController extends Controller
                 // Auto-login: generate JWT token
                 $token = JWTAuth::fromUser($user);
 
-                // Create session
+                // Create session without tenant_id (user hasn't set up tenant yet)
                 $sessionId = Str::uuid()->toString();
                 $session = UserSession::create([
-                    'tenant_id' => $tenantId,
+                    'tenant_id' => null,
                     'user_id' => $user->id,
                     'session_id' => $sessionId,
                     'ip_address' => $request->ip(),
@@ -74,18 +56,19 @@ class AuthController extends Controller
                     'is_active' => true,
                 ]);
 
-                // Log registration activity
-                $this->logActivity($user->id, 'login', 'create', 'User', $user->id, "User registered: {$user->email}", $request, 'success', null, false, $tenantId);
+                // Log registration activity without tenant_id
+                $this->logActivity($user->id, 'login', 'create', 'User', $user->id, "User registered: {$user->email}", $request, 'success', null, false, null);
 
                 return response()->json([
                     'success' => true,
-                    'message' => 'Registration successful',
+                    'message' => 'Registration successful. Please complete tenant setup.',
                     'data' => [
-                        'user' => $user->load('tenant'),
+                        'user' => $user,
                         'token' => $token,
                         'token_type' => 'bearer',
                         'expires_in' => (int) config('jwt.ttl') * 60, // Convert minutes to seconds
                         'session_id' => $sessionId,
+                        'requires_tenant_setup' => true, // Flag to frontend
                     ],
                 ], 201);
             });

@@ -23,6 +23,11 @@ class Tenant extends BaseTenant implements TenantWithDatabase
         'type',
         'status',
         'trial_ends_at',
+        'setup_completed',
+        'plan_id',
+        'billing_cycle',
+        'organization_name',
+        'setup_completed_at',
     ];
 
     /**
@@ -32,6 +37,8 @@ class Tenant extends BaseTenant implements TenantWithDatabase
      */
     protected $casts = [
         'trial_ends_at' => 'datetime',
+        'setup_completed' => 'boolean',
+        'setup_completed_at' => 'datetime',
     ];
 
     /**
@@ -90,5 +97,24 @@ class Tenant extends BaseTenant implements TenantWithDatabase
     public function hasExpiredTrial(): bool
     {
         return $this->trial_ends_at && $this->trial_ends_at->isPast();
+    }
+
+    /**
+     * Check if tenant setup is completed.
+     */
+    public function isSetupCompleted(): bool
+    {
+        return (bool) $this->setup_completed;
+    }
+
+    /**
+     * Mark tenant setup as completed.
+     */
+    public function markSetupCompleted(): void
+    {
+        $this->update([
+            'setup_completed' => true,
+            'setup_completed_at' => now(),
+        ]);
     }
 }
