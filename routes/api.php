@@ -24,6 +24,7 @@ use App\Http\Controllers\Api\V1\DashboardController;
 use App\Http\Controllers\Api\V1\UserActivityController;
 use App\Http\Controllers\Api\V1\RoleController;
 use App\Http\Controllers\Api\V1\PermissionController;
+use App\Http\Controllers\Api\V1\TenantSetupController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -84,6 +85,11 @@ Route::prefix('v1')->middleware(['jwt.auth'])->group(function () {
     Route::get('/auth/me', [AuthController::class, 'me']);
     Route::put('/auth/profile', [AuthController::class, 'updateProfile']);
     Route::post('/auth/change-password', [AuthController::class, 'changePassword']);
+
+    // Tenant Setup (after registration)
+    Route::get('/tenant-setup/status', [TenantSetupController::class, 'checkSetupStatus']);
+    Route::post('/tenant-setup/organization', [TenantSetupController::class, 'setupOrganization']);
+    Route::post('/tenant-setup/personal', [TenantSetupController::class, 'setupPersonal']);
 
     // Organizations
     Route::apiResource('organizations', OrganizationController::class);
