@@ -92,6 +92,9 @@ Route::prefix('v1')->middleware(['jwt.auth'])->group(function () {
     Route::post('/tenant-setup/personal', [TenantSetupController::class, 'setupPersonal']);
 
     // Tenant Management
+    Route::get('/tenants', [\App\Http\Controllers\Api\V1\TenantController::class, 'index']);
+    Route::post('/tenants', [\App\Http\Controllers\Api\V1\TenantController::class, 'store']);
+    Route::post('/tenants/{id}/switch', [\App\Http\Controllers\Api\V1\TenantController::class, 'switch']);
     Route::get('/tenant', [\App\Http\Controllers\Api\V1\TenantController::class, 'show']);
     Route::put('/tenant', [\App\Http\Controllers\Api\V1\TenantController::class, 'update']);
 

@@ -17,7 +17,29 @@ use Illuminate\Support\Str;
 class AgentController extends Controller
 {
     /**
-     * Display a listing of agents.
+     * @OA\Get(
+     *     path="/agents",
+     *     summary="List all agents",
+     *     description="Get a paginated list of all agents",
+     *     operationId="getAgents",
+     *     tags={"Agents"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="per_page",
+     *         in="query",
+     *         description="Items per page",
+     *         required=false,
+     *         @OA\Schema(type="integer", default=15)
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="array", @OA\Items(type="object"))
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Unauthenticated")
+     * )
      */
     public function index(): AnonymousResourceCollection
     {
@@ -30,7 +52,23 @@ class AgentController extends Controller
     }
 
     /**
-     * Store a newly created agent.
+     * @OA\Post(
+     *     path="/agents",
+     *     summary="Create new agent",
+     *     operationId="createAgent",
+     *     tags={"Agents"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(type="object")
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Agent created successfully",
+     *         @OA\JsonContent(type="object")
+     *     ),
+     *     @OA\Response(response=422, description="Validation error")
+     * )
      */
     public function store(StoreAgentRequest $request): JsonResponse
     {
@@ -53,7 +91,26 @@ class AgentController extends Controller
     }
 
     /**
-     * Display the specified agent.
+     * @OA\Get(
+     *     path="/agents/{agent}",
+     *     summary="Get agent details",
+     *     operationId="getAgent",
+     *     tags={"Agents"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="agent",
+     *         in="path",
+     *         description="Agent ID",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(type="object")
+     *     ),
+     *     @OA\Response(response=404, description="Agent not found")
+     * )
      */
     public function show(Agent $agent): AgentResource
     {
@@ -66,7 +123,30 @@ class AgentController extends Controller
     }
 
     /**
-     * Update the specified agent.
+     * @OA\Put(
+     *     path="/agents/{agent}",
+     *     summary="Update agent",
+     *     operationId="updateAgent",
+     *     tags={"Agents"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="agent",
+     *         in="path",
+     *         description="Agent ID",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(type="object")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Agent updated successfully",
+     *         @OA\JsonContent(type="object")
+     *     ),
+     *     @OA\Response(response=422, description="Validation error")
+     * )
      */
     public function update(UpdateAgentRequest $request, Agent $agent): AgentResource
     {
@@ -85,7 +165,25 @@ class AgentController extends Controller
     }
 
     /**
-     * Remove the specified agent.
+     * @OA\Delete(
+     *     path="/agents/{agent}",
+     *     summary="Delete agent",
+     *     operationId="deleteAgent",
+     *     tags={"Agents"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="agent",
+     *         in="path",
+     *         description="Agent ID",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Response(
+     *         response=204,
+     *         description="Agent deleted successfully"
+     *     ),
+     *     @OA\Response(response=404, description="Agent not found")
+     * )
      */
     public function destroy(Agent $agent): JsonResponse
     {
@@ -102,7 +200,29 @@ class AgentController extends Controller
     }
 
     /**
-     * Execute the specified agent.
+     * @OA\Post(
+     *     path="/agents/{agent}/execute",
+     *     summary="Execute agent",
+     *     operationId="executeAgent",
+     *     tags={"Agents"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="agent",
+     *         in="path",
+     *         description="Agent ID",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(type="object")
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Execution started",
+     *         @OA\JsonContent(type="object")
+     *     )
+     * )
      */
     public function execute(ExecuteAgentRequest $request, Agent $agent): JsonResponse
     {
@@ -132,7 +252,25 @@ class AgentController extends Controller
     }
 
     /**
-     * Clone the specified agent.
+     * @OA\Post(
+     *     path="/agents/{agent}/clone",
+     *     summary="Clone agent",
+     *     operationId="cloneAgent",
+     *     tags={"Agents"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="agent",
+     *         in="path",
+     *         description="Agent ID",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Agent cloned successfully",
+     *         @OA\JsonContent(type="object")
+     *     )
+     * )
      */
     public function clone(Agent $agent): JsonResponse
     {
@@ -160,7 +298,25 @@ class AgentController extends Controller
     }
 
     /**
-     * Publish the specified agent to marketplace.
+     * @OA\Post(
+     *     path="/agents/{agent}/publish",
+     *     summary="Publish agent to marketplace",
+     *     operationId="publishAgent",
+     *     tags={"Agents"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="agent",
+     *         in="path",
+     *         description="Agent ID",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Agent published successfully",
+     *         @OA\JsonContent(type="object")
+     *     )
+     * )
      */
     public function publish(Agent $agent): AgentResource
     {

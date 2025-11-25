@@ -13,6 +13,27 @@ class PermissionController extends Controller
     /**
      * Display a listing of permissions grouped by category.
      */
+    /**
+     * @OA\Get(
+     *     path="/permissions",
+     *     summary="List permissions (grouped)",
+     *     description="Get all permissions grouped by category",
+     *     operationId="getPermissions",
+     *     tags={"Permissions"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="array", @OA\Items(
+     *                 @OA\Property(property="category", type="string", example="projects"),
+     *                 @OA\Property(property="permissions", type="array", @OA\Items(type="object"))
+     *             ))
+     *         )
+     *     )
+     * )
+     */
     public function index(Request $request): JsonResponse
     {
         $this->authorize('view-permissions');
@@ -59,6 +80,24 @@ class PermissionController extends Controller
     /**
      * Display a flat list of all permissions.
      */
+    /**
+     * @OA\Get(
+     *     path="/permissions/list",
+     *     summary="List permissions (flat)",
+     *     description="Get a flat list of all permissions",
+     *     operationId="listPermissions",
+     *     tags={"Permissions"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="array", @OA\Items(type="object"))
+     *         )
+     *     )
+     * )
+     */
     public function list(Request $request): JsonResponse
     {
         $this->authorize('view-permissions');
@@ -91,6 +130,31 @@ class PermissionController extends Controller
 
     /**
      * Display the specified permission.
+     */
+    /**
+     * @OA\Get(
+     *     path="/permissions/{id}",
+     *     summary="Get permission details",
+     *     operationId="getPermission",
+     *     tags={"Permissions"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="Permission ID",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(response=404, description="Permission not found")
+     * )
      */
     public function show(Request $request, string $id): JsonResponse
     {

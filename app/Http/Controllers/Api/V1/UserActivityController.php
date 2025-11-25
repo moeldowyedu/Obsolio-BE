@@ -13,7 +13,31 @@ use Illuminate\Support\Facades\DB;
 class UserActivityController extends Controller
 {
     /**
-     * Display a listing of user activities.
+     * @OA\Get(
+     *     path="/activities",
+     *     summary="List all activities",
+     *     description="Get a paginated list of user activities",
+     *     operationId="getActivities",
+     *     tags={"Activities"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="per_page",
+     *         in="query",
+     *         description="Items per page",
+     *         required=false,
+     *         @OA\Schema(type="integer", default=20)
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="array", @OA\Items(type="object")),
+     *             @OA\Property(property="meta", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Unauthenticated")
+     * )
      */
     public function index(QueryUserActivityRequest $request): JsonResponse
     {
@@ -82,7 +106,29 @@ class UserActivityController extends Controller
     }
 
     /**
-     * Display the specified activity.
+     * @OA\Get(
+     *     path="/activities/{id}",
+     *     summary="Get activity details",
+     *     operationId="getActivity",
+     *     tags={"Activities"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="Activity ID",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(response=404, description="Activity not found")
+     * )
      */
     public function show(Request $request, string $id): JsonResponse
     {
@@ -106,7 +152,28 @@ class UserActivityController extends Controller
     }
 
     /**
-     * Get activities by user.
+     * @OA\Get(
+     *     path="/activities/user/{userId}",
+     *     summary="Get user activities",
+     *     operationId="getUserActivities",
+     *     tags={"Activities"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="userId",
+     *         in="path",
+     *         description="User ID",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="array", @OA\Items(type="object"))
+     *         )
+     *     )
+     * )
      */
     public function byUser(Request $request, string $userId): JsonResponse
     {
@@ -148,7 +215,22 @@ class UserActivityController extends Controller
     }
 
     /**
-     * Export activities to CSV.
+     * @OA\Get(
+     *     path="/activities/export",
+     *     summary="Export activities",
+     *     operationId="exportActivities",
+     *     tags={"Activities"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Activities exported successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string"),
+     *             @OA\Property(property="data", type="object")
+     *         )
+     *     )
+     * )
      */
     public function export(QueryUserActivityRequest $request): JsonResponse
     {
@@ -229,7 +311,22 @@ class UserActivityController extends Controller
     }
 
     /**
-     * Get user sessions.
+     * @OA\Get(
+     *     path="/sessions",
+     *     summary="List active sessions",
+     *     operationId="getSessions",
+     *     tags={"Sessions"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="array", @OA\Items(type="object")),
+     *             @OA\Property(property="meta", type="object")
+     *         )
+     *     )
+     * )
      */
     public function sessions(Request $request): JsonResponse
     {
@@ -277,7 +374,22 @@ class UserActivityController extends Controller
     }
 
     /**
-     * Get active sessions only.
+     * @OA\Get(
+     *     path="/sessions/active",
+     *     summary="Get active sessions",
+     *     operationId="getActiveSessions",
+     *     tags={"Sessions"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="array", @OA\Items(type="object")),
+     *             @OA\Property(property="meta", type="object")
+     *         )
+     *     )
+     * )
      */
     public function activeSessions(Request $request): JsonResponse
     {
@@ -311,7 +423,29 @@ class UserActivityController extends Controller
     }
 
     /**
-     * Terminate a user session.
+     * @OA\Post(
+     *     path="/sessions/{id}/terminate",
+     *     summary="Terminate session",
+     *     operationId="terminateSession",
+     *     tags={"Sessions"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="Session ID",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Session terminated successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string"),
+     *             @OA\Property(property="data", type="object")
+     *         )
+     *     )
+     * )
      */
     public function terminateSession(Request $request, string $id): JsonResponse
     {

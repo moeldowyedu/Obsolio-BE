@@ -1,69 +1,509 @@
 {
     "openapi": "3.0.0",
     "info": {
-        "title": "Aasim AI API",
-        "description": "Complete API documentation for Aasim AI platform",
+        "title": "Aasim API",
+        "description": "API documentation for Aasim platform",
         "contact": {
-            "email": "support@aasim.ai"
+            "email": "support@aasim.com"
         },
         "version": "1.0.0"
     },
-    "servers": [
-        {
-            "url": "/api",
-            "description": "API Server"
-        }
-    ],
     "paths": {
-        "/v1/auth/register": {
+        "/agents": {
+            "get": {
+                "tags": [
+                    "Agents"
+                ],
+                "summary": "List all agents",
+                "description": "Get a paginated list of all agents",
+                "operationId": "getAgents",
+                "parameters": [
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Items per page",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 15
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Agents"
+                ],
+                "summary": "Create new agent",
+                "operationId": "createAgent",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Agent created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/agents/{agent}": {
+            "get": {
+                "tags": [
+                    "Agents"
+                ],
+                "summary": "Get agent details",
+                "operationId": "getAgent",
+                "parameters": [
+                    {
+                        "name": "agent",
+                        "in": "path",
+                        "description": "Agent ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Agent not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Agents"
+                ],
+                "summary": "Update agent",
+                "operationId": "updateAgent",
+                "parameters": [
+                    {
+                        "name": "agent",
+                        "in": "path",
+                        "description": "Agent ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Agent updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Agents"
+                ],
+                "summary": "Delete agent",
+                "operationId": "deleteAgent",
+                "parameters": [
+                    {
+                        "name": "agent",
+                        "in": "path",
+                        "description": "Agent ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Agent deleted successfully"
+                    },
+                    "404": {
+                        "description": "Agent not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/agents/{agent}/execute": {
+            "post": {
+                "tags": [
+                    "Agents"
+                ],
+                "summary": "Execute agent",
+                "operationId": "executeAgent",
+                "parameters": [
+                    {
+                        "name": "agent",
+                        "in": "path",
+                        "description": "Agent ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Execution started",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/agents/{agent}/clone": {
+            "post": {
+                "tags": [
+                    "Agents"
+                ],
+                "summary": "Clone agent",
+                "operationId": "cloneAgent",
+                "parameters": [
+                    {
+                        "name": "agent",
+                        "in": "path",
+                        "description": "Agent ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Agent cloned successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/agents/{agent}/publish": {
+            "post": {
+                "tags": [
+                    "Agents"
+                ],
+                "summary": "Publish agent to marketplace",
+                "operationId": "publishAgent",
+                "parameters": [
+                    {
+                        "name": "agent",
+                        "in": "path",
+                        "description": "Agent ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Agent published successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/executions": {
+            "get": {
+                "tags": [
+                    "Executions"
+                ],
+                "summary": "List agent executions",
+                "description": "Read-only controller - executions are created through AgentController::execute",
+                "operationId": "getExecutions",
+                "parameters": [
+                    {
+                        "name": "agent_id",
+                        "in": "query",
+                        "description": "Filter by agent ID",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Filter by status",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/executions/{agentExecution}": {
+            "get": {
+                "tags": [
+                    "Executions"
+                ],
+                "summary": "Get execution details",
+                "operationId": "getExecution",
+                "parameters": [
+                    {
+                        "name": "agentExecution",
+                        "in": "path",
+                        "description": "Execution ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Execution not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/auth/register": {
             "post": {
                 "tags": [
                     "Authentication"
                 ],
-                "summary": "Register a new user",
-                "operationId": "58fb87dce972174198f99707c002431d",
+                "summary": "Register new user with tenant",
+                "operationId": "register",
                 "requestBody": {
                     "required": true,
                     "content": {
                         "application/json": {
                             "schema": {
                                 "required": [
-                                    "name",
+                                    "type",
+                                    "fullName",
                                     "email",
                                     "password",
-                                    "organization_name"
+                                    "password_confirmation"
                                 ],
                                 "properties": {
-                                    "name": {
+                                    "type": {
+                                        "description": "Tenant type",
+                                        "type": "string",
+                                        "enum": [
+                                            "personal",
+                                            "organization"
+                                        ],
+                                        "example": "personal"
+                                    },
+                                    "fullName": {
                                         "type": "string",
                                         "example": "John Doe"
                                     },
                                     "email": {
                                         "type": "string",
                                         "format": "email",
-                                        "example": "john@example.com"
+                                        "example": "john.doe@example.com"
                                     },
                                     "password": {
                                         "type": "string",
                                         "format": "password",
-                                        "example": "password123"
+                                        "example": "SecurePass123!"
                                     },
                                     "password_confirmation": {
                                         "type": "string",
                                         "format": "password",
-                                        "example": "password123"
+                                        "example": "SecurePass123!"
                                     },
-                                    "organization_name": {
+                                    "organizationName": {
+                                        "description": "Required if type=organization",
                                         "type": "string",
-                                        "example": "Acme Corp"
+                                        "example": "Acme Corporation"
                                     },
-                                    "industry": {
+                                    "organizationDomain": {
+                                        "description": "Optional custom domain",
                                         "type": "string",
-                                        "example": "Technology"
+                                        "example": "acme.example.com"
                                     },
-                                    "company_size": {
+                                    "phone": {
                                         "type": "string",
-                                        "example": "10-50"
+                                        "example": "+1234567890"
+                                    },
+                                    "avatar_url": {
+                                        "type": "string",
+                                        "example": "https://example.com/avatar.jpg"
                                     }
                                 },
                                 "type": "object"
@@ -73,22 +513,85 @@
                 },
                 "responses": {
                     "201": {
-                        "description": "User registered successfully",
+                        "description": "Registration successful",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "user": {
-                                            "type": "object"
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
                                         },
-                                        "tenant": {
-                                            "type": "object"
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Registration successful"
                                         },
-                                        "organization": {
+                                        "data": {
+                                            "properties": {
+                                                "user": {
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "integer",
+                                                            "example": 1
+                                                        },
+                                                        "name": {
+                                                            "type": "string",
+                                                            "example": "John Doe"
+                                                        },
+                                                        "email": {
+                                                            "type": "string",
+                                                            "example": "john.doe@example.com"
+                                                        },
+                                                        "phone": {
+                                                            "type": "string",
+                                                            "example": "+1234567890"
+                                                        },
+                                                        "status": {
+                                                            "type": "string",
+                                                            "example": "active"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                },
+                                                "tenant": {
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "string",
+                                                            "example": "9d45f8a0-1234-5678-9abc-def012345678"
+                                                        },
+                                                        "name": {
+                                                            "type": "string",
+                                                            "example": "John Doe"
+                                                        },
+                                                        "type": {
+                                                            "type": "string",
+                                                            "example": "personal"
+                                                        },
+                                                        "slug": {
+                                                            "type": "string",
+                                                            "example": "john-doe-abc123"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                },
+                                                "token": {
+                                                    "type": "string",
+                                                    "example": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+                                                },
+                                                "token_type": {
+                                                    "type": "string",
+                                                    "example": "bearer"
+                                                },
+                                                "expires_in": {
+                                                    "type": "integer",
+                                                    "example": 3600
+                                                },
+                                                "session_id": {
+                                                    "type": "string",
+                                                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                                                }
+                                            },
                                             "type": "object"
-                                        },
-                                        "token": {
-                                            "type": "string"
                                         }
                                     },
                                     "type": "object"
@@ -102,13 +605,13 @@
                 }
             }
         },
-        "/v1/auth/login": {
+        "/auth/login": {
             "post": {
                 "tags": [
                     "Authentication"
                 ],
                 "summary": "Login user",
-                "operationId": "3ff5fdf1e87b064055e72ef143ecc7c5",
+                "operationId": "login",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -122,12 +625,12 @@
                                     "email": {
                                         "type": "string",
                                         "format": "email",
-                                        "example": "john@example.com"
+                                        "example": "john.doe@example.com"
                                     },
                                     "password": {
                                         "type": "string",
                                         "format": "password",
-                                        "example": "password123"
+                                        "example": "SecurePass123!"
                                     }
                                 },
                                 "type": "object"
@@ -142,11 +645,51 @@
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "user": {
-                                            "type": "object"
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
                                         },
-                                        "token": {
-                                            "type": "string"
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Login successful"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "user": {
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "integer",
+                                                            "example": 1
+                                                        },
+                                                        "name": {
+                                                            "type": "string",
+                                                            "example": "John Doe"
+                                                        },
+                                                        "email": {
+                                                            "type": "string",
+                                                            "example": "john.doe@example.com"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                },
+                                                "token": {
+                                                    "type": "string",
+                                                    "example": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+                                                },
+                                                "token_type": {
+                                                    "type": "string",
+                                                    "example": "bearer"
+                                                },
+                                                "expires_in": {
+                                                    "type": "integer",
+                                                    "example": 3600
+                                                },
+                                                "session_id": {
+                                                    "type": "string",
+                                                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                                                }
+                                            },
+                                            "type": "object"
                                         }
                                     },
                                     "type": "object"
@@ -160,16 +703,107 @@
                 }
             }
         },
-        "/v1/auth/logout": {
-            "post": {
+        "/auth/me": {
+            "get": {
                 "tags": [
                     "Authentication"
                 ],
-                "summary": "Logout user",
-                "operationId": "5df06d8bf07ab28923f168580a1b2323",
+                "summary": "Get current user",
+                "operationId": "me",
                 "responses": {
                     "200": {
-                        "description": "Logout successful"
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "John Doe"
+                                                },
+                                                "email": {
+                                                    "type": "string",
+                                                    "example": "john.doe@example.com"
+                                                },
+                                                "phone": {
+                                                    "type": "string",
+                                                    "example": "+1234567890"
+                                                },
+                                                "status": {
+                                                    "type": "string",
+                                                    "example": "active"
+                                                },
+                                                "last_login_at": {
+                                                    "type": "string",
+                                                    "format": "date-time",
+                                                    "example": "2023-10-27T10:00:00.000000Z"
+                                                },
+                                                "created_at": {
+                                                    "type": "string",
+                                                    "format": "date-time",
+                                                    "example": "2023-10-27T09:00:00.000000Z"
+                                                },
+                                                "updated_at": {
+                                                    "type": "string",
+                                                    "format": "date-time",
+                                                    "example": "2023-10-27T10:00:00.000000Z"
+                                                },
+                                                "tenant": {
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "integer",
+                                                            "example": 1
+                                                        },
+                                                        "name": {
+                                                            "type": "string",
+                                                            "example": "Acme Corp"
+                                                        },
+                                                        "slug": {
+                                                            "type": "string",
+                                                            "example": "acme-corp"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                },
+                                                "teams": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "assignments": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "roles": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
                     }
                 },
                 "security": [
@@ -179,21 +813,970 @@
                 ]
             }
         },
-        "/v1/auth/me": {
-            "get": {
+        "/auth/logout": {
+            "post": {
                 "tags": [
                     "Authentication"
                 ],
-                "summary": "Get authenticated user",
-                "operationId": "43b10aadfac909e8840e7bd830e76590",
+                "summary": "Logout user",
+                "operationId": "logout",
                 "responses": {
                     "200": {
-                        "description": "User data",
+                        "description": "Logout successful",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "user": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Successfully logged out"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/auth/refresh": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Refresh token",
+                "operationId": "refresh",
+                "responses": {
+                    "200": {
+                        "description": "Token refreshed successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Token refreshed successfully"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "token": {
+                                                    "type": "string",
+                                                    "example": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+                                                },
+                                                "token_type": {
+                                                    "type": "string",
+                                                    "example": "bearer"
+                                                },
+                                                "expires_in": {
+                                                    "type": "integer",
+                                                    "example": 3600
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/auth/profile": {
+            "put": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Update user profile",
+                "operationId": "updateProfile",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "John Smith"
+                                    },
+                                    "phone": {
+                                        "type": "string",
+                                        "example": "+1234567890"
+                                    },
+                                    "avatar_url": {
+                                        "type": "string",
+                                        "example": "https://example.com/new-avatar.jpg"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Profile updated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Profile updated successfully"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "John Smith"
+                                                },
+                                                "email": {
+                                                    "type": "string",
+                                                    "example": "john.doe@example.com"
+                                                },
+                                                "phone": {
+                                                    "type": "string",
+                                                    "example": "+1234567890"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/auth/change-password": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Change user password",
+                "operationId": "changePassword",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "current_password",
+                                    "new_password",
+                                    "new_password_confirmation"
+                                ],
+                                "properties": {
+                                    "current_password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "OldPass123!"
+                                    },
+                                    "new_password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "NewSecurePass456!"
+                                    },
+                                    "new_password_confirmation": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "NewSecurePass456!"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Password changed",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Password changed successfully"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/branches": {
+            "get": {
+                "tags": [
+                    "Branches"
+                ],
+                "summary": "List branches",
+                "operationId": "getBranches",
+                "parameters": [
+                    {
+                        "name": "organization_id",
+                        "in": "query",
+                        "description": "Filter by organization ID",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Items per page",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 15
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "name": {
+                                                        "type": "string",
+                                                        "example": "New York Branch"
+                                                    },
+                                                    "code": {
+                                                        "type": "string",
+                                                        "example": "NY-001"
+                                                    },
+                                                    "address": {
+                                                        "type": "string",
+                                                        "example": "123 Main St, New York, NY 10001"
+                                                    },
+                                                    "phone": {
+                                                        "type": "string",
+                                                        "example": "+1-212-555-0100"
+                                                    },
+                                                    "email": {
+                                                        "type": "string",
+                                                        "example": "ny.branch@example.com"
+                                                    },
+                                                    "manager_id": {
+                                                        "type": "integer",
+                                                        "example": 5
+                                                    },
+                                                    "organization_id": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "departments_count": {
+                                                        "type": "integer",
+                                                        "example": 3
+                                                    },
+                                                    "created_at": {
+                                                        "type": "string",
+                                                        "format": "date-time",
+                                                        "example": "2024-01-15T10:30:00Z"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Branches"
+                ],
+                "summary": "Create branch",
+                "operationId": "createBranch",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "organization_id"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Los Angeles Branch"
+                                    },
+                                    "code": {
+                                        "type": "string",
+                                        "example": "LA-001"
+                                    },
+                                    "address": {
+                                        "type": "string",
+                                        "example": "456 Sunset Blvd, Los Angeles, CA 90028"
+                                    },
+                                    "phone": {
+                                        "type": "string",
+                                        "example": "+1-323-555-0200"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "example": "la.branch@example.com"
+                                    },
+                                    "manager_id": {
+                                        "type": "integer",
+                                        "example": 7
+                                    },
+                                    "organization_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Branch created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 2
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "Los Angeles Branch"
+                                                },
+                                                "code": {
+                                                    "type": "string",
+                                                    "example": "LA-001"
+                                                },
+                                                "created_at": {
+                                                    "type": "string",
+                                                    "format": "date-time",
+                                                    "example": "2024-01-15T11:00:00Z"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/branches/{branch}": {
+            "get": {
+                "tags": [
+                    "Branches"
+                ],
+                "summary": "Get branch details",
+                "operationId": "getBranch",
+                "parameters": [
+                    {
+                        "name": "branch",
+                        "in": "path",
+                        "description": "Branch ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "New York Branch"
+                                                },
+                                                "code": {
+                                                    "type": "string",
+                                                    "example": "NY-001"
+                                                },
+                                                "address": {
+                                                    "type": "string",
+                                                    "example": "123 Main St, New York, NY 10001"
+                                                },
+                                                "phone": {
+                                                    "type": "string",
+                                                    "example": "+1-212-555-0100"
+                                                },
+                                                "email": {
+                                                    "type": "string",
+                                                    "example": "ny.branch@example.com"
+                                                },
+                                                "manager_id": {
+                                                    "type": "integer",
+                                                    "example": 5
+                                                },
+                                                "organization": {
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "integer",
+                                                            "example": 1
+                                                        },
+                                                        "name": {
+                                                            "type": "string",
+                                                            "example": "Acme Corporation"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                },
+                                                "departments_count": {
+                                                    "type": "integer",
+                                                    "example": 3
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Branch not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Branches"
+                ],
+                "summary": "Update branch",
+                "operationId": "updateBranch",
+                "parameters": [
+                    {
+                        "name": "branch",
+                        "in": "path",
+                        "description": "Branch ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "New York Headquarters"
+                                    },
+                                    "phone": {
+                                        "type": "string",
+                                        "example": "+1-212-555-0101"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "example": "ny.hq@example.com"
+                                    },
+                                    "manager_id": {
+                                        "type": "integer",
+                                        "example": 6
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Branch updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "New York Headquarters"
+                                                },
+                                                "updated_at": {
+                                                    "type": "string",
+                                                    "format": "date-time",
+                                                    "example": "2024-01-15T12:00:00Z"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    },
+                    "404": {
+                        "description": "Branch not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Branches"
+                ],
+                "summary": "Delete branch",
+                "operationId": "deleteBranch",
+                "parameters": [
+                    {
+                        "name": "branch",
+                        "in": "path",
+                        "description": "Branch ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Branch deleted successfully"
+                    },
+                    "404": {
+                        "description": "Branch not found"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/connected-apps": {
+            "get": {
+                "tags": [
+                    "Connected Apps"
+                ],
+                "summary": "List connected apps",
+                "operationId": "getConnectedApps",
+                "parameters": [
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Filter by status",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Connected Apps"
+                ],
+                "summary": "Connect new app",
+                "operationId": "createConnectedApp",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Connected app created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/connected-apps/{id}": {
+            "get": {
+                "tags": [
+                    "Connected Apps"
+                ],
+                "summary": "Get app details",
+                "operationId": "getConnectedApp",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Connected App ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "App not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Connected Apps"
+                ],
+                "summary": "Update app",
+                "operationId": "updateConnectedApp",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Connected App ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Connected app updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Connected Apps"
+                ],
+                "summary": "Disconnect app",
+                "operationId": "deleteConnectedApp",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Connected App ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Connected app deleted successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "App not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/connected-apps/{id}/sync": {
+            "post": {
+                "tags": [
+                    "Connected Apps"
+                ],
+                "summary": "Sync app data",
+                "operationId": "syncConnectedApp",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Connected App ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Data synchronized successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/connected-apps/{id}/test": {
+            "post": {
+                "tags": [
+                    "Connected Apps"
+                ],
+                "summary": "Test app connection",
+                "operationId": "testConnectedApp",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Connected App ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Connection test successful",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "data": {
                                             "type": "object"
                                         }
                                     },
@@ -210,96 +1793,2909 @@
                 ]
             }
         },
-        "/v1/auth/forgot-password": {
+        "/connected-apps/{id}/refresh-token": {
             "post": {
                 "tags": [
-                    "Authentication"
+                    "Connected Apps"
                 ],
-                "summary": "Request password reset",
-                "operationId": "3d6d32165ad93256ca6f350f3aba0cad",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "required": [
-                                    "email"
-                                ],
-                                "properties": {
-                                    "email": {
-                                        "type": "string",
-                                        "format": "email"
-                                    }
-                                },
-                                "type": "object"
+                "summary": "Refresh app token",
+                "operationId": "refreshConnectedAppToken",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Connected App ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Token refreshed successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
                             }
                         }
                     }
                 },
-                "responses": {
-                    "200": {
-                        "description": "Reset link sent"
+                "security": [
+                    {
+                        "bearerAuth": []
                     }
-                }
+                ]
             }
         },
-        "/v1/auth/reset-password": {
-            "post": {
+        "/connected-apps/{id}/logs": {
+            "get": {
                 "tags": [
-                    "Authentication"
+                    "Connected Apps"
                 ],
-                "summary": "Reset password",
-                "operationId": "e49c3833abcf32aecac15194d2d82e03",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "required": [
-                                    "email",
-                                    "password",
-                                    "password_confirmation",
-                                    "token"
-                                ],
-                                "properties": {
-                                    "email": {
-                                        "type": "string",
-                                        "format": "email"
+                "summary": "Get app logs",
+                "operationId": "getConnectedAppLogs",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Connected App ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
                                     },
-                                    "password": {
-                                        "type": "string",
-                                        "format": "password"
-                                    },
-                                    "password_confirmation": {
-                                        "type": "string",
-                                        "format": "password"
-                                    },
-                                    "token": {
-                                        "type": "string"
-                                    }
-                                },
-                                "type": "object"
+                                    "type": "object"
+                                }
                             }
                         }
                     }
                 },
-                "responses": {
-                    "200": {
-                        "description": "Password reset successful"
+                "security": [
+                    {
+                        "bearerAuth": []
                     }
-                }
+                ]
             }
         },
-        "/v1/dashboard/stats": {
+        "/connected-apps/{id}/revoke": {
+            "post": {
+                "tags": [
+                    "Connected Apps"
+                ],
+                "summary": "Revoke app access",
+                "operationId": "revokeConnectedApp",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Connected App ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "App access revoked successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/dashboard/stats": {
             "get": {
                 "tags": [
                     "Dashboard"
                 ],
                 "summary": "Get dashboard statistics",
-                "operationId": "c74c33c7ed5c1e8016cd3f1f9e56d742",
+                "operationId": "getDashboardStats",
                 "responses": {
                     "200": {
-                        "description": "Dashboard stats"
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "users": {
+                                                    "type": "object"
+                                                },
+                                                "agents": {
+                                                    "type": "object"
+                                                },
+                                                "workflows": {
+                                                    "type": "object"
+                                                },
+                                                "organizations": {
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/departments": {
+            "get": {
+                "tags": [
+                    "Departments"
+                ],
+                "summary": "List departments",
+                "operationId": "getDepartments",
+                "parameters": [
+                    {
+                        "name": "organization_id",
+                        "in": "query",
+                        "description": "Filter by organization ID",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "branch_id",
+                        "in": "query",
+                        "description": "Filter by branch ID",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Departments"
+                ],
+                "summary": "Create department",
+                "operationId": "createDepartment",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Department created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/departments/{department}": {
+            "get": {
+                "tags": [
+                    "Departments"
+                ],
+                "summary": "Get department details",
+                "operationId": "getDepartment",
+                "parameters": [
+                    {
+                        "name": "department",
+                        "in": "path",
+                        "description": "Department ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Department not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Departments"
+                ],
+                "summary": "Update department",
+                "operationId": "updateDepartment",
+                "parameters": [
+                    {
+                        "name": "department",
+                        "in": "path",
+                        "description": "Department ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Department updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Departments"
+                ],
+                "summary": "Delete department",
+                "operationId": "deleteDepartment",
+                "parameters": [
+                    {
+                        "name": "department",
+                        "in": "path",
+                        "description": "Department ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Department deleted successfully"
+                    },
+                    "404": {
+                        "description": "Department not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/departments/hierarchy": {
+            "get": {
+                "tags": [
+                    "Departments"
+                ],
+                "summary": "Get department hierarchy",
+                "operationId": "getDepartmentHierarchy",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/engines": {
+            "get": {
+                "tags": [
+                    "Engines"
+                ],
+                "summary": "List AI engines",
+                "description": "Read-only for tenants, shows all active engines",
+                "operationId": "getEngines",
+                "parameters": [
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Items per page",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 15
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Engines"
+                ],
+                "summary": "Create new engine",
+                "description": "Admin only",
+                "operationId": "createEngine",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Engine created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/engines/{engine}": {
+            "get": {
+                "tags": [
+                    "Engines"
+                ],
+                "summary": "Get engine details",
+                "operationId": "getEngine",
+                "parameters": [
+                    {
+                        "name": "engine",
+                        "in": "path",
+                        "description": "Engine ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Engine not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Engines"
+                ],
+                "summary": "Update engine",
+                "description": "Admin only",
+                "operationId": "updateEngine",
+                "parameters": [
+                    {
+                        "name": "engine",
+                        "in": "path",
+                        "description": "Engine ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Engine updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Engines"
+                ],
+                "summary": "Delete engine",
+                "description": "Admin only",
+                "operationId": "deleteEngine",
+                "parameters": [
+                    {
+                        "name": "engine",
+                        "in": "path",
+                        "description": "Engine ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Engine deleted successfully"
+                    },
+                    "404": {
+                        "description": "Engine not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/hitl-approvals": {
+            "get": {
+                "tags": [
+                    "HITL Approvals"
+                ],
+                "summary": "List approvals",
+                "operationId": "getHitlApprovals",
+                "parameters": [
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Filter by status",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "assigned_to",
+                        "in": "query",
+                        "description": "Filter by assigned user ID",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "priority",
+                        "in": "query",
+                        "description": "Filter by priority",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/hitl-approvals/{hitlApproval}": {
+            "get": {
+                "tags": [
+                    "HITL Approvals"
+                ],
+                "summary": "Get approval details",
+                "operationId": "getHitlApproval",
+                "parameters": [
+                    {
+                        "name": "hitlApproval",
+                        "in": "path",
+                        "description": "Approval ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Approval not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/hitl-approvals/{hitlApproval}/approve": {
+            "post": {
+                "tags": [
+                    "HITL Approvals"
+                ],
+                "summary": "Approve request",
+                "operationId": "approveHitlApproval",
+                "parameters": [
+                    {
+                        "name": "hitlApproval",
+                        "in": "path",
+                        "description": "Approval ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Request approved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/hitl-approvals/{hitlApproval}/reject": {
+            "post": {
+                "tags": [
+                    "HITL Approvals"
+                ],
+                "summary": "Reject request",
+                "operationId": "rejectHitlApproval",
+                "parameters": [
+                    {
+                        "name": "hitlApproval",
+                        "in": "path",
+                        "description": "Approval ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Request rejected successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/hitl-approvals/{hitlApproval}/escalate": {
+            "post": {
+                "tags": [
+                    "HITL Approvals"
+                ],
+                "summary": "Escalate request",
+                "operationId": "escalateHitlApproval",
+                "parameters": [
+                    {
+                        "name": "hitlApproval",
+                        "in": "path",
+                        "description": "Approval ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Request escalated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/job-flows": {
+            "get": {
+                "tags": [
+                    "Job Flows"
+                ],
+                "summary": "List job flows",
+                "operationId": "getJobFlows",
+                "parameters": [
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Items per page",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 15
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Job Flows"
+                ],
+                "summary": "Create job flow",
+                "operationId": "createJobFlow",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Job flow created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/job-flows/{jobFlow}": {
+            "get": {
+                "tags": [
+                    "Job Flows"
+                ],
+                "summary": "Get job flow details",
+                "operationId": "getJobFlow",
+                "parameters": [
+                    {
+                        "name": "jobFlow",
+                        "in": "path",
+                        "description": "Job Flow ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Job flow not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Job Flows"
+                ],
+                "summary": "Update job flow",
+                "operationId": "updateJobFlow",
+                "parameters": [
+                    {
+                        "name": "jobFlow",
+                        "in": "path",
+                        "description": "Job Flow ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Job flow updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Job Flows"
+                ],
+                "summary": "Delete job flow",
+                "operationId": "deleteJobFlow",
+                "parameters": [
+                    {
+                        "name": "jobFlow",
+                        "in": "path",
+                        "description": "Job Flow ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Job flow deleted successfully"
+                    },
+                    "404": {
+                        "description": "Job flow not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/job-flows/{jobFlow}/trigger": {
+            "post": {
+                "tags": [
+                    "Job Flows"
+                ],
+                "summary": "Trigger job flow",
+                "operationId": "triggerJobFlow",
+                "parameters": [
+                    {
+                        "name": "jobFlow",
+                        "in": "path",
+                        "description": "Job Flow ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Job flow started successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/job-flows/{jobFlow}/status": {
+            "put": {
+                "tags": [
+                    "Job Flows"
+                ],
+                "summary": "Update flow status",
+                "operationId": "updateJobFlowStatus",
+                "parameters": [
+                    {
+                        "name": "jobFlow",
+                        "in": "path",
+                        "description": "Job Flow ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "status": {
+                                        "type": "string",
+                                        "enum": [
+                                            "active",
+                                            "paused"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Status updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/marketplace": {
+            "get": {
+                "tags": [
+                    "Marketplace"
+                ],
+                "summary": "Browse marketplace",
+                "description": "Browse available agents for purchase",
+                "operationId": "getMarketplaceListings",
+                "parameters": [
+                    {
+                        "name": "category",
+                        "in": "query",
+                        "description": "Filter by category",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Search query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/marketplace/{marketplaceListing}": {
+            "get": {
+                "tags": [
+                    "Marketplace"
+                ],
+                "summary": "Get marketplace item",
+                "operationId": "getMarketplaceListing",
+                "parameters": [
+                    {
+                        "name": "marketplaceListing",
+                        "in": "path",
+                        "description": "Listing ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Listing not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/marketplace/{id}/purchase": {
+            "post": {
+                "tags": [
+                    "Marketplace"
+                ],
+                "summary": "Purchase agent",
+                "operationId": "purchaseAgent",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Listing ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Agent purchased successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/organizations": {
+            "get": {
+                "tags": [
+                    "Organizations"
+                ],
+                "summary": "List organizations",
+                "operationId": "getOrganizations",
+                "parameters": [
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Items per page",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 15
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Organizations"
+                ],
+                "summary": "Create organization",
+                "operationId": "createOrganization",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Organization created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/organizations/{organization}": {
+            "get": {
+                "tags": [
+                    "Organizations"
+                ],
+                "summary": "Get organization details",
+                "operationId": "getOrganization",
+                "parameters": [
+                    {
+                        "name": "organization",
+                        "in": "path",
+                        "description": "Organization ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Organization not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Organizations"
+                ],
+                "summary": "Update organization",
+                "operationId": "updateOrganization",
+                "parameters": [
+                    {
+                        "name": "organization",
+                        "in": "path",
+                        "description": "Organization ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Organization updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Organizations"
+                ],
+                "summary": "Delete organization",
+                "operationId": "deleteOrganization",
+                "parameters": [
+                    {
+                        "name": "organization",
+                        "in": "path",
+                        "description": "Organization ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Organization deleted successfully"
+                    },
+                    "404": {
+                        "description": "Organization not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/organizations/{organization}/switch": {
+            "post": {
+                "tags": [
+                    "Organizations"
+                ],
+                "summary": "Switch organization context",
+                "operationId": "switchOrganization",
+                "parameters": [
+                    {
+                        "name": "organization",
+                        "in": "path",
+                        "description": "Organization ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Organization switched successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/permissions": {
+            "get": {
+                "tags": [
+                    "Permissions"
+                ],
+                "summary": "List permissions (grouped)",
+                "description": "Get all permissions grouped by category",
+                "operationId": "getPermissions",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "category": {
+                                                        "type": "string",
+                                                        "example": "projects"
+                                                    },
+                                                    "permissions": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "object"
+                                                        }
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/permissions/list": {
+            "get": {
+                "tags": [
+                    "Permissions"
+                ],
+                "summary": "List permissions (flat)",
+                "description": "Get a flat list of all permissions",
+                "operationId": "listPermissions",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/permissions/{id}": {
+            "get": {
+                "tags": [
+                    "Permissions"
+                ],
+                "summary": "Get permission details",
+                "operationId": "getPermission",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Permission ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Permission not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/projects": {
+            "get": {
+                "tags": [
+                    "Projects"
+                ],
+                "summary": "List projects",
+                "operationId": "getProjects",
+                "parameters": [
+                    {
+                        "name": "organization_id",
+                        "in": "query",
+                        "description": "Filter by organization ID",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Filter by status",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Projects"
+                ],
+                "summary": "Create project",
+                "operationId": "createProject",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Project created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/projects/{project}": {
+            "get": {
+                "tags": [
+                    "Projects"
+                ],
+                "summary": "Get project details",
+                "operationId": "getProject",
+                "parameters": [
+                    {
+                        "name": "project",
+                        "in": "path",
+                        "description": "Project ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Project not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Projects"
+                ],
+                "summary": "Update project",
+                "operationId": "updateProject",
+                "parameters": [
+                    {
+                        "name": "project",
+                        "in": "path",
+                        "description": "Project ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Project updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Projects"
+                ],
+                "summary": "Delete project",
+                "operationId": "deleteProject",
+                "parameters": [
+                    {
+                        "name": "project",
+                        "in": "path",
+                        "description": "Project ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Project deleted successfully"
+                    },
+                    "404": {
+                        "description": "Project not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/projects/{project}/stats": {
+            "get": {
+                "tags": [
+                    "Projects"
+                ],
+                "summary": "Get project stats",
+                "operationId": "getProjectStats",
+                "parameters": [
+                    {
+                        "name": "project",
+                        "in": "path",
+                        "description": "Project ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "project": {
+                                                    "type": "object"
+                                                },
+                                                "teams_count": {
+                                                    "type": "integer"
+                                                },
+                                                "members_count": {
+                                                    "type": "integer"
+                                                },
+                                                "status": {
+                                                    "type": "string"
+                                                },
+                                                "progress": {
+                                                    "type": "number"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/roles": {
+            "get": {
+                "tags": [
+                    "Roles"
+                ],
+                "summary": "List roles",
+                "operationId": "getRoles",
+                "parameters": [
+                    {
+                        "name": "type",
+                        "in": "query",
+                        "description": "Filter by type (system/custom)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "system",
+                                "custom"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Roles"
+                ],
+                "summary": "Create role",
+                "operationId": "createRole",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Role created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/roles/{id}": {
+            "get": {
+                "tags": [
+                    "Roles"
+                ],
+                "summary": "Get role details",
+                "operationId": "getRole",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Role ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Role not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Roles"
+                ],
+                "summary": "Update role",
+                "operationId": "updateRole",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Role ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Role updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Roles"
+                ],
+                "summary": "Delete role",
+                "operationId": "deleteRole",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Role ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Role deleted successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Role not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/teams": {
+            "get": {
+                "tags": [
+                    "Teams"
+                ],
+                "summary": "List teams",
+                "operationId": "getTeams",
+                "parameters": [
+                    {
+                        "name": "organization_id",
+                        "in": "query",
+                        "description": "Filter by organization ID",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "project_id",
+                        "in": "query",
+                        "description": "Filter by project ID",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Teams"
+                ],
+                "summary": "Create team",
+                "operationId": "createTeam",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Team created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/teams/{team}": {
+            "get": {
+                "tags": [
+                    "Teams"
+                ],
+                "summary": "Get team details",
+                "operationId": "getTeam",
+                "parameters": [
+                    {
+                        "name": "team",
+                        "in": "path",
+                        "description": "Team ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Team not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Teams"
+                ],
+                "summary": "Update team",
+                "operationId": "updateTeam",
+                "parameters": [
+                    {
+                        "name": "team",
+                        "in": "path",
+                        "description": "Team ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Team updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Teams"
+                ],
+                "summary": "Delete team",
+                "operationId": "deleteTeam",
+                "parameters": [
+                    {
+                        "name": "team",
+                        "in": "path",
+                        "description": "Team ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Team deleted successfully"
+                    },
+                    "404": {
+                        "description": "Team not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/teams/{team}/members": {
+            "post": {
+                "tags": [
+                    "Teams"
+                ],
+                "summary": "Add team member",
+                "operationId": "addTeamMember",
+                "parameters": [
+                    {
+                        "name": "team",
+                        "in": "path",
+                        "description": "Team ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Member added successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/teams/{team}/members/{userId}": {
+            "delete": {
+                "tags": [
+                    "Teams"
+                ],
+                "summary": "Remove team member",
+                "operationId": "removeTeamMember",
+                "parameters": [
+                    {
+                        "name": "team",
+                        "in": "path",
+                        "description": "Team ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "userId",
+                        "in": "path",
+                        "description": "User ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Member removed successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/tenant": {
+            "get": {
+                "tags": [
+                    "Tenant"
+                ],
+                "summary": "Get current tenant",
+                "operationId": "getTenant",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Tenant"
+                ],
+                "summary": "Update current tenant",
+                "operationId": "updateTenant",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Acme Corp"
+                                    },
+                                    "short_name": {
+                                        "type": "string",
+                                        "example": "ACME"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Tenant updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/activities": {
+            "get": {
+                "tags": [
+                    "Activities"
+                ],
+                "summary": "List all activities",
+                "description": "Get a paginated list of user activities",
+                "operationId": "getActivities",
+                "parameters": [
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Items per page",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 20
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        },
+                                        "meta": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/activities/{id}": {
+            "get": {
+                "tags": [
+                    "Activities"
+                ],
+                "summary": "Get activity details",
+                "operationId": "getActivity",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Activity ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Activity not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/activities/user/{userId}": {
+            "get": {
+                "tags": [
+                    "Activities"
+                ],
+                "summary": "Get user activities",
+                "operationId": "getUserActivities",
+                "parameters": [
+                    {
+                        "name": "userId",
+                        "in": "path",
+                        "description": "User ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/activities/export": {
+            "get": {
+                "tags": [
+                    "Activities"
+                ],
+                "summary": "Export activities",
+                "operationId": "exportActivities",
+                "responses": {
+                    "200": {
+                        "description": "Activities exported successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/sessions": {
+            "get": {
+                "tags": [
+                    "Sessions"
+                ],
+                "summary": "List active sessions",
+                "operationId": "getSessions",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        },
+                                        "meta": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/sessions/active": {
+            "get": {
+                "tags": [
+                    "Sessions"
+                ],
+                "summary": "Get active sessions",
+                "operationId": "getActiveSessions",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        },
+                                        "meta": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/sessions/{id}/terminate": {
+            "post": {
+                "tags": [
+                    "Sessions"
+                ],
+                "summary": "Terminate session",
+                "operationId": "terminateSession",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Session ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Session terminated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     }
                 },
                 "security": [
@@ -321,12 +4717,80 @@
     },
     "tags": [
         {
+            "name": "Agents",
+            "description": "Agents"
+        },
+        {
+            "name": "Executions",
+            "description": "Executions"
+        },
+        {
             "name": "Authentication",
             "description": "Authentication"
         },
         {
+            "name": "Branches",
+            "description": "Branches"
+        },
+        {
+            "name": "Connected Apps",
+            "description": "Connected Apps"
+        },
+        {
             "name": "Dashboard",
             "description": "Dashboard"
+        },
+        {
+            "name": "Departments",
+            "description": "Departments"
+        },
+        {
+            "name": "Engines",
+            "description": "Engines"
+        },
+        {
+            "name": "HITL Approvals",
+            "description": "HITL Approvals"
+        },
+        {
+            "name": "Job Flows",
+            "description": "Job Flows"
+        },
+        {
+            "name": "Marketplace",
+            "description": "Marketplace"
+        },
+        {
+            "name": "Organizations",
+            "description": "Organizations"
+        },
+        {
+            "name": "Permissions",
+            "description": "Permissions"
+        },
+        {
+            "name": "Projects",
+            "description": "Projects"
+        },
+        {
+            "name": "Roles",
+            "description": "Roles"
+        },
+        {
+            "name": "Teams",
+            "description": "Teams"
+        },
+        {
+            "name": "Tenant",
+            "description": "Tenant"
+        },
+        {
+            "name": "Activities",
+            "description": "Activities"
+        },
+        {
+            "name": "Sessions",
+            "description": "Sessions"
         }
     ]
 }

@@ -13,6 +13,37 @@ class AgentExecutionController extends Controller
      * Display a listing of agent executions.
      * Read-only controller - executions are created through AgentController::execute
      */
+    /**
+     * @OA\Get(
+     *     path="/executions",
+     *     summary="List agent executions",
+     *     description="Read-only controller - executions are created through AgentController::execute",
+     *     operationId="getExecutions",
+     *     tags={"Executions"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="agent_id",
+     *         in="query",
+     *         description="Filter by agent ID",
+     *         required=false,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Parameter(
+     *         name="status",
+     *         in="query",
+     *         description="Filter by status",
+     *         required=false,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="array", @OA\Items(type="object"))
+     *         )
+     *     )
+     * )
+     */
     public function index(): AnonymousResourceCollection
     {
         $query = AgentExecution::where('tenant_id', tenant('id'))
@@ -47,6 +78,28 @@ class AgentExecutionController extends Controller
 
     /**
      * Display the specified agent execution.
+     */
+    /**
+     * @OA\Get(
+     *     path="/executions/{agentExecution}",
+     *     summary="Get execution details",
+     *     operationId="getExecution",
+     *     tags={"Executions"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="agentExecution",
+     *         in="path",
+     *         description="Execution ID",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(type="object")
+     *     ),
+     *     @OA\Response(response=404, description="Execution not found")
+     * )
      */
     public function show(AgentExecution $agentExecution): AgentExecutionResource
     {

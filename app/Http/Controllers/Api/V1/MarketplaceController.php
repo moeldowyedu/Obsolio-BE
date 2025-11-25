@@ -18,6 +18,37 @@ class MarketplaceController extends Controller
      * Display a listing of marketplace listings.
      * Browse available agents for purchase.
      */
+    /**
+     * @OA\Get(
+     *     path="/marketplace",
+     *     summary="Browse marketplace",
+     *     description="Browse available agents for purchase",
+     *     operationId="getMarketplaceListings",
+     *     tags={"Marketplace"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="category",
+     *         in="query",
+     *         description="Filter by category",
+     *         required=false,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Parameter(
+     *         name="search",
+     *         in="query",
+     *         description="Search query",
+     *         required=false,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="array", @OA\Items(type="object"))
+     *         )
+     *     )
+     * )
+     */
     public function index(): AnonymousResourceCollection
     {
         $query = MarketplaceListing::where('is_approved', true)
@@ -69,6 +100,28 @@ class MarketplaceController extends Controller
     /**
      * Display the specified marketplace listing.
      */
+    /**
+     * @OA\Get(
+     *     path="/marketplace/{marketplaceListing}",
+     *     summary="Get marketplace item",
+     *     operationId="getMarketplaceListing",
+     *     tags={"Marketplace"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="marketplaceListing",
+     *         in="path",
+     *         description="Listing ID",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(type="object")
+     *     ),
+     *     @OA\Response(response=404, description="Listing not found")
+     * )
+     */
     public function show(MarketplaceListing $marketplaceListing): MarketplaceListingResource
     {
         $marketplaceListing->load(['agent', 'sellerTenant'])
@@ -82,6 +135,32 @@ class MarketplaceController extends Controller
 
     /**
      * Purchase an agent from the marketplace.
+     */
+    /**
+     * @OA\Post(
+     *     path="/marketplace/{id}/purchase",
+     *     summary="Purchase agent",
+     *     operationId="purchaseAgent",
+     *     tags={"Marketplace"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="Listing ID",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(type="object")
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Agent purchased successfully",
+     *         @OA\JsonContent(type="object")
+     *     ),
+     *     @OA\Response(response=422, description="Validation error")
+     * )
      */
     public function purchase(PurchaseAgentRequest $request): JsonResponse
     {

@@ -157,6 +157,22 @@ class User extends Authenticatable implements JWTSubject
     }
 
     /**
+     * Get the tenant membership for this user.
+     */
+    public function tenantMembership()
+    {
+        return $this->hasOne(TenantMembership::class)->where('tenant_id', $this->tenant_id);
+    }
+
+    /**
+     * Get all tenant memberships for this user.
+     */
+    public function tenantMemberships(): HasMany
+    {
+        return $this->hasMany(TenantMembership::class);
+    }
+
+    /**
      * Get the identifier that will be stored in the subject claim of the JWT.
      */
     public function getJWTIdentifier()
@@ -169,8 +185,18 @@ class User extends Authenticatable implements JWTSubject
      */
     public function getJWTCustomClaims()
     {
-        return [
+        $claims = [
             'tenant_id' => $this->tenant_id,
         ];
+
+        // Add role from tenant membership if exists
+        if ($this->tenant_id) {
+            $membership = $this->tenantMemberships()->where('tenant_id', $this->tenant_id)->first();
+            if ($membership) {
+                $claims['role'] = $membership->role;
+            }
+        }
+
+        return $claims;
     }
 }

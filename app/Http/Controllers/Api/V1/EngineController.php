@@ -16,6 +16,30 @@ class EngineController extends Controller
      * Display a listing of engines.
      * Read-only for tenants, shows all active engines.
      */
+    /**
+     * @OA\Get(
+     *     path="/engines",
+     *     summary="List AI engines",
+     *     description="Read-only for tenants, shows all active engines",
+     *     operationId="getEngines",
+     *     tags={"Engines"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="per_page",
+     *         in="query",
+     *         description="Items per page",
+     *         required=false,
+     *         @OA\Schema(type="integer", default=15)
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="array", @OA\Items(type="object"))
+     *         )
+     *     )
+     * )
+     */
     public function index(): AnonymousResourceCollection
     {
         $query = Engine::query();
@@ -35,6 +59,26 @@ class EngineController extends Controller
     /**
      * Store a newly created engine.
      * Admin only.
+     */
+    /**
+     * @OA\Post(
+     *     path="/engines",
+     *     summary="Create new engine",
+     *     description="Admin only",
+     *     operationId="createEngine",
+     *     tags={"Engines"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(type="object")
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Engine created successfully",
+     *         @OA\JsonContent(type="object")
+     *     ),
+     *     @OA\Response(response=422, description="Validation error")
+     * )
      */
     public function store(StoreEngineRequest $request): JsonResponse
     {
@@ -57,6 +101,28 @@ class EngineController extends Controller
     /**
      * Display the specified engine.
      */
+    /**
+     * @OA\Get(
+     *     path="/engines/{engine}",
+     *     summary="Get engine details",
+     *     operationId="getEngine",
+     *     tags={"Engines"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="engine",
+     *         in="path",
+     *         description="Engine ID",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(type="object")
+     *     ),
+     *     @OA\Response(response=404, description="Engine not found")
+     * )
+     */
     public function show(Engine $engine): EngineResource
     {
         $this->authorize('view', $engine);
@@ -70,6 +136,33 @@ class EngineController extends Controller
     /**
      * Update the specified engine.
      * Admin only.
+     */
+    /**
+     * @OA\Put(
+     *     path="/engines/{engine}",
+     *     summary="Update engine",
+     *     description="Admin only",
+     *     operationId="updateEngine",
+     *     tags={"Engines"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="engine",
+     *         in="path",
+     *         description="Engine ID",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(type="object")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Engine updated successfully",
+     *         @OA\JsonContent(type="object")
+     *     ),
+     *     @OA\Response(response=422, description="Validation error")
+     * )
      */
     public function update(UpdateEngineRequest $request, Engine $engine): EngineResource
     {
@@ -90,6 +183,28 @@ class EngineController extends Controller
     /**
      * Remove the specified engine.
      * Admin only.
+     */
+    /**
+     * @OA\Delete(
+     *     path="/engines/{engine}",
+     *     summary="Delete engine",
+     *     description="Admin only",
+     *     operationId="deleteEngine",
+     *     tags={"Engines"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="engine",
+     *         in="path",
+     *         description="Engine ID",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Response(
+     *         response=204,
+     *         description="Engine deleted successfully"
+     *     ),
+     *     @OA\Response(response=404, description="Engine not found")
+     * )
      */
     public function destroy(Engine $engine): JsonResponse
     {

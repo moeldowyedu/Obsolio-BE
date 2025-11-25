@@ -59,6 +59,23 @@ class Tenant extends BaseTenant implements TenantWithDatabase
     }
 
     /**
+     * Get the memberships for the tenant.
+     */
+    public function memberships()
+    {
+        return $this->hasMany(TenantMembership::class, 'tenant_id');
+    }
+
+    /**
+     * Get the owner membership for the tenant.
+     */
+    public function ownerMembership()
+    {
+        return $this->hasOne(TenantMembership::class, 'tenant_id')
+            ->where('role', TenantMembership::ROLE_OWNER);
+    }
+
+    /**
      * Get the agents for the tenant.
      */
     public function agents()

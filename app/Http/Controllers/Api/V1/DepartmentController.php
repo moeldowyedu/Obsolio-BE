@@ -13,11 +13,41 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class DepartmentController extends Controller
 {
+    /**
+     * @OA\Get(
+     *     path="/departments",
+     *     summary="List departments",
+     *     operationId="getDepartments",
+     *     tags={"Departments"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="organization_id",
+     *         in="query",
+     *         description="Filter by organization ID",
+     *         required=false,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Parameter(
+     *         name="branch_id",
+     *         in="query",
+     *         description="Filter by branch ID",
+     *         required=false,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="array", @OA\Items(type="object"))
+     *         )
+     *     )
+     * )
+     */
     public function index(): AnonymousResourceCollection
     {
         $departments = Department::whereHas('organization', function ($query) {
-                $query->where('tenant_id', tenant('id'));
-            })
+            $query->where('tenant_id', tenant('id'));
+        })
             ->with(['organization', 'branch', 'head', 'parentDepartment'])
             ->when(request('organization_id'), function ($query, $orgId) {
                 $query->where('organization_id', $orgId);
@@ -30,6 +60,25 @@ class DepartmentController extends Controller
         return DepartmentResource::collection($departments);
     }
 
+    /**
+     * @OA\Post(
+     *     path="/departments",
+     *     summary="Create department",
+     *     operationId="createDepartment",
+     *     tags={"Departments"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(type="object")
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Department created successfully",
+     *         @OA\JsonContent(type="object")
+     *     ),
+     *     @OA\Response(response=422, description="Validation error")
+     * )
+     */
     public function store(StoreDepartmentRequest $request): JsonResponse
     {
         $department = Department::create($request->validated());
@@ -41,6 +90,28 @@ class DepartmentController extends Controller
             ->setStatusCode(201);
     }
 
+    /**
+     * @OA\Get(
+     *     path="/departments/{department}",
+     *     summary="Get department details",
+     *     operationId="getDepartment",
+     *     tags={"Departments"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="department",
+     *         in="path",
+     *         description="Department ID",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(type="object")
+     *     ),
+     *     @OA\Response(response=404, description="Department not found")
+     * )
+     */
     public function show(Department $department): DepartmentResource
     {
         $this->authorize('view', $department);
@@ -52,6 +123,32 @@ class DepartmentController extends Controller
         return new DepartmentResource($department);
     }
 
+    /**
+     * @OA\Put(
+     *     path="/departments/{department}",
+     *     summary="Update department",
+     *     operationId="updateDepartment",
+     *     tags={"Departments"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="department",
+     *         in="path",
+     *         description="Department ID",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(type="object")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Department updated successfully",
+     *         @OA\JsonContent(type="object")
+     *     ),
+     *     @OA\Response(response=422, description="Validation error")
+     * )
+     */
     public function update(UpdateDepartmentRequest $request, Department $department): DepartmentResource
     {
         $this->authorize('update', $department);
@@ -63,6 +160,27 @@ class DepartmentController extends Controller
         return new DepartmentResource($department->load('organization', 'branch', 'departmentHead'));
     }
 
+    /**
+     * @OA\Delete(
+     *     path="/departments/{department}",
+     *     summary="Delete department",
+     *     operationId="deleteDepartment",
+     *     tags={"Departments"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="department",
+     *         in="path",
+     *         description="Department ID",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Response(
+     *         response=204,
+     *         description="Department deleted successfully"
+     *     ),
+     *     @OA\Response(response=404, description="Department not found")
+     * )
+     */
     public function destroy(Department $department): JsonResponse
     {
         $this->authorize('delete', $department);
@@ -82,15 +200,33 @@ class DepartmentController extends Controller
         return response()->json(null, 204);
     }
 
+    /**
+     * @OA\Get(
+     *     path="/departments/hierarchy",
+     *     summary="Get department hierarchy",
+     *     operationId="getDepartmentHierarchy",
+     *     tags={"Departments"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="array", @OA\Items(type="object"))
+     *         )
+     *     )
+     * )
+     */
     public function hierarchy(): JsonResponse
     {
         $departments = Department::whereHas('organization', function ($query) {
-                $query->where('tenant_id', tenant('id'));
-            })
+            $query->where('tenant_id', tenant('id'));
+        })
             ->whereNull('parent_department_id')
-            ->with(['subDepartments' => function ($query) {
-                $query->with('subDepartments');
-            }])
+            ->with([
+                'subDepartments' => function ($query) {
+                    $query->with('subDepartments');
+                }
+            ])
             ->get();
 
         $this->logActivity('api_call', 'read', 'Department', null, 'Viewed department hierarchy');

@@ -18,6 +18,9 @@ class TenantResource extends JsonResource
             'status' => $this->status,
             'trial_ends_at' => $this->trial_ends_at?->toIso8601String(),
             'is_on_trial' => $this->isOnTrial(),
+            'user_role' => $this->whenLoaded('memberships', function () {
+                return $this->memberships->first()?->role;
+            }),
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];

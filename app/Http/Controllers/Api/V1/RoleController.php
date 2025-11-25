@@ -29,6 +29,30 @@ class RoleController extends Controller
     /**
      * Display a listing of roles.
      */
+    /**
+     * @OA\Get(
+     *     path="/roles",
+     *     summary="List roles",
+     *     operationId="getRoles",
+     *     tags={"Roles"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="type",
+     *         in="query",
+     *         description="Filter by type (system/custom)",
+     *         required=false,
+     *         @OA\Schema(type="string", enum={"system", "custom"})
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="array", @OA\Items(type="object"))
+     *         )
+     *     )
+     * )
+     */
     public function index(Request $request): JsonResponse
     {
         $this->authorize('view-roles');
@@ -57,6 +81,25 @@ class RoleController extends Controller
 
     /**
      * Store a newly created role.
+     */
+    /**
+     * @OA\Post(
+     *     path="/roles",
+     *     summary="Create role",
+     *     operationId="createRole",
+     *     tags={"Roles"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(type="object")
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Role created successfully",
+     *         @OA\JsonContent(type="object")
+     *     ),
+     *     @OA\Response(response=422, description="Validation error")
+     * )
      */
     public function store(StoreRoleRequest $request): JsonResponse
     {
@@ -95,6 +138,28 @@ class RoleController extends Controller
     /**
      * Display the specified role.
      */
+    /**
+     * @OA\Get(
+     *     path="/roles/{id}",
+     *     summary="Get role details",
+     *     operationId="getRole",
+     *     tags={"Roles"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="Role ID",
+     *         required=true,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(type="object")
+     *     ),
+     *     @OA\Response(response=404, description="Role not found")
+     * )
+     */
     public function show(Request $request, string $id): JsonResponse
     {
         $this->authorize('view-roles');
@@ -115,6 +180,32 @@ class RoleController extends Controller
 
     /**
      * Update the specified role.
+     */
+    /**
+     * @OA\Put(
+     *     path="/roles/{id}",
+     *     summary="Update role",
+     *     operationId="updateRole",
+     *     tags={"Roles"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="Role ID",
+     *         required=true,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(type="object")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Role updated successfully",
+     *         @OA\JsonContent(type="object")
+     *     ),
+     *     @OA\Response(response=422, description="Validation error")
+     * )
      */
     public function update(UpdateRoleRequest $request, string $id): JsonResponse
     {
@@ -164,6 +255,31 @@ class RoleController extends Controller
 
     /**
      * Remove the specified role.
+     */
+    /**
+     * @OA\Delete(
+     *     path="/roles/{id}",
+     *     summary="Delete role",
+     *     operationId="deleteRole",
+     *     tags={"Roles"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="Role ID",
+     *         required=true,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Role deleted successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string")
+     *         )
+     *     ),
+     *     @OA\Response(response=404, description="Role not found")
+     * )
      */
     public function destroy(string $id): JsonResponse
     {

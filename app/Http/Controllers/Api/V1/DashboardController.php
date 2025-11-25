@@ -14,6 +14,29 @@ class DashboardController extends Controller
     /**
      * Get dashboard statistics
      */
+    /**
+     * @OA\Get(
+     *     path="/dashboard/stats",
+     *     summary="Get dashboard statistics",
+     *     operationId="getDashboardStats",
+     *     tags={"Dashboard"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="users", type="object"),
+     *                 @OA\Property(property="agents", type="object"),
+     *                 @OA\Property(property="workflows", type="object"),
+     *                 @OA\Property(property="organizations", type="object")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Unauthenticated")
+     * )
+     */
     public function dashboardStats(): JsonResponse
     {
         try {

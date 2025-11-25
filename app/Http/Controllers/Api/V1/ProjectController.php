@@ -13,11 +13,41 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class ProjectController extends Controller
 {
+    /**
+     * @OA\Get(
+     *     path="/projects",
+     *     summary="List projects",
+     *     operationId="getProjects",
+     *     tags={"Projects"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="organization_id",
+     *         in="query",
+     *         description="Filter by organization ID",
+     *         required=false,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Parameter(
+     *         name="status",
+     *         in="query",
+     *         description="Filter by status",
+     *         required=false,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="array", @OA\Items(type="object"))
+     *         )
+     *     )
+     * )
+     */
     public function index(): AnonymousResourceCollection
     {
         $projects = Project::whereHas('organization', function ($query) {
-                $query->where('tenant_id', tenant('id'));
-            })
+            $query->where('tenant_id', tenant('id'));
+        })
             ->with(['organization', 'branch', 'department', 'projectManager'])
             ->withCount('teams')
             ->when(request('organization_id'), function ($query, $orgId) {
@@ -31,6 +61,25 @@ class ProjectController extends Controller
         return ProjectResource::collection($projects);
     }
 
+    /**
+     * @OA\Post(
+     *     path="/projects",
+     *     summary="Create project",
+     *     operationId="createProject",
+     *     tags={"Projects"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(type="object")
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Project created successfully",
+     *         @OA\JsonContent(type="object")
+     *     ),
+     *     @OA\Response(response=422, description="Validation error")
+     * )
+     */
     public function store(StoreProjectRequest $request): JsonResponse
     {
         $project = Project::create($request->validated());
@@ -42,6 +91,28 @@ class ProjectController extends Controller
             ->setStatusCode(201);
     }
 
+    /**
+     * @OA\Get(
+     *     path="/projects/{project}",
+     *     summary="Get project details",
+     *     operationId="getProject",
+     *     tags={"Projects"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="project",
+     *         in="path",
+     *         description="Project ID",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(type="object")
+     *     ),
+     *     @OA\Response(response=404, description="Project not found")
+     * )
+     */
     public function show(Project $project): ProjectResource
     {
         $this->authorize('view', $project);
@@ -54,6 +125,32 @@ class ProjectController extends Controller
         return new ProjectResource($project);
     }
 
+    /**
+     * @OA\Put(
+     *     path="/projects/{project}",
+     *     summary="Update project",
+     *     operationId="updateProject",
+     *     tags={"Projects"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="project",
+     *         in="path",
+     *         description="Project ID",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(type="object")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Project updated successfully",
+     *         @OA\JsonContent(type="object")
+     *     ),
+     *     @OA\Response(response=422, description="Validation error")
+     * )
+     */
     public function update(UpdateProjectRequest $request, Project $project): ProjectResource
     {
         $this->authorize('update', $project);
@@ -65,6 +162,27 @@ class ProjectController extends Controller
         return new ProjectResource($project->load('organization', 'branch', 'department', 'projectManager'));
     }
 
+    /**
+     * @OA\Delete(
+     *     path="/projects/{project}",
+     *     summary="Delete project",
+     *     operationId="deleteProject",
+     *     tags={"Projects"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="project",
+     *         in="path",
+     *         description="Project ID",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Response(
+     *         response=204,
+     *         description="Project deleted successfully"
+     *     ),
+     *     @OA\Response(response=404, description="Project not found")
+     * )
+     */
     public function destroy(Project $project): JsonResponse
     {
         $this->authorize('delete', $project);
@@ -77,6 +195,35 @@ class ProjectController extends Controller
         return response()->json(null, 204);
     }
 
+    /**
+     * @OA\Get(
+     *     path="/projects/{project}/stats",
+     *     summary="Get project stats",
+     *     operationId="getProjectStats",
+     *     tags={"Projects"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="project",
+     *         in="path",
+     *         description="Project ID",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="project", type="object"),
+     *                 @OA\Property(property="teams_count", type="integer"),
+     *                 @OA\Property(property="members_count", type="integer"),
+     *                 @OA\Property(property="status", type="string"),
+     *                 @OA\Property(property="progress", type="number")
+     *             )
+     *         )
+     *     )
+     * )
+     */
     public function stats(Project $project): JsonResponse
     {
         $this->authorize('view', $project);

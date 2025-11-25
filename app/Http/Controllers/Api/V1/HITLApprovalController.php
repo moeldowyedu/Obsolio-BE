@@ -15,6 +15,43 @@ class HITLApprovalController extends Controller
     /**
      * Display a listing of HITL approvals.
      */
+    /**
+     * @OA\Get(
+     *     path="/hitl-approvals",
+     *     summary="List approvals",
+     *     operationId="getHitlApprovals",
+     *     tags={"HITL Approvals"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="status",
+     *         in="query",
+     *         description="Filter by status",
+     *         required=false,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Parameter(
+     *         name="assigned_to",
+     *         in="query",
+     *         description="Filter by assigned user ID",
+     *         required=false,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Parameter(
+     *         name="priority",
+     *         in="query",
+     *         description="Filter by priority",
+     *         required=false,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="array", @OA\Items(type="object"))
+     *         )
+     *     )
+     * )
+     */
     public function index(): AnonymousResourceCollection
     {
         $query = HITLApproval::where('tenant_id', tenant('id'))
@@ -46,6 +83,28 @@ class HITLApprovalController extends Controller
     /**
      * Display the specified HITL approval.
      */
+    /**
+     * @OA\Get(
+     *     path="/hitl-approvals/{hitlApproval}",
+     *     summary="Get approval details",
+     *     operationId="getHitlApproval",
+     *     tags={"HITL Approvals"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="hitlApproval",
+     *         in="path",
+     *         description="Approval ID",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(type="object")
+     *     ),
+     *     @OA\Response(response=404, description="Approval not found")
+     * )
+     */
     public function show(HITLApproval $hitlApproval): HITLApprovalResource
     {
         $this->authorize('view', $hitlApproval);
@@ -57,6 +116,31 @@ class HITLApprovalController extends Controller
 
     /**
      * Approve the specified HITL approval.
+     */
+    /**
+     * @OA\Post(
+     *     path="/hitl-approvals/{hitlApproval}/approve",
+     *     summary="Approve request",
+     *     operationId="approveHitlApproval",
+     *     tags={"HITL Approvals"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="hitlApproval",
+     *         in="path",
+     *         description="Approval ID",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(type="object")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Request approved successfully",
+     *         @OA\JsonContent(type="object")
+     *     )
+     * )
      */
     public function approve(ApproveHITLRequest $request, HITLApproval $hitlApproval): JsonResponse
     {
@@ -87,6 +171,31 @@ class HITLApprovalController extends Controller
     /**
      * Reject the specified HITL approval.
      */
+    /**
+     * @OA\Post(
+     *     path="/hitl-approvals/{hitlApproval}/reject",
+     *     summary="Reject request",
+     *     operationId="rejectHitlApproval",
+     *     tags={"HITL Approvals"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="hitlApproval",
+     *         in="path",
+     *         description="Approval ID",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(type="object")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Request rejected successfully",
+     *         @OA\JsonContent(type="object")
+     *     )
+     * )
+     */
     public function reject(RejectHITLRequest $request, HITLApproval $hitlApproval): JsonResponse
     {
         $this->authorize('review', $hitlApproval);
@@ -115,6 +224,27 @@ class HITLApprovalController extends Controller
 
     /**
      * Escalate the specified HITL approval.
+     */
+    /**
+     * @OA\Post(
+     *     path="/hitl-approvals/{hitlApproval}/escalate",
+     *     summary="Escalate request",
+     *     operationId="escalateHitlApproval",
+     *     tags={"HITL Approvals"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="hitlApproval",
+     *         in="path",
+     *         description="Approval ID",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Request escalated successfully",
+     *         @OA\JsonContent(type="object")
+     *     )
+     * )
      */
     public function escalate(HITLApproval $hitlApproval): JsonResponse
     {

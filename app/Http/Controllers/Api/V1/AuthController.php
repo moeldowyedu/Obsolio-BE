@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Models\Tenant;
+use App\Models\TenantMembership;
 use App\Models\User;
 use App\Models\UserActivity;
 use App\Models\UserSession;
@@ -19,30 +20,90 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 class AuthController extends Controller
 {
     /**
-     * Register a new user.
+     * @OA\Post(
+     *     path="/auth/register",
+     *     summary="Register new user with tenant",
+     *     operationId="register",
+     *     tags={"Authentication"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"type","fullName","email","password","password_confirmation"},
+     *             @OA\Property(property="type", type="string", enum={"personal", "organization"}, example="personal", description="Tenant type"),
+     *             @OA\Property(property="fullName", type="string", example="John Doe"),
+     *             @OA\Property(property="email", type="string", format="email", example="john.doe@example.com"),
+     *             @OA\Property(property="password", type="string", format="password", example="SecurePass123!"),
+     *             @OA\Property(property="password_confirmation", type="string", format="password", example="SecurePass123!"),
+     *             @OA\Property(property="organizationName", type="string", example="Acme Corporation", description="Required if type=organization"),
+     *             @OA\Property(property="organizationDomain", type="string", example="acme.example.com", description="Optional custom domain"),
+     *             @OA\Property(property="phone", type="string", example="+1234567890"),
+     *             @OA\Property(property="avatar_url", type="string", example="https://example.com/avatar.jpg")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Registration successful",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Registration successful"),
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="user", type="object",
+     *                     @OA\Property(property="id", type="integer", example=1),
+     *                     @OA\Property(property="name", type="string", example="John Doe"),
+     *                     @OA\Property(property="email", type="string", example="john.doe@example.com"),
+     *                     @OA\Property(property="phone", type="string", example="+1234567890"),
+     *                     @OA\Property(property="status", type="string", example="active")
+     *                 ),
+     *                 @OA\Property(property="tenant", type="object",
+     *                     @OA\Property(property="id", type="string", example="9d45f8a0-1234-5678-9abc-def012345678"),
+     *                     @OA\Property(property="name", type="string", example="John Doe"),
+     *                     @OA\Property(property="type", type="string", example="personal"),
+     *                     @OA\Property(property="slug", type="string", example="john-doe-abc123")
+     *                 ),
+     *                 @OA\Property(property="token", type="string", example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."),
+     *                 @OA\Property(property="token_type", type="string", example="bearer"),
+     *                 @OA\Property(property="expires_in", type="integer", example=3600),
+     *                 @OA\Property(property="session_id", type="string", example="550e8400-e29b-41d4-a716-446655440000")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=422, description="Validation error")
+     * )
      */
     public function register(RegisterRequest $request): JsonResponse
     {
         try {
             return DB::transaction(function () use ($request) {
-                // Create user without tenant - tenant will be created during setup
+                // Step 1: Create Tenant based on type
+                $tenantData = $this->prepareTenantData($request);
+                $tenant = Tenant::create($tenantData);
+
+                // Step 2: Create User with tenant_id
                 $user = User::create([
-                    'tenant_id' => null, // Will be set during tenant setup
-                    'name' => $request->name,
+                    'tenant_id' => $tenant->id,
+                    'name' => $request->fullName,
                     'email' => $request->email,
                     'password' => Hash::make($request->password),
                     'avatar_url' => $request->avatar_url,
-                    'phone' => $request->phone,
+                    'phone' => $request->phone ?? '', // Default to empty string since DB column is NOT NULL
                     'status' => 'active',
                 ]);
 
-                // Auto-login: generate JWT token
+                // Step 3: Create Membership with owner role
+                TenantMembership::create([
+                    'tenant_id' => $tenant->id,
+                    'user_id' => $user->id,
+                    'role' => TenantMembership::ROLE_OWNER,
+                    'joined_at' => now(),
+                ]);
+
+                // Step 4: Generate JWT token (includes tenant_id and role in claims)
                 $token = JWTAuth::fromUser($user);
 
-                // Create session without tenant_id (user hasn't set up tenant yet)
+                // Step 5: Create session
                 $sessionId = Str::uuid()->toString();
-                $session = UserSession::create([
-                    'tenant_id' => null,
+                UserSession::create([
+                    'tenant_id' => $tenant->id,
                     'user_id' => $user->id,
                     'session_id' => $sessionId,
                     'ip_address' => $request->ip(),
@@ -56,19 +117,43 @@ class AuthController extends Controller
                     'is_active' => true,
                 ]);
 
-                // Log registration activity without tenant_id
-                $this->logActivity($user->id, 'login', 'create', 'User', $user->id, "User registered: {$user->email}", $request, 'success', null, false, null);
+                // Step 6: Log registration activity
+                $this->logActivity(
+                    $user->id,
+                    'registration',
+                    'create',
+                    'User',
+                    $user->id,
+                    "User registered: {$user->email} ({$request->type} tenant)",
+                    $request,
+                    'success',
+                    null,
+                    false,
+                    $tenant->id
+                );
 
+                // Step 7: Return success response
                 return response()->json([
                     'success' => true,
-                    'message' => 'Registration successful. Please complete tenant setup.',
+                    'message' => 'Registration successful',
                     'data' => [
-                        'user' => $user,
+                        'user' => [
+                            'id' => $user->id,
+                            'name' => $user->name,
+                            'email' => $user->email,
+                            'phone' => $user->phone,
+                            'status' => $user->status,
+                        ],
+                        'tenant' => [
+                            'id' => $tenant->id,
+                            'name' => $tenant->name,
+                            'type' => $tenant->type,
+                            'slug' => $tenant->slug,
+                        ],
                         'token' => $token,
                         'token_type' => 'bearer',
-                        'expires_in' => (int) config('jwt.ttl') * 60, // Convert minutes to seconds
+                        'expires_in' => (int) config('jwt.ttl') * 60,
                         'session_id' => $sessionId,
-                        'requires_tenant_setup' => true, // Flag to frontend
                     ],
                 ], 201);
             });
@@ -82,7 +167,85 @@ class AuthController extends Controller
     }
 
     /**
-     * Login user and create token.
+     * Prepare tenant data based on registration type.
+     */
+    private function prepareTenantData(RegisterRequest $request): array
+    {
+        $type = $request->type;
+
+        if ($type === 'personal') {
+            // Personal tenant
+            $name = $request->fullName;
+            $slug = Str::slug($name . '-' . Str::random(6));
+
+            return [
+                'name' => $name,
+                'short_name' => Str::limit($name, 20, ''),
+                'slug' => $slug,
+                'type' => 'personal',
+                'status' => 'active',
+                'setup_completed' => true,
+                'setup_completed_at' => now(),
+            ];
+        } else {
+            // Organization tenant
+            $name = $request->organizationName;
+            $slug = Str::slug($name . '-' . Str::random(6));
+
+            $data = [
+                'name' => $name,
+                'short_name' => Str::limit($name, 20, ''),
+                'slug' => $slug,
+                'type' => 'organization',
+                'status' => 'active',
+                'setup_completed' => true,
+                'setup_completed_at' => now(),
+            ];
+
+            // Add domain if provided
+            if ($request->organizationDomain) {
+                $data['domain'] = $request->organizationDomain;
+            }
+
+            return $data;
+        }
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/auth/login",
+     *     summary="Login user",
+     *     operationId="login",
+     *     tags={"Authentication"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"email","password"},
+     *             @OA\Property(property="email", type="string", format="email", example="john.doe@example.com"),
+     *             @OA\Property(property="password", type="string", format="password", example="SecurePass123!")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Login successful",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Login successful"),
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="user", type="object",
+     *                     @OA\Property(property="id", type="integer", example=1),
+     *                     @OA\Property(property="name", type="string", example="John Doe"),
+     *                     @OA\Property(property="email", type="string", example="john.doe@example.com")
+     *                 ),
+     *                 @OA\Property(property="token", type="string", example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."),
+     *                 @OA\Property(property="token_type", type="string", example="bearer"),
+     *                 @OA\Property(property="expires_in", type="integer", example=3600),
+     *                 @OA\Property(property="session_id", type="string", example="550e8400-e29b-41d4-a716-446655440000")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Invalid credentials")
+     * )
      */
     public function login(LoginRequest $request): JsonResponse
     {
@@ -148,7 +311,39 @@ class AuthController extends Controller
     }
 
     /**
-     * Get the authenticated User.
+     * @OA\Get(
+     *     path="/auth/me",
+     *     summary="Get current user",
+     *     operationId="me",
+     *     tags={"Authentication"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="id", type="integer", example=1),
+     *                 @OA\Property(property="name", type="string", example="John Doe"),
+     *                 @OA\Property(property="email", type="string", example="john.doe@example.com"),
+     *                 @OA\Property(property="phone", type="string", example="+1234567890"),
+     *                 @OA\Property(property="status", type="string", example="active"),
+     *                 @OA\Property(property="last_login_at", type="string", format="date-time", example="2023-10-27T10:00:00.000000Z"),
+     *                 @OA\Property(property="created_at", type="string", format="date-time", example="2023-10-27T09:00:00.000000Z"),
+     *                 @OA\Property(property="updated_at", type="string", format="date-time", example="2023-10-27T10:00:00.000000Z"),
+     *                 @OA\Property(property="tenant", type="object",
+     *                     @OA\Property(property="id", type="integer", example=1),
+     *                     @OA\Property(property="name", type="string", example="Acme Corp"),
+     *                     @OA\Property(property="slug", type="string", example="acme-corp")
+     *                 ),
+     *                 @OA\Property(property="teams", type="array", @OA\Items(type="object")),
+     *                 @OA\Property(property="assignments", type="array", @OA\Items(type="object")),
+     *                 @OA\Property(property="roles", type="array", @OA\Items(type="object"))
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Unauthenticated")
+     * )
      */
     public function me(): JsonResponse
     {
@@ -181,7 +376,22 @@ class AuthController extends Controller
     }
 
     /**
-     * Log the user out (Invalidate the token).
+     * @OA\Post(
+     *     path="/auth/logout",
+     *     summary="Logout user",
+     *     operationId="logout",
+     *     tags={"Authentication"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Logout successful",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Successfully logged out")
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Unauthenticated")
+     * )
      */
     public function logout(Request $request): JsonResponse
     {
@@ -216,7 +426,27 @@ class AuthController extends Controller
     }
 
     /**
-     * Refresh a token.
+     * @OA\Post(
+     *     path="/auth/refresh",
+     *     summary="Refresh token",
+     *     operationId="refresh",
+     *     tags={"Authentication"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Token refreshed successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Token refreshed successfully"),
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="token", type="string", example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."),
+     *                 @OA\Property(property="token_type", type="string", example="bearer"),
+     *                 @OA\Property(property="expires_in", type="integer", example=3600)
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Unauthenticated")
+     * )
      */
     public function refresh(): JsonResponse
     {
@@ -242,7 +472,36 @@ class AuthController extends Controller
     }
 
     /**
-     * Update user profile.
+     * @OA\Put(
+     *     path="/auth/profile",
+     *     summary="Update user profile",
+     *     operationId="updateProfile",
+     *     tags={"Authentication"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="name", type="string", example="John Smith"),
+     *             @OA\Property(property="phone", type="string", example="+1234567890"),
+     *             @OA\Property(property="avatar_url", type="string", example="https://example.com/new-avatar.jpg")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Profile updated",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Profile updated successfully"),
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="id", type="integer", example=1),
+     *                 @OA\Property(property="name", type="string", example="John Smith"),
+     *                 @OA\Property(property="email", type="string", example="john.doe@example.com"),
+     *                 @OA\Property(property="phone", type="string", example="+1234567890")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Unauthenticated")
+     * )
      */
     public function updateProfile(Request $request): JsonResponse
     {
@@ -274,7 +533,32 @@ class AuthController extends Controller
     }
 
     /**
-     * Change user password.
+     * @OA\Post(
+     *     path="/auth/change-password",
+     *     summary="Change user password",
+     *     operationId="changePassword",
+     *     tags={"Authentication"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"current_password","new_password","new_password_confirmation"},
+     *             @OA\Property(property="current_password", type="string", format="password", example="OldPass123!"),
+     *             @OA\Property(property="new_password", type="string", format="password", example="NewSecurePass456!"),
+     *             @OA\Property(property="new_password_confirmation", type="string", format="password", example="NewSecurePass456!")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Password changed",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Password changed successfully")
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Unauthenticated"),
+     *     @OA\Response(response=422, description="Validation error")
+     * )
      */
     public function changePassword(Request $request): JsonResponse
     {

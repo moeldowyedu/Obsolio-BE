@@ -15,11 +15,41 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class TeamController extends Controller
 {
+    /**
+     * @OA\Get(
+     *     path="/teams",
+     *     summary="List teams",
+     *     operationId="getTeams",
+     *     tags={"Teams"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="organization_id",
+     *         in="query",
+     *         description="Filter by organization ID",
+     *         required=false,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Parameter(
+     *         name="project_id",
+     *         in="query",
+     *         description="Filter by project ID",
+     *         required=false,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="array", @OA\Items(type="object"))
+     *         )
+     *     )
+     * )
+     */
     public function index(): AnonymousResourceCollection
     {
         $teams = Team::whereHas('organization', function ($query) {
-                $query->where('tenant_id', tenant('id'));
-            })
+            $query->where('tenant_id', tenant('id'));
+        })
             ->with(['organization', 'department', 'project', 'teamLead'])
             ->withCount('members')
             ->when(request('organization_id'), function ($query, $orgId) {
@@ -33,6 +63,25 @@ class TeamController extends Controller
         return TeamResource::collection($teams);
     }
 
+    /**
+     * @OA\Post(
+     *     path="/teams",
+     *     summary="Create team",
+     *     operationId="createTeam",
+     *     tags={"Teams"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(type="object")
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Team created successfully",
+     *         @OA\JsonContent(type="object")
+     *     ),
+     *     @OA\Response(response=422, description="Validation error")
+     * )
+     */
     public function store(StoreTeamRequest $request): JsonResponse
     {
         $team = Team::create($request->validated());
@@ -44,6 +93,28 @@ class TeamController extends Controller
             ->setStatusCode(201);
     }
 
+    /**
+     * @OA\Get(
+     *     path="/teams/{team}",
+     *     summary="Get team details",
+     *     operationId="getTeam",
+     *     tags={"Teams"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="team",
+     *         in="path",
+     *         description="Team ID",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(type="object")
+     *     ),
+     *     @OA\Response(response=404, description="Team not found")
+     * )
+     */
     public function show(Team $team): TeamResource
     {
         $this->authorize('view', $team);
@@ -56,6 +127,32 @@ class TeamController extends Controller
         return new TeamResource($team);
     }
 
+    /**
+     * @OA\Put(
+     *     path="/teams/{team}",
+     *     summary="Update team",
+     *     operationId="updateTeam",
+     *     tags={"Teams"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="team",
+     *         in="path",
+     *         description="Team ID",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(type="object")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Team updated successfully",
+     *         @OA\JsonContent(type="object")
+     *     ),
+     *     @OA\Response(response=422, description="Validation error")
+     * )
+     */
     public function update(UpdateTeamRequest $request, Team $team): TeamResource
     {
         $this->authorize('update', $team);
@@ -67,6 +164,27 @@ class TeamController extends Controller
         return new TeamResource($team->load('organization', 'department', 'project', 'teamLead'));
     }
 
+    /**
+     * @OA\Delete(
+     *     path="/teams/{team}",
+     *     summary="Delete team",
+     *     operationId="deleteTeam",
+     *     tags={"Teams"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="team",
+     *         in="path",
+     *         description="Team ID",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Response(
+     *         response=204,
+     *         description="Team deleted successfully"
+     *     ),
+     *     @OA\Response(response=404, description="Team not found")
+     * )
+     */
     public function destroy(Team $team): JsonResponse
     {
         $this->authorize('delete', $team);
@@ -79,6 +197,34 @@ class TeamController extends Controller
         return response()->json(null, 204);
     }
 
+    /**
+     * @OA\Post(
+     *     path="/teams/{team}/members",
+     *     summary="Add team member",
+     *     operationId="addTeamMember",
+     *     tags={"Teams"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="team",
+     *         in="path",
+     *         description="Team ID",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(type="object")
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Member added successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string"),
+     *             @OA\Property(property="data", type="object")
+     *         )
+     *     )
+     * )
+     */
     public function addMember(AddTeamMemberRequest $request, Team $team): JsonResponse
     {
         $this->authorize('update', $team);
@@ -97,6 +243,33 @@ class TeamController extends Controller
         ], 201);
     }
 
+    /**
+     * @OA\Delete(
+     *     path="/teams/{team}/members/{userId}",
+     *     summary="Remove team member",
+     *     operationId="removeTeamMember",
+     *     tags={"Teams"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="team",
+     *         in="path",
+     *         description="Team ID",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Parameter(
+     *         name="userId",
+     *         in="path",
+     *         description="User ID",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Response(
+     *         response=204,
+     *         description="Member removed successfully"
+     *     )
+     * )
+     */
     public function removeMember(Team $team, string $userId): JsonResponse
     {
         $this->authorize('update', $team);

@@ -17,6 +17,30 @@ class ConnectedAppController extends Controller
     /**
      * Display a listing of the resource.
      */
+    /**
+     * @OA\Get(
+     *     path="/connected-apps",
+     *     summary="List connected apps",
+     *     operationId="getConnectedApps",
+     *     tags={"Connected Apps"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="status",
+     *         in="query",
+     *         description="Filter by status",
+     *         required=false,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="array", @OA\Items(type="object"))
+     *         )
+     *     )
+     * )
+     */
     public function index(Request $request): JsonResponse
     {
         $this->authorize('view-connected-apps');
@@ -56,6 +80,25 @@ class ConnectedAppController extends Controller
 
     /**
      * Store a newly created resource in storage.
+     */
+    /**
+     * @OA\Post(
+     *     path="/connected-apps",
+     *     summary="Connect new app",
+     *     operationId="createConnectedApp",
+     *     tags={"Connected Apps"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(type="object")
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Connected app created successfully",
+     *         @OA\JsonContent(type="object")
+     *     ),
+     *     @OA\Response(response=422, description="Validation error")
+     * )
      */
     public function store(StoreConnectedAppRequest $request): JsonResponse
     {
@@ -101,6 +144,28 @@ class ConnectedAppController extends Controller
     /**
      * Display the specified resource.
      */
+    /**
+     * @OA\Get(
+     *     path="/connected-apps/{id}",
+     *     summary="Get app details",
+     *     operationId="getConnectedApp",
+     *     tags={"Connected Apps"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="Connected App ID",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(type="object")
+     *     ),
+     *     @OA\Response(response=404, description="App not found")
+     * )
+     */
     public function show(string $id): JsonResponse
     {
         $this->authorize('view-connected-apps');
@@ -121,6 +186,32 @@ class ConnectedAppController extends Controller
 
     /**
      * Update the specified resource in storage.
+     */
+    /**
+     * @OA\Put(
+     *     path="/connected-apps/{id}",
+     *     summary="Update app",
+     *     operationId="updateConnectedApp",
+     *     tags={"Connected Apps"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="Connected App ID",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(type="object")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Connected app updated successfully",
+     *         @OA\JsonContent(type="object")
+     *     ),
+     *     @OA\Response(response=422, description="Validation error")
+     * )
      */
     public function update(UpdateConnectedAppRequest $request, string $id): JsonResponse
     {
@@ -152,6 +243,31 @@ class ConnectedAppController extends Controller
 
     /**
      * Remove the specified resource from storage.
+     */
+    /**
+     * @OA\Delete(
+     *     path="/connected-apps/{id}",
+     *     summary="Disconnect app",
+     *     operationId="deleteConnectedApp",
+     *     tags={"Connected Apps"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="Connected App ID",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Connected app deleted successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string")
+     *         )
+     *     ),
+     *     @OA\Response(response=404, description="App not found")
+     * )
      */
     public function destroy(string $id): JsonResponse
     {
@@ -185,6 +301,27 @@ class ConnectedAppController extends Controller
 
     /**
      * Sync data with connected app.
+     */
+    /**
+     * @OA\Post(
+     *     path="/connected-apps/{id}/sync",
+     *     summary="Sync app data",
+     *     operationId="syncConnectedApp",
+     *     tags={"Connected Apps"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="Connected App ID",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Data synchronized successfully",
+     *         @OA\JsonContent(type="object")
+     *     )
+     * )
      */
     public function sync(string $id): JsonResponse
     {
@@ -234,6 +371,31 @@ class ConnectedAppController extends Controller
 
     /**
      * Test connection to connected app.
+     */
+    /**
+     * @OA\Post(
+     *     path="/connected-apps/{id}/test",
+     *     summary="Test app connection",
+     *     operationId="testConnectedApp",
+     *     tags={"Connected Apps"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="Connected App ID",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Connection test successful",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string"),
+     *             @OA\Property(property="data", type="object")
+     *         )
+     *     )
+     * )
      */
     public function testConnection(string $id): JsonResponse
     {
@@ -286,6 +448,27 @@ class ConnectedAppController extends Controller
     /**
      * Refresh OAuth token.
      */
+    /**
+     * @OA\Post(
+     *     path="/connected-apps/{id}/refresh-token",
+     *     summary="Refresh app token",
+     *     operationId="refreshConnectedAppToken",
+     *     tags={"Connected Apps"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="Connected App ID",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Token refreshed successfully",
+     *         @OA\JsonContent(type="object")
+     *     )
+     * )
+     */
     public function refreshToken(string $id): JsonResponse
     {
         $this->authorize('update-connected-apps');
@@ -337,6 +520,30 @@ class ConnectedAppController extends Controller
     /**
      * Get app logs.
      */
+    /**
+     * @OA\Get(
+     *     path="/connected-apps/{id}/logs",
+     *     summary="Get app logs",
+     *     operationId="getConnectedAppLogs",
+     *     tags={"Connected Apps"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="Connected App ID",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="array", @OA\Items(type="object"))
+     *         )
+     *     )
+     * )
+     */
     public function logs(Request $request, string $id): JsonResponse
     {
         $this->authorize('view-connected-apps');
@@ -378,6 +585,27 @@ class ConnectedAppController extends Controller
 
     /**
      * Revoke app access.
+     */
+    /**
+     * @OA\Post(
+     *     path="/connected-apps/{id}/revoke",
+     *     summary="Revoke app access",
+     *     operationId="revokeConnectedApp",
+     *     tags={"Connected Apps"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="Connected App ID",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="App access revoked successfully",
+     *         @OA\JsonContent(type="object")
+     *     )
+     * )
      */
     public function revoke(string $id): JsonResponse
     {
