@@ -11,6 +11,10 @@ namespace App\Http\Controllers;
  *         email="support@aasim.com"
  *     )
  * )
+ * @OA\Server(
+ *     url="/api/v1",
+ *     description="API Server"
+ * )
  * @OA\SecurityScheme(
  *     securityScheme="bearerAuth",
  *     type="http",
