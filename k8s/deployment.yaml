@@ -1,4 +1,4 @@
-# Kubernetes Deployment for Aasim AI Application
+# Kubernetes Deployment for OBSOLIO AI Application
 # Includes resource requests/limits for auto-scaling
 
 ---
@@ -6,10 +6,10 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: aasim-api
+  name: OBSOLIO-api
   namespace: production
   labels:
-    app: aasim
+    app: OBSOLIO
     component: api
     tier: backend
 spec:
@@ -21,12 +21,12 @@ spec:
       maxUnavailable: 0  # Zero downtime deployments
   selector:
     matchLabels:
-      app: aasim
+      app: OBSOLIO
       component: api
   template:
     metadata:
       labels:
-        app: aasim
+        app: OBSOLIO
         component: api
         tier: backend
       annotations:
@@ -35,8 +35,8 @@ spec:
         prometheus.io/path: "/api/metrics"
     spec:
       containers:
-        - name: aasim-api
-          image: aasim/api:latest
+        - name: OBSOLIO-api
+          image: OBSOLIO/api:latest
           imagePullPolicy: Always
           ports:
             - name: http
@@ -88,24 +88,24 @@ spec:
             - name: DB_HOST
               valueFrom:
                 secretKeyRef:
-                  name: aasim-secrets
+                  name: OBSOLIO-secrets
                   key: db-host
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: aasim-secrets
+                  name: OBSOLIO-secrets
                   key: db-password
 
             # Redis credentials
             - name: REDIS_HOST
               valueFrom:
                 secretKeyRef:
-                  name: aasim-secrets
+                  name: OBSOLIO-secrets
                   key: redis-host
             - name: REDIS_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: aasim-secrets
+                  name: OBSOLIO-secrets
                   key: redis-password
 
           # Volume mounts
@@ -116,35 +116,35 @@ spec:
       volumes:
         - name: storage
           persistentVolumeClaim:
-            claimName: aasim-storage-pvc
+            claimName: OBSOLIO-storage-pvc
 
 ---
 # Queue Worker Deployment
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: aasim-queue-worker
+  name: OBSOLIO-queue-worker
   namespace: production
   labels:
-    app: aasim
+    app: OBSOLIO
     component: queue-worker
     tier: worker
 spec:
   replicas: 2  # Initial replicas (HPA will manage this)
   selector:
     matchLabels:
-      app: aasim
+      app: OBSOLIO
       component: queue-worker
   template:
     metadata:
       labels:
-        app: aasim
+        app: OBSOLIO
         component: queue-worker
         tier: worker
     spec:
       containers:
         - name: queue-worker
-          image: aasim/api:latest
+          image: OBSOLIO/api:latest
           imagePullPolicy: Always
           command: ["php", "artisan", "queue:work", "redis", "--sleep=3", "--tries=3", "--max-time=3600"]
 
@@ -176,12 +176,12 @@ spec:
             - name: DB_HOST
               valueFrom:
                 secretKeyRef:
-                  name: aasim-secrets
+                  name: OBSOLIO-secrets
                   key: db-host
             - name: REDIS_HOST
               valueFrom:
                 secretKeyRef:
-                  name: aasim-secrets
+                  name: OBSOLIO-secrets
                   key: redis-host
 
 ---
@@ -189,28 +189,28 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: aasim-scheduler
+  name: OBSOLIO-scheduler
   namespace: production
   labels:
-    app: aasim
+    app: OBSOLIO
     component: scheduler
     tier: worker
 spec:
   replicas: 2  # Run 2 for high availability
   selector:
     matchLabels:
-      app: aasim
+      app: OBSOLIO
       component: scheduler
   template:
     metadata:
       labels:
-        app: aasim
+        app: OBSOLIO
         component: scheduler
         tier: worker
     spec:
       containers:
         - name: scheduler
-          image: aasim/api:latest
+          image: OBSOLIO/api:latest
           imagePullPolicy: Always
           command: ["php", "artisan", "schedule:work"]
 
@@ -228,5 +228,5 @@ spec:
             - name: DB_HOST
               valueFrom:
                 secretKeyRef:
-                  name: aasim-secrets
+                  name: OBSOLIO-secrets
                   key: db-host

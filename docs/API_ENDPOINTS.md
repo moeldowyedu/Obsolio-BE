@@ -1,6 +1,6 @@
-# Aasim AI API Endpoints Reference
+# OBSOLIO AI API Endpoints Reference
 
-Complete reference for all API endpoints in the Aasim AI Platform.
+Complete reference for all API endpoints in the OBSOLIO AI Platform.
 
 ## Table of Contents
 
@@ -295,12 +295,12 @@ Content-Type: application/json
     "api_key": {
       "id": "uuid",
       "name": "Production API Key",
-      "key_prefix": "aasim_12345678",
+      "key_prefix": "OBSOLIO_12345678",
       "scopes": ["read", "write"],
       "expires_at": "2026-01-01",
       "is_active": true
     },
-    "plain_key": "aasim_full_key_shown_only_once_here"
+    "plain_key": "OBSOLIO_full_key_shown_only_once_here"
   }
 }
 ```

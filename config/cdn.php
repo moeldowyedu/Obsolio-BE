@@ -56,7 +56,7 @@ return [
          * Cloudflare CDN
          */
         'cloudflare' => [
-            'url' => env('CDN_CLOUDFLARE_URL', 'https://cdn.aasim.ai'),
+            'url' => env('CDN_CLOUDFLARE_URL', 'https://cdn.obsolio.com'),
             'zone_id' => env('CDN_CLOUDFLARE_ZONE_ID'),
             'api_token' => env('CDN_CLOUDFLARE_API_TOKEN'),
 
@@ -89,7 +89,7 @@ return [
          * Fastly CDN
          */
         'fastly' => [
-            'url' => env('CDN_FASTLY_URL', 'https://cdn.aasim.ai'),
+            'url' => env('CDN_FASTLY_URL', 'https://cdn.obsolio.com'),
             'service_id' => env('CDN_FASTLY_SERVICE_ID'),
             'api_key' => env('CDN_FASTLY_API_KEY'),
 
@@ -106,7 +106,7 @@ return [
          * Bunny CDN
          */
         'bunny' => [
-            'url' => env('CDN_BUNNY_URL', 'https://cdn.aasim.b-cdn.net'),
+            'url' => env('CDN_BUNNY_URL', 'https://cdn.obsolio.b-cdn.net'),
             'pull_zone_id' => env('CDN_BUNNY_PULL_ZONE_ID'),
             'api_key' => env('CDN_BUNNY_API_KEY'),
             'storage_zone' => env('CDN_BUNNY_STORAGE_ZONE'),

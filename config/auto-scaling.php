@@ -94,8 +94,8 @@ return [
     'providers' => [
         'aws_ecs' => [
             'enabled' => env('AUTOSCALE_AWS_ECS_ENABLED', false),
-            'cluster' => env('AWS_ECS_CLUSTER', 'aasim-production'),
-            'service' => env('AWS_ECS_SERVICE', 'aasim-api'),
+            'cluster' => env('AWS_ECS_CLUSTER', 'obsolio-production'),
+            'service' => env('AWS_ECS_SERVICE', 'obsolio-api'),
             'target_tracking' => [
                 'cpu' => 70,
                 'memory' => 80,
@@ -144,31 +144,31 @@ return [
             'http_requests_per_second' => [
                 'type' => 'pods',
                 'target' => 1000,
-                'query' => 'rate(aasim_http_requests_total[1m])',
+                'query' => 'rate(obsolio_http_requests_total[1m])',
             ],
 
             'http_request_duration_seconds' => [
                 'type' => 'pods',
                 'target' => 0.5,
-                'query' => 'histogram_quantile(0.95, rate(aasim_http_request_duration_seconds_bucket[1m]))',
+                'query' => 'histogram_quantile(0.95, rate(obsolio_http_request_duration_seconds_bucket[1m]))',
             ],
 
             'queue_default_size' => [
                 'type' => 'external',
                 'target' => 100,
-                'query' => 'aasim_queue_default_size',
+                'query' => 'obsolio_queue_default_size',
             ],
 
             'queue_high_size' => [
                 'type' => 'external',
                 'target' => 50,
-                'query' => 'aasim_queue_high_size',
+                'query' => 'obsolio_queue_high_size',
             ],
 
             'database_connections' => [
                 'type' => 'pods',
                 'target' => 20,
-                'query' => 'aasim_database_connections_active',
+                'query' => 'obsolio_database_connections_active',
             ],
         ],
     ],

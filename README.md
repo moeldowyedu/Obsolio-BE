@@ -1,6 +1,6 @@
-# Aasim AI - Laravel Backend API
+# OBSOLIO - Laravel Backend API
 
-Enterprise-grade REST API for the Aasim AI Platform built with Laravel 12 and PostgreSQL, featuring multi-tenancy, comprehensive role-based access control, and extensive activity logging.
+Enterprise-grade REST API for the OBSOLIO Platform built with Laravel 12 and PostgreSQL, featuring multi-tenancy, comprehensive role-based access control, and extensive activity logging.
 
 ## 🚀 Features
 
@@ -34,7 +34,7 @@ Enterprise-grade REST API for the Aasim AI Platform built with Laravel 12 and Po
 ### 1. Clone Repository
 ```bash
 git clone <repository-url>
-cd Aasim-BE
+cd OBSOLIO-BE
 ```
 
 ### 2. Install Dependencies
@@ -50,7 +50,7 @@ cp .env.example .env
 Update `.env` with your configuration:
 
 ```env
-APP_NAME="Aasim AI"
+APP_NAME="OBSOLIO"
 APP_ENV=local
 APP_KEY=
 APP_DEBUG=true
@@ -60,7 +60,7 @@ APP_URL=http://localhost:8000
 DB_CONNECTION=pgsql
 DB_HOST=127.0.0.1
 DB_PORT=5432
-DB_DATABASE=aasim_ai
+DB_DATABASE=obsolio
 DB_USERNAME=postgres
 DB_PASSWORD=your_password
 
@@ -685,13 +685,13 @@ SESSION_DRIVER=redis
 
 ## 📄 License
 
-Proprietary - Aasim AI Platform
+Proprietary - OBSOLIO Platform
 
 ## 👥 Support
 
 For issues, questions, or feature requests:
 - **Documentation**: [API Docs](http://localhost:8000/api/documentation)
-- **Email**: support@aasim.ai
+- **Email**: support@obsolio.com
 - **Issues**: GitHub Issues
 
 ---

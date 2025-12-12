@@ -171,46 +171,46 @@ class MetricsController extends Controller
      */
     private function formatPrometheusMetrics(array $metrics): string
     {
-        $output = "# Aasim AI Application Metrics\n\n";
+        $output = "# OBSOLIO Application Metrics\n\n";
 
         // System metrics
-        $output .= "# HELP aasim_memory_usage_bytes Current memory usage in bytes\n";
-        $output .= "# TYPE aasim_memory_usage_bytes gauge\n";
-        $output .= "aasim_memory_usage_bytes {$metrics['system']['memory_usage_bytes']}\n\n";
+        $output .= "# HELP obsolio_memory_usage_bytes Current memory usage in bytes\n";
+        $output .= "# TYPE obsolio_memory_usage_bytes gauge\n";
+        $output .= "obsolio_memory_usage_bytes {$metrics['system']['memory_usage_bytes']}\n\n";
 
-        $output .= "# HELP aasim_memory_peak_bytes Peak memory usage in bytes\n";
-        $output .= "# TYPE aasim_memory_peak_bytes gauge\n";
-        $output .= "aasim_memory_peak_bytes {$metrics['system']['memory_peak_bytes']}\n\n";
+        $output .= "# HELP obsolio_memory_peak_bytes Peak memory usage in bytes\n";
+        $output .= "# TYPE obsolio_memory_peak_bytes gauge\n";
+        $output .= "obsolio_memory_peak_bytes {$metrics['system']['memory_peak_bytes']}\n\n";
 
-        $output .= "# HELP aasim_cpu_load_average Current CPU load average\n";
-        $output .= "# TYPE aasim_cpu_load_average gauge\n";
-        $output .= "aasim_cpu_load_average {$metrics['system']['cpu_load_average']}\n\n";
+        $output .= "# HELP obsolio_cpu_load_average Current CPU load average\n";
+        $output .= "# TYPE obsolio_cpu_load_average gauge\n";
+        $output .= "obsolio_cpu_load_average {$metrics['system']['cpu_load_average']}\n\n";
 
         // Application metrics
-        $output .= "# HELP aasim_http_requests_total Total HTTP requests\n";
-        $output .= "# TYPE aasim_http_requests_total counter\n";
-        $output .= "aasim_http_requests_total {$metrics['application']['http_requests_total']}\n\n";
+        $output .= "# HELP obsolio_http_requests_total Total HTTP requests\n";
+        $output .= "# TYPE obsolio_http_requests_total counter\n";
+        $output .= "obsolio_http_requests_total {$metrics['application']['http_requests_total']}\n\n";
 
-        $output .= "# HELP aasim_http_request_duration_seconds Average request duration\n";
-        $output .= "# TYPE aasim_http_request_duration_seconds gauge\n";
-        $output .= "aasim_http_request_duration_seconds {$metrics['application']['http_request_duration_seconds']}\n\n";
+        $output .= "# HELP obsolio_http_request_duration_seconds Average request duration\n";
+        $output .= "# TYPE obsolio_http_request_duration_seconds gauge\n";
+        $output .= "obsolio_http_request_duration_seconds {$metrics['application']['http_request_duration_seconds']}\n\n";
 
         // Database metrics
         foreach ($metrics['database'] as $key => $value) {
-            $output .= "# TYPE aasim_{$key} gauge\n";
-            $output .= "aasim_{$key} {$value}\n\n";
+            $output .= "# TYPE obsolio_{$key} gauge\n";
+            $output .= "obsolio_{$key} {$value}\n\n";
         }
 
         // Cache metrics
         foreach ($metrics['cache'] as $key => $value) {
-            $output .= "# TYPE aasim_{$key} gauge\n";
-            $output .= "aasim_{$key} {$value}\n\n";
+            $output .= "# TYPE obsolio_{$key} gauge\n";
+            $output .= "obsolio_{$key} {$value}\n\n";
         }
 
         // Queue metrics
         foreach ($metrics['queue'] as $key => $value) {
-            $output .= "# TYPE aasim_{$key} gauge\n";
-            $output .= "aasim_{$key} {$value}\n\n";
+            $output .= "# TYPE obsolio_{$key} gauge\n";
+            $output .= "obsolio_{$key} {$value}\n\n";
         }
 
         return $output;

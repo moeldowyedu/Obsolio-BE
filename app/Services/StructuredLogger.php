@@ -262,7 +262,7 @@ class StructuredLogger
         $enriched = [
             'timestamp' => now()->toIso8601String(),
             'environment' => config('app.env'),
-            'application' => 'aasim-ai',
+            'application' => 'obsolio',
             'version' => config('app.version', '1.0.0'),
         ];
 

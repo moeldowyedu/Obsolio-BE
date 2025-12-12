@@ -1,4 +1,4 @@
-# Aasim AI - Complete API Documentation
+# OBSOLIO AI - Complete API Documentation
 
 ## Base URL
 ```
@@ -1183,10 +1183,10 @@ Response format:
     "total": 150
   },
   "links": {
-    "first": "https://api.aasim.ai/v1/agents?page=1",
-    "last": "https://api.aasim.ai/v1/agents?page=10",
+    "first": "https://api.OBSOLIO.ai/v1/agents?page=1",
+    "last": "https://api.OBSOLIO.ai/v1/agents?page=10",
     "prev": null,
-    "next": "https://api.aasim.ai/v1/agents?page=2"
+    "next": "https://api.OBSOLIO.ai/v1/agents?page=2"
   }
 }
 ```
@@ -1233,15 +1233,15 @@ X-Webhook-Signature: sha256=xxx
 ## SDK & Client Libraries
 
 Official SDKs available for:
-- JavaScript/TypeScript (npm: `@aasim/js-sdk`)
-- Python (pip: `aasim-sdk`)
-- PHP (composer: `aasim/php-sdk`)
+- JavaScript/TypeScript (npm: `@OBSOLIO/js-sdk`)
+- Python (pip: `OBSOLIO-sdk`)
+- PHP (composer: `OBSOLIO/php-sdk`)
 
 ---
 
 ## Support
 
 For API support, contact:
-- Email: api@aasim.ai
-- Documentation: https://docs.aasim.ai
-- Status Page: https://status.aasim.ai
+- Email: api@OBSOLIO.ai
+- Documentation: https://docs.OBSOLIO.ai
+- Status Page: https://status.OBSOLIO.ai

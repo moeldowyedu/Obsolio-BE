@@ -207,30 +207,30 @@ Exposes application metrics in Prometheus format.
 **Collected Metrics:**
 
 #### System Metrics
-- `aasim_memory_usage_bytes` - Current memory usage
-- `aasim_memory_peak_bytes` - Peak memory usage
-- `aasim_cpu_load_average` - CPU load average
+- `OBSOLIO_memory_usage_bytes` - Current memory usage
+- `OBSOLIO_memory_peak_bytes` - Peak memory usage
+- `OBSOLIO_cpu_load_average` - CPU load average
 
 #### Application Metrics
-- `aasim_http_requests_total` - Total HTTP requests
-- `aasim_http_request_duration_seconds` - Average request duration
-- `aasim_http_requests_by_status{status="200"}` - Requests by status code
+- `OBSOLIO_http_requests_total` - Total HTTP requests
+- `OBSOLIO_http_request_duration_seconds` - Average request duration
+- `OBSOLIO_http_requests_by_status{status="200"}` - Requests by status code
 
 #### Database Metrics
-- `aasim_database_connections_active` - Active DB connections
-- `aasim_database_tables_count` - Total tables
-- `aasim_database_queries_total` - Total queries
+- `OBSOLIO_database_connections_active` - Active DB connections
+- `OBSOLIO_database_tables_count` - Total tables
+- `OBSOLIO_database_queries_total` - Total queries
 
 #### Cache Metrics
-- `aasim_cache_hits_total` - Cache hits
-- `aasim_cache_misses_total` - Cache misses
-- `aasim_cache_keys_total` - Total cached keys
+- `OBSOLIO_cache_hits_total` - Cache hits
+- `OBSOLIO_cache_misses_total` - Cache misses
+- `OBSOLIO_cache_keys_total` - Total cached keys
 
 #### Queue Metrics
-- `aasim_queue_default_size` - Default queue size
-- `aasim_queue_high_size` - High priority queue size
-- `aasim_queue_webhooks_size` - Webhooks queue size
-- `aasim_queue_failed_jobs_total` - Failed jobs count
+- `OBSOLIO_queue_default_size` - Default queue size
+- `OBSOLIO_queue_high_size` - High priority queue size
+- `OBSOLIO_queue_webhooks_size` - Webhooks queue size
+- `OBSOLIO_queue_failed_jobs_total` - Failed jobs count
 
 **Benefits:**
 - Industry-standard metrics format
@@ -277,7 +277,7 @@ DB_MAX_REPLICA_LAG=5  # seconds
 ---
 
 ### 7. Grafana Dashboard
-**Location:** `monitoring/grafana/aasim-dashboard.json`
+**Location:** `monitoring/grafana/OBSOLIO-dashboard.json`
 
 Pre-configured dashboard with 8 panels:
 
@@ -415,7 +415,7 @@ curl http://your-app.test/api/metrics
 
 1. Access Grafana: http://localhost:3000
 2. Login with admin/admin123
-3. Import dashboard from `monitoring/grafana/aasim-dashboard.json`
+3. Import dashboard from `monitoring/grafana/OBSOLIO-dashboard.json`
 4. View real-time metrics
 
 ---
@@ -439,12 +439,12 @@ Create `monitoring/prometheus/alerts/application.yml`:
 
 ```yaml
 groups:
-  - name: aasim_alerts
+  - name: OBSOLIO_alerts
     interval: 30s
     rules:
       # High error rate
       - alert: HighErrorRate
-        expr: rate(aasim_http_requests_total{status=~"5.."}[5m]) > 0.05
+        expr: rate(OBSOLIO_http_requests_total{status=~"5.."}[5m]) > 0.05
         for: 5m
         labels:
           severity: critical
@@ -454,7 +454,7 @@ groups:
 
       # Slow responses
       - alert: SlowResponses
-        expr: aasim_http_request_duration_seconds > 2
+        expr: OBSOLIO_http_request_duration_seconds > 2
         for: 5m
         labels:
           severity: warning
@@ -463,7 +463,7 @@ groups:
 
       # Queue backlog
       - alert: QueueBacklog
-        expr: aasim_queue_default_size > 1000
+        expr: OBSOLIO_queue_default_size > 1000
         for: 10m
         labels:
           severity: warning
@@ -472,7 +472,7 @@ groups:
 
       # Database connection issues
       - alert: DatabaseDown
-        expr: aasim_database_connections_active == 0
+        expr: OBSOLIO_database_connections_active == 0
         for: 1m
         labels:
           severity: critical
@@ -481,7 +481,7 @@ groups:
 
       # Memory usage high
       - alert: HighMemoryUsage
-        expr: aasim_memory_usage_bytes > 1073741824  # 1GB
+        expr: OBSOLIO_memory_usage_bytes > 1073741824  # 1GB
         for: 5m
         labels:
           severity: warning

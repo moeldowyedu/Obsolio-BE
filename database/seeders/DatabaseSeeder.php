@@ -24,18 +24,19 @@ class DatabaseSeeder extends Seeder
             BranchSeeder::class,       // 3. Create branches (requires tenant & organization)
             DepartmentSeeder::class,   // 4. Create departments (requires branches)
             UserSeeder::class,         // 5. Create users and assign roles
+            SystemAdminSeeder::class,  // 6. Create System Admin
         ]);
 
         $this->command->info('Database seeding completed successfully!');
         $this->command->info('');
         $this->command->info('=== Demo Credentials ===');
-        $this->command->info('Super Admin: superadmin@aasim.com / password');
-        $this->command->info('Admin: admin@aasim.com / password');
-        $this->command->info('Org Manager: sarah.johnson@aasim.com / password');
-        $this->command->info('Project Manager: michael.chen@aasim.com / password');
-        $this->command->info('Developer: emily.rodriguez@aasim.com / password');
-        $this->command->info('Team Lead: lisa.anderson@aasim.com / password');
-        $this->command->info('User: james.wilson@aasim.com / password');
-        $this->command->info('Auditor: patricia.brown@aasim.com / password');
+        $this->command->info('Super Admin: superadmin@obsolio.com / password');
+        $this->command->info('Admin: admin@obsolio.com / password');
+        $this->command->info('Org Manager: sarah.johnson@obsolio.com / password');
+        $this->command->info('Project Manager: michael.chen@obsolio.com / password');
+        $this->command->info('Developer: emily.rodriguez@obsolio.com / password');
+        $this->command->info('Team Lead: lisa.anderson@obsolio.com / password');
+        $this->command->info('User: james.wilson@obsolio.com / password');
+        $this->command->info('Auditor: patricia.brown@obsolio.com / password');
     }
 }

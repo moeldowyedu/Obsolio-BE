@@ -1,4 +1,4 @@
-# Horizontal Pod Autoscaler for Aasim AI Application
+# Horizontal Pod Autoscaler for OBSOLIO AI Application
 # Scales based on CPU, Memory, and Custom Metrics
 
 ---
@@ -6,13 +6,13 @@
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: aasim-api-hpa
+  name: OBSOLIO-api-hpa
   namespace: production
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: aasim-api
+    name: OBSOLIO-api
   minReplicas: 3
   maxReplicas: 20
   metrics:
@@ -78,13 +78,13 @@ spec:
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: aasim-queue-worker-hpa
+  name: OBSOLIO-queue-worker-hpa
   namespace: production
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: aasim-queue-worker
+    name: OBSOLIO-queue-worker
   minReplicas: 2
   maxReplicas: 15
   metrics:
@@ -148,13 +148,13 @@ spec:
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: aasim-scheduler-hpa
+  name: OBSOLIO-scheduler-hpa
   namespace: production
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: aasim-scheduler
+    name: OBSOLIO-scheduler
   minReplicas: 2  # Always have 2 for high availability
   maxReplicas: 4  # Don't need many schedulers
   metrics:

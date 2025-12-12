@@ -48,7 +48,7 @@ Route::get('/metrics', MetricsController::class); // Prometheus metrics
 // API v1 welcome endpoint
 Route::get('/v1', function () {
     return response()->json([
-        'message' => 'Welcome to Aasim AI API v1',
+        'message' => 'Welcome to OBSOLIO API v1',
         'version' => '1.0.0',
         'documentation' => url('/api/documentation'),
         'endpoints' => [
@@ -78,7 +78,7 @@ Route::prefix('v1')->group(function () {
 });
 
 // Protected routes
-Route::prefix('v1')->middleware(['jwt.auth'])->group(function () {
+Route::prefix('v1')->middleware(['jwt.auth', 'tenant.status'])->group(function () {
     // Auth
     Route::post('/auth/logout', [AuthController::class, 'logout']);
     Route::post('/auth/refresh', [AuthController::class, 'refresh']);

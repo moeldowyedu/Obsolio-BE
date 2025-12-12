@@ -24,7 +24,7 @@ class UserSeeder extends Seeder
         $superAdmin = \App\Models\User::create([
             'tenant_id' => $tenant->id,
             'name' => 'Super Admin',
-            'email' => 'superadmin@aasim.com',
+            'email' => 'superadmin@obsolio.com',
             'password' => bcrypt('password'),
             'status' => 'active',
             'last_login_at' => now(),
@@ -35,7 +35,7 @@ class UserSeeder extends Seeder
         $admin = \App\Models\User::create([
             'tenant_id' => $tenant->id,
             'name' => 'Admin User',
-            'email' => 'admin@aasim.com',
+            'email' => 'admin@obsolio.com',
             'password' => bcrypt('password'),
             'status' => 'active',
             'last_login_at' => now(),
@@ -46,7 +46,7 @@ class UserSeeder extends Seeder
         $orgManager = \App\Models\User::create([
             'tenant_id' => $tenant->id,
             'name' => 'Sarah Johnson',
-            'email' => 'sarah.johnson@aasim.com',
+            'email' => 'sarah.johnson@obsolio.com',
             'password' => bcrypt('password'),
             'status' => 'active',
             'last_login_at' => now(),
@@ -57,7 +57,7 @@ class UserSeeder extends Seeder
         $projectManager = \App\Models\User::create([
             'tenant_id' => $tenant->id,
             'name' => 'Michael Chen',
-            'email' => 'michael.chen@aasim.com',
+            'email' => 'michael.chen@obsolio.com',
             'password' => bcrypt('password'),
             'status' => 'active',
             'last_login_at' => now(),
@@ -68,7 +68,7 @@ class UserSeeder extends Seeder
         $developer1 = \App\Models\User::create([
             'tenant_id' => $tenant->id,
             'name' => 'Emily Rodriguez',
-            'email' => 'emily.rodriguez@aasim.com',
+            'email' => 'emily.rodriguez@obsolio.com',
             'password' => bcrypt('password'),
             'status' => 'active',
             'last_login_at' => now(),
@@ -79,7 +79,7 @@ class UserSeeder extends Seeder
         $developer2 = \App\Models\User::create([
             'tenant_id' => $tenant->id,
             'name' => 'David Kim',
-            'email' => 'david.kim@aasim.com',
+            'email' => 'david.kim@obsolio.com',
             'password' => bcrypt('password'),
             'status' => 'active',
             'last_login_at' => now(),
@@ -90,7 +90,7 @@ class UserSeeder extends Seeder
         $teamLead = \App\Models\User::create([
             'tenant_id' => $tenant->id,
             'name' => 'Lisa Anderson',
-            'email' => 'lisa.anderson@aasim.com',
+            'email' => 'lisa.anderson@obsolio.com',
             'password' => bcrypt('password'),
             'status' => 'active',
             'last_login_at' => now(),
@@ -101,7 +101,7 @@ class UserSeeder extends Seeder
         $user1 = \App\Models\User::create([
             'tenant_id' => $tenant->id,
             'name' => 'James Wilson',
-            'email' => 'james.wilson@aasim.com',
+            'email' => 'james.wilson@obsolio.com',
             'password' => bcrypt('password'),
             'status' => 'active',
             'last_login_at' => now(),
@@ -111,7 +111,7 @@ class UserSeeder extends Seeder
         $user2 = \App\Models\User::create([
             'tenant_id' => $tenant->id,
             'name' => 'Maria Garcia',
-            'email' => 'maria.garcia@aasim.com',
+            'email' => 'maria.garcia@obsolio.com',
             'password' => bcrypt('password'),
             'status' => 'active',
             'last_login_at' => now(),
@@ -121,7 +121,7 @@ class UserSeeder extends Seeder
         $user3 = \App\Models\User::create([
             'tenant_id' => $tenant->id,
             'name' => 'Robert Taylor',
-            'email' => 'robert.taylor@aasim.com',
+            'email' => 'robert.taylor@obsolio.com',
             'password' => bcrypt('password'),
             'status' => 'active',
             'last_login_at' => now(),
@@ -132,7 +132,7 @@ class UserSeeder extends Seeder
         $auditor = \App\Models\User::create([
             'tenant_id' => $tenant->id,
             'name' => 'Patricia Brown',
-            'email' => 'patricia.brown@aasim.com',
+            'email' => 'patricia.brown@obsolio.com',
             'password' => bcrypt('password'),
             'status' => 'active',
             'last_login_at' => now(),

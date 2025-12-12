@@ -1,7 +1,7 @@
 {
   "info": {
-    "name": "Aasim AI API",
-    "description": "Complete API collection for Aasim AI platform",
+    "name": "OBSOLIO API",
+    "description": "Complete API collection for OBSOLIO platform",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -46,8 +46,13 @@
             },
             "url": {
               "raw": "{{base_url}}/auth/register",
-              "host": ["{{base_url}}"],
-              "path": ["auth", "register"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
             }
           }
         },
@@ -79,8 +84,13 @@
             },
             "url": {
               "raw": "{{base_url}}/auth/login",
-              "host": ["{{base_url}}"],
-              "path": ["auth", "login"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
             }
           }
         },
@@ -91,8 +101,13 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/auth/me",
-              "host": ["{{base_url}}"],
-              "path": ["auth", "me"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "me"
+              ]
             }
           }
         },
@@ -103,8 +118,13 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/auth/logout",
-              "host": ["{{base_url}}"],
-              "path": ["auth", "logout"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "logout"
+              ]
             }
           }
         }
@@ -120,8 +140,12 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/organizations",
-              "host": ["{{base_url}}"],
-              "path": ["organizations"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "organizations"
+              ]
             }
           }
         },
@@ -141,8 +165,12 @@
             },
             "url": {
               "raw": "{{base_url}}/organizations",
-              "host": ["{{base_url}}"],
-              "path": ["organizations"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "organizations"
+              ]
             }
           }
         }
@@ -158,8 +186,12 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/agents",
-              "host": ["{{base_url}}"],
-              "path": ["agents"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "agents"
+              ]
             }
           }
         },
@@ -179,8 +211,12 @@
             },
             "url": {
               "raw": "{{base_url}}/agents",
-              "host": ["{{base_url}}"],
-              "path": ["agents"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "agents"
+              ]
             }
           }
         },
@@ -200,8 +236,14 @@
             },
             "url": {
               "raw": "{{base_url}}/agents/:id/execute",
-              "host": ["{{base_url}}"],
-              "path": ["agents", ":id", "execute"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "agents",
+                ":id",
+                "execute"
+              ]
             }
           }
         }
@@ -217,8 +259,12 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/job-flows",
-              "host": ["{{base_url}}"],
-              "path": ["job-flows"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "job-flows"
+              ]
             }
           }
         },
@@ -238,8 +284,12 @@
             },
             "url": {
               "raw": "{{base_url}}/job-flows",
-              "host": ["{{base_url}}"],
-              "path": ["job-flows"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "job-flows"
+              ]
             }
           }
         }
@@ -258,8 +308,12 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/marketplace",
-              "host": ["{{base_url}}"],
-              "path": ["marketplace"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "marketplace"
+              ]
             }
           }
         },
@@ -270,8 +324,14 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/marketplace/:id/purchase",
-              "host": ["{{base_url}}"],
-              "path": ["marketplace", ":id", "purchase"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "marketplace",
+                ":id",
+                "purchase"
+              ]
             }
           }
         }
@@ -287,8 +347,13 @@
             "header": [],
             "url": {
               "raw": "{{base_url}}/dashboard/stats",
-              "host": ["{{base_url}}"],
-              "path": ["dashboard", "stats"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "dashboard",
+                "stats"
+              ]
             }
           }
         }

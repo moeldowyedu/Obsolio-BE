@@ -28,16 +28,17 @@ class AuthController extends Controller
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
-     *             required={"type","fullName","email","password","password_confirmation"},
-     *             @OA\Property(property="type", type="string", enum={"personal", "organization"}, example="personal", description="Tenant type"),
+     *      *             required={"type","fullName","email","password","country","phone","subdomain"},
+     *             @OA\Property(property="type", type="string", enum={"personal", "organization"}, example="personal", description="Account type"),
      *             @OA\Property(property="fullName", type="string", example="John Doe"),
      *             @OA\Property(property="email", type="string", format="email", example="john.doe@example.com"),
      *             @OA\Property(property="password", type="string", format="password", example="SecurePass123!"),
-     *             @OA\Property(property="password_confirmation", type="string", format="password", example="SecurePass123!"),
-     *             @OA\Property(property="organizationName", type="string", example="Acme Corporation", description="Required if type=organization"),
-     *             @OA\Property(property="organizationDomain", type="string", example="acme.example.com", description="Optional custom domain"),
-     *             @OA\Property(property="phone", type="string", example="+1234567890"),
-     *             @OA\Property(property="avatar_url", type="string", example="https://example.com/avatar.jpg")
+     *             @OA\Property(property="phone", type="string", example="+1234567890", description="Phone with country code"),
+     *             @OA\Property(property="country", type="string", example="USA"),
+     *             @OA\Property(property="subdomain", type="string", example="my-workspace", description="Required for ALL types. Unique workspace URL identifier."),
+     *             @OA\Property(property="organizationFullName", type="string", example="Acme Corporation", description="Required if type=organization"),
+     *             @OA\Property(property="organizationShortName", type="string", example="acme", description="Optional display short name"),
+     *             @OA\Property(property="organizationLogo", type="string", example="https://example.com/logo.png", description="Optional")
      *         )
      *     ),
      *     @OA\Response(
@@ -52,44 +53,84 @@ class AuthController extends Controller
      *                     @OA\Property(property="name", type="string", example="John Doe"),
      *                     @OA\Property(property="email", type="string", example="john.doe@example.com"),
      *                     @OA\Property(property="phone", type="string", example="+1234567890"),
+     *                     @OA\Property(property="country", type="string", example="USA"),
      *                     @OA\Property(property="status", type="string", example="active")
      *                 ),
      *                 @OA\Property(property="tenant", type="object",
-     *                     @OA\Property(property="id", type="string", example="9d45f8a0-1234-5678-9abc-def012345678"),
-     *                     @OA\Property(property="name", type="string", example="John Doe"),
+     *                     @OA\Property(property="id", type="string", example="john-doe-abc1"),
+     *                     @OA\Property(property="name", type="string", example="John Doe's Workspace"),
      *                     @OA\Property(property="type", type="string", example="personal"),
-     *                     @OA\Property(property="slug", type="string", example="john-doe-abc123")
+     *                     @OA\Property(property="short_name", type="string", example="john-doe-abc1")
      *                 ),
      *                 @OA\Property(property="token", type="string", example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."),
      *                 @OA\Property(property="token_type", type="string", example="bearer"),
      *                 @OA\Property(property="expires_in", type="integer", example=3600),
-     *                 @OA\Property(property="session_id", type="string", example="550e8400-e29b-41d4-a716-446655440000")
+     *                 @OA\Property(property="workspace_url", type="string", example="https://john-doe-abc1.obsolio.com")
      *             )
      *         )
      *     ),
      *     @OA\Response(response=422, description="Validation error")
      * )
      */
-    public function register(RegisterRequest $request): JsonResponse
+    public function register(Request $request): JsonResponse
     {
+        // 1. Validation
+        $rules = [
+            'type' => 'required|in:personal,organization',
+            'fullName' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|string|min:8',
+            'country' => 'required|string|max:100',
+            'phone' => 'required|string|max:20', // With country code
+            // Subdomain is REQUIRED for ALL types and MUST BE UNIQUE
+            'subdomain' => 'required|string|max:63|regex:/^[a-z0-9](?:[a-z0-9\-]{0,61}[a-z0-9])?$/|unique:tenants,id',
+        ];
+
+        if ($request->type === 'organization') {
+            $rules['organizationFullName'] = 'required|string|max:255';
+            $rules['organizationShortName'] = 'nullable|string|max:50'; // Just a display short name, not unique
+            $rules['organizationLogo'] = 'nullable|string|max:500'; // URL or path
+        }
+
+        $request->validate($rules);
+
         try {
             return DB::transaction(function () use ($request) {
-                // Step 1: Create Tenant based on type
+                // Step 1: Create Tenant (Workspace)
                 $tenantData = $this->prepareTenantData($request);
                 $tenant = Tenant::create($tenantData);
 
-                // Step 2: Create User with tenant_id
+                // Create Domain for Tenant (Workspace Subdomain)
+                // The 'id' of the tenant IS the shortname/subdomain now (from prepareTenantData)
+                $subdomain = $tenant->id;
+                $tenant->domains()->create(['domain' => $subdomain . '.' . (config('tenancy.central_domains')[0] ?? 'obsolio.com')]);
+
+
+                // Step 2: Create Organization (if applicable)
+                if ($request->type === 'organization') {
+                    $tenant->organizations()->create([
+                        'name' => $request->organizationFullName,
+                        'short_name' => $request->organizationShortName,
+                        'country' => $request->country,
+                        'phone' => $request->phone,
+                        'logo_url' => $request->organizationLogo,
+                        // Defaults or other fields can be set here
+                    ]);
+                }
+
+                // Step 3: Create User
                 $user = User::create([
                     'tenant_id' => $tenant->id,
                     'name' => $request->fullName,
                     'email' => $request->email,
                     'password' => Hash::make($request->password),
-                    'avatar_url' => $request->avatar_url,
-                    'phone' => $request->phone ?? '', // Default to empty string since DB column is NOT NULL
+                    'phone' => $request->phone,
+                    'country' => $request->country,
                     'status' => 'active',
+                    'trial_ends_at' => now()->addDays(7),
                 ]);
 
-                // Step 3: Create Membership with owner role
+                // Step 4: Create Membership with owner role
                 TenantMembership::create([
                     'tenant_id' => $tenant->id,
                     'user_id' => $user->id,
@@ -97,10 +138,10 @@ class AuthController extends Controller
                     'joined_at' => now(),
                 ]);
 
-                // Step 4: Generate JWT token (includes tenant_id and role in claims)
+                // Step 5: Generate JWT token
                 $token = JWTAuth::fromUser($user);
 
-                // Step 5: Create session
+                // Step 6: Create session
                 $sessionId = Str::uuid()->toString();
                 UserSession::create([
                     'tenant_id' => $tenant->id,
@@ -117,14 +158,14 @@ class AuthController extends Controller
                     'is_active' => true,
                 ]);
 
-                // Step 6: Log registration activity
+                // Step 7: Log activity
                 $this->logActivity(
                     $user->id,
                     'registration',
                     'create',
                     'User',
                     $user->id,
-                    "User registered: {$user->email} ({$request->type} tenant)",
+                    "User registered: {$user->email} ({$request->type})",
                     $request,
                     'success',
                     null,
@@ -132,28 +173,17 @@ class AuthController extends Controller
                     $tenant->id
                 );
 
-                // Step 7: Return success response
+                // Step 8: Return success
                 return response()->json([
                     'success' => true,
                     'message' => 'Registration successful',
                     'data' => [
-                        'user' => [
-                            'id' => $user->id,
-                            'name' => $user->name,
-                            'email' => $user->email,
-                            'phone' => $user->phone,
-                            'status' => $user->status,
-                        ],
-                        'tenant' => [
-                            'id' => $tenant->id,
-                            'name' => $tenant->name,
-                            'type' => $tenant->type,
-                            'slug' => $tenant->slug,
-                        ],
+                        'user' => $user->fresh(), // Reload to get all fields
+                        'tenant' => $tenant,
                         'token' => $token,
                         'token_type' => 'bearer',
                         'expires_in' => (int) config('jwt.ttl') * 60,
-                        'session_id' => $sessionId,
+                        'workspace_url' => 'https://' . $subdomain . '.' . (config('tenancy.central_domains')[0] ?? 'obsolio.com')
                     ],
                 ], 201);
             });
@@ -167,47 +197,46 @@ class AuthController extends Controller
     }
 
     /**
-     * Prepare tenant data based on registration type.
+     * Prepare tenant data based on account type.
      */
-    private function prepareTenantData(RegisterRequest $request): array
+    private function prepareTenantData(Request $request): array
     {
-        $type = $request->type;
-
-        if ($type === 'personal') {
+        if ($request->type === 'personal') {
             // Personal tenant
-            $name = $request->fullName;
-            $slug = Str::slug($name . '-' . Str::random(6));
+            $name = $request->fullName . "'s Workspace";
+
+            // Use validated subdomain from request
+            $id = $request->subdomain;
 
             return [
+                'id' => $id, // ID IS the subdomain
                 'name' => $name,
-                'short_name' => Str::limit($name, 20, ''),
-                'slug' => $slug,
+                'short_name' => $id, // For personal, short_name can be same as ID
                 'type' => 'personal',
                 'status' => 'active',
+                'trial_ends_at' => now()->addDays(7),
                 'setup_completed' => true,
                 'setup_completed_at' => now(),
             ];
         } else {
-            // Organization tenant
-            $name = $request->organizationName;
-            $slug = Str::slug($name . '-' . Str::random(6));
+            // Organization
+            $name = $request->organizationFullName;
+            $shortName = $request->organizationShortName;
 
-            $data = [
+            // Subdomain is now explicitly passed and validated as unique (in register validation)
+            $id = $request->subdomain;
+
+            return [
+                'id' => $id, // ID IS the subdomain
                 'name' => $name,
-                'short_name' => Str::limit($name, 20, ''),
-                'slug' => $slug,
+                'short_name' => $shortName, // Allow non-unique short name
+                'organization_name' => $name,
                 'type' => 'organization',
                 'status' => 'active',
+                'trial_ends_at' => now()->addDays(7),
                 'setup_completed' => true,
                 'setup_completed_at' => now(),
             ];
-
-            // Add domain if provided
-            if ($request->organizationDomain) {
-                $data['domain'] = $request->organizationDomain;
-            }
-
-            return $data;
         }
     }
 

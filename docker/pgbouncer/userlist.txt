@@ -12,7 +12,7 @@
 "postgres" "SCRAM-SHA-256$4096:salt$hash:hash"
 
 # Application user
-"aasim_user" "SCRAM-SHA-256$4096:salt$hash:hash"
+"OBSOLIO_user" "SCRAM-SHA-256$4096:salt$hash:hash"
 
 # Read-only user
-"aasim_readonly" "SCRAM-SHA-256$4096:salt$hash:hash"
+"OBSOLIO_readonly" "SCRAM-SHA-256$4096:salt$hash:hash"

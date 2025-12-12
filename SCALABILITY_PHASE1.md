@@ -113,15 +113,15 @@ php artisan queue:work redis --queue=workflows --tries=2 &
 
 **Production Setup (Supervisor):**
 ```ini
-[program:aasim-queue-high]
+[program:OBSOLIO-queue-high]
 command=php /path/to/artisan queue:work redis --queue=high --sleep=3 --tries=3 --max-time=3600
 numprocs=3
 
-[program:aasim-queue-default]
+[program:OBSOLIO-queue-default]
 command=php /path/to/artisan queue:work redis --queue=default --sleep=3 --tries=3 --max-time=3600
 numprocs=5
 
-[program:aasim-queue-webhooks]
+[program:OBSOLIO-queue-webhooks]
 command=php /path/to/artisan queue:work redis --queue=webhooks --sleep=3 --tries=3 --max-time=3600
 numprocs=2
 ```

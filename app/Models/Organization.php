@@ -20,9 +20,11 @@ class Organization extends Model
     protected $fillable = [
         'tenant_id',
         'name',
+        'short_name',
         'industry',
         'company_size',
         'country',
+        'phone',
         'timezone',
         'logo_url',
         'description',

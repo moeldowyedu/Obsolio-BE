@@ -4,9 +4,9 @@ services:
   # PostgreSQL Database
   postgres:
     image: postgres:15-alpine
-    container_name: aasim-postgres
+    container_name: OBSOLIO-postgres
     environment:
-      POSTGRES_DB: aasim_ai
+      POSTGRES_DB: OBSOLIO_ai
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ${DB_PASSWORD:-secret}
       POSTGRES_INITDB_ARGS: "-E UTF8 --locale=en_US.UTF-8"
@@ -17,7 +17,7 @@ services:
     ports:
       - "5432:5432"
     networks:
-      - aasim-network
+      - OBSOLIO-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
@@ -29,9 +29,9 @@ services:
   # PgBouncer Connection Pooler
   pgbouncer:
     image: pgbouncer/pgbouncer:latest
-    container_name: aasim-pgbouncer
+    container_name: OBSOLIO-pgbouncer
     environment:
-      DATABASES: aasim_ai=host=postgres port=5432 dbname=aasim_ai
+      DATABASES: OBSOLIO_ai=host=postgres port=5432 dbname=OBSOLIO_ai
       PGBOUNCER_AUTH_TYPE: md5
       PGBOUNCER_AUTH_FILE: /etc/pgbouncer/userlist.txt
       PGBOUNCER_POOL_MODE: transaction
@@ -51,7 +51,7 @@ services:
     ports:
       - "6432:6432"  # PgBouncer port
     networks:
-      - aasim-network
+      - OBSOLIO-network
     depends_on:
       postgres:
         condition: service_healthy
@@ -65,7 +65,7 @@ services:
   # PgBouncer Exporter for Prometheus
   pgbouncer-exporter:
     image: prometheuscommunity/pgbouncer-exporter:latest
-    container_name: aasim-pgbouncer-exporter
+    container_name: OBSOLIO-pgbouncer-exporter
     environment:
       PGBOUNCER_HOST: pgbouncer
       PGBOUNCER_PORT: 6432
@@ -76,13 +76,13 @@ services:
     ports:
       - "9127:9127"
     networks:
-      - aasim-network
+      - OBSOLIO-network
     depends_on:
       - pgbouncer
     restart: unless-stopped
 
 networks:
-  aasim-network:
+  OBSOLIO-network:
     driver: bridge
 
 volumes:

@@ -103,7 +103,7 @@ TracingService::endTrace();
 ```php
 // Get trace context for external requests
 $context = TracingService::getTraceContext();
-// Returns: ['traceparent' => '00-{trace_id}-{span_id}-01', 'tracestate' => 'aasim=1']
+// Returns: ['traceparent' => '00-{trace_id}-{span_id}-01', 'tracestate' => 'OBSOLIO=1']
 
 // Pass to HTTP client
 Http::withHeaders($context)->post('https://api.example.com/webhook', $data);
@@ -269,8 +269,8 @@ Features:
 ```bash
 # Configure in .env
 AUTOSCALE_AWS_ECS_ENABLED=true
-AWS_ECS_CLUSTER=aasim-production
-AWS_ECS_SERVICE=aasim-api
+AWS_ECS_CLUSTER=OBSOLIO-production
+AWS_ECS_SERVICE=OBSOLIO-api
 ```
 
 **Google Cloud Run:**
@@ -315,7 +315,7 @@ Features:
 ```php
 // Get CDN URL for static asset
 $cssUrl = CDNService::asset('css/app.css');
-// Returns: https://cdn.aasim.ai/css/app.css?v=abc123de
+// Returns: https://cdn.OBSOLIO.ai/css/app.css?v=abc123de
 
 // Get CDN URL with custom version
 $jsUrl = CDNService::asset('js/app.js', '2.0.0');
@@ -331,8 +331,8 @@ CDNService::purgeAll();
 
 // Warm cache
 CDNService::warmCache([
-    'https://cdn.aasim.ai/css/app.css',
-    'https://cdn.aasim.ai/js/app.js',
+    'https://cdn.OBSOLIO.ai/css/app.css',
+    'https://cdn.OBSOLIO.ai/js/app.js',
 ]);
 ```
 
@@ -384,7 +384,7 @@ CDN_ENABLED=true
 CDN_PROVIDER=cloudflare
 
 # Cloudflare
-CDN_CLOUDFLARE_URL=https://cdn.aasim.ai
+CDN_CLOUDFLARE_URL=https://cdn.OBSOLIO.ai
 CDN_CLOUDFLARE_ZONE_ID=your-zone-id
 CDN_CLOUDFLARE_API_TOKEN=your-api-token
 
@@ -648,13 +648,13 @@ Laravel App (1000 connections)
 docker-compose -f docker-compose.pgbouncer.yml up -d
 
 # Check status
-docker logs aasim-pgbouncer
+docker logs OBSOLIO-pgbouncer
 
 # Monitor connections
-docker exec -it aasim-pgbouncer psql -p 6432 -U postgres -c "SHOW POOLS"
+docker exec -it OBSOLIO-pgbouncer psql -p 6432 -U postgres -c "SHOW POOLS"
 
 # View statistics
-docker exec -it aasim-pgbouncer psql -p 6432 -U postgres -c "SHOW STATS"
+docker exec -it OBSOLIO-pgbouncer psql -p 6432 -U postgres -c "SHOW STATS"
 ```
 
 ### Application Configuration
@@ -712,7 +712,7 @@ Components:
 
 Promtail collects logs from:
 1. **Laravel Application** (`storage/logs/*.log`)
-2. **Docker Containers** (all Aasim services)
+2. **Docker Containers** (all OBSOLIO services)
 3. **Nginx** (access and error logs)
 4. **PostgreSQL** (query logs)
 5. **Queue Workers**
@@ -729,7 +729,7 @@ docker-compose -f docker-compose.logging.yml up -d
 curl http://localhost:3100/ready
 
 # Check Promtail
-docker logs aasim-promtail
+docker logs OBSOLIO-promtail
 
 # Access Grafana
 open http://localhost:3001
@@ -741,32 +741,32 @@ open http://localhost:3001
 **LogQL Examples:**
 
 ```logql
-# All logs from Aasim AI
-{app="aasim-ai"}
+# All logs from OBSOLIO AI
+{app="OBSOLIO-ai"}
 
 # Error logs only
-{app="aasim-ai", level="error"}
+{app="OBSOLIO-ai", level="error"}
 
 # Logs for specific tenant
-{app="aasim-ai"} |= "tenant_id=abc-123"
+{app="OBSOLIO-ai"} |= "tenant_id=abc-123"
 
 # Logs with specific trace ID
-{app="aasim-ai"} |= "trace_id=1234567890abcdef"
+{app="OBSOLIO-ai"} |= "trace_id=1234567890abcdef"
 
 # Database slow queries
-{app="aasim-ai", category="database"} | json | duration_ms > 1000
+{app="OBSOLIO-ai", category="database"} | json | duration_ms > 1000
 
 # HTTP 5xx errors
-{app="aasim-ai", category="http"} | json | status >= 500
+{app="OBSOLIO-ai", category="http"} | json | status >= 500
 
 # Queue job failures
-{app="aasim-ai", category="queue"} | json | status="failed"
+{app="OBSOLIO-ai", category="queue"} | json | status="failed"
 
 # Security events
-{app="aasim-ai", category="security"}
+{app="OBSOLIO-ai", category="security"}
 
 # Log volume by level
-sum by (level) (rate({app="aasim-ai"}[5m]))
+sum by (level) (rate({app="OBSOLIO-ai"}[5m]))
 ```
 
 ### Log Retention
@@ -881,7 +881,7 @@ curl -H "Accept-Encoding: br" -v http://localhost:8000/api/health | grep Content
 php artisan db:analyze-queries
 
 # Check PgBouncer
-docker exec aasim-pgbouncer psql -p 6432 -U postgres -c "SHOW POOLS"
+docker exec OBSOLIO-pgbouncer psql -p 6432 -U postgres -c "SHOW POOLS"
 
 # Check Loki
 curl http://localhost:3100/ready
@@ -954,22 +954,22 @@ Configure alerts in `monitoring/alertmanager/alertmanager.yml`:
 
 ```yaml
 - alert: HighErrorRate
-  expr: rate(aasim_http_errors_total[5m]) > 10
+  expr: rate(OBSOLIO_http_errors_total[5m]) > 10
   annotations:
     summary: High error rate detected
 
 - alert: SlowDatabaseQuery
-  expr: aasim_database_query_duration_seconds > 5
+  expr: OBSOLIO_database_query_duration_seconds > 5
   annotations:
     summary: Very slow database query detected
 
 - alert: HighMemoryUsage
-  expr: aasim_memory_usage_bytes / aasim_memory_limit_bytes > 0.9
+  expr: OBSOLIO_memory_usage_bytes / OBSOLIO_memory_limit_bytes > 0.9
   annotations:
     summary: Memory usage above 90%
 
 - alert: QueueBacklog
-  expr: aasim_queue_default_size > 1000
+  expr: OBSOLIO_queue_default_size > 1000
   annotations:
     summary: Large queue backlog detected
 ```
@@ -1076,8 +1076,8 @@ Configure alerts in `monitoring/alertmanager/alertmanager.yml`:
 - **Grafana (Logs)**: http://localhost:3001
 - **Prometheus**: http://localhost:9090
 - **Loki**: http://localhost:3100
-- **PgBouncer Stats**: `docker exec aasim-pgbouncer psql -p 6432 -U postgres -c "SHOW STATS"`
+- **PgBouncer Stats**: `docker exec OBSOLIO-pgbouncer psql -p 6432 -U postgres -c "SHOW STATS"`
 
 ---
 
-**Built with ❤️ for global scale by the Aasim AI team**
+**Built with ❤️ for global scale by the OBSOLIO AI team**

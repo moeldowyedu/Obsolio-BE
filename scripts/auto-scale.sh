@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ###############################################################################
-# Auto-scaling Management Script for Aasim AI
+# Auto-scaling Management Script for OBSOLIO AI
 #
 # This script helps manage auto-scaling across different platforms
 # Usage: ./scripts/auto-scale.sh [command] [platform]
@@ -77,7 +77,7 @@ deploy_autoscaling() {
 
         docker-swarm)
             log_info "Deploying Docker Swarm stack..."
-            docker stack deploy -c "$PROJECT_ROOT/docker/docker-compose.swarm.yml" aasim
+            docker stack deploy -c "$PROJECT_ROOT/docker/docker-compose.swarm.yml" OBSOLIO
             log_info "Swarm stack deployed successfully"
             ;;
 
@@ -86,7 +86,7 @@ deploy_autoscaling() {
             # Register scalable target
             aws application-autoscaling register-scalable-target \
                 --service-namespace ecs \
-                --resource-id service/aasim-production/aasim-api \
+                --resource-id service/OBSOLIO-production/OBSOLIO-api \
                 --scalable-dimension ecs:service:DesiredCount \
                 --min-capacity 3 \
                 --max-capacity 20
@@ -94,9 +94,9 @@ deploy_autoscaling() {
             # Create CPU-based scaling policy
             aws application-autoscaling put-scaling-policy \
                 --service-namespace ecs \
-                --resource-id service/aasim-production/aasim-api \
+                --resource-id service/OBSOLIO-production/OBSOLIO-api \
                 --scalable-dimension ecs:service:DesiredCount \
-                --policy-name aasim-cpu-scaling \
+                --policy-name OBSOLIO-cpu-scaling \
                 --policy-type TargetTrackingScaling \
                 --target-tracking-scaling-policy-configuration \
                     "PredefinedMetricSpecification={PredefinedMetricType=ECSServiceAverageCPUUtilization},TargetValue=70.0"
@@ -106,7 +106,7 @@ deploy_autoscaling() {
 
         gcp-run)
             log_info "Configuring Google Cloud Run auto-scaling..."
-            gcloud run services update aasim-api \
+            gcloud run services update OBSOLIO-api \
                 --min-instances=3 \
                 --max-instances=100 \
                 --cpu-throttling=false \
@@ -117,8 +117,8 @@ deploy_autoscaling() {
         azure-apps)
             log_info "Configuring Azure Container Apps auto-scaling..."
             az containerapp update \
-                --name aasim-api \
-                --resource-group aasim-production \
+                --name OBSOLIO-api \
+                --resource-group OBSOLIO-production \
                 --min-replicas 3 \
                 --max-replicas 30 \
                 --scale-rule-name http-rule \
@@ -145,33 +145,33 @@ check_status() {
             kubectl get hpa -n production
             echo ""
             log_info "Current pod status:"
-            kubectl get pods -n production -l app=aasim
+            kubectl get pods -n production -l app=OBSOLIO
             ;;
 
         docker-swarm)
-            docker service ls --filter name=aasim
+            docker service ls --filter name=OBSOLIO
             echo ""
             log_info "Detailed service info:"
-            docker service ps aasim_api
+            docker service ps OBSOLIO_api
             ;;
 
         aws-ecs)
             aws ecs describe-services \
-                --cluster aasim-production \
-                --services aasim-api \
+                --cluster OBSOLIO-production \
+                --services OBSOLIO-api \
                 --query 'services[0].[desiredCount,runningCount,pendingCount]' \
                 --output table
             ;;
 
         gcp-run)
-            gcloud run services describe aasim-api \
+            gcloud run services describe OBSOLIO-api \
                 --format="table(status.conditions[0].status,spec.template.spec.containerConcurrency,status.traffic[0].revisionName)"
             ;;
 
         azure-apps)
             az containerapp show \
-                --name aasim-api \
-                --resource-group aasim-production \
+                --name OBSOLIO-api \
+                --resource-group OBSOLIO-production \
                 --query "{minReplicas:properties.template.scale.minReplicas,maxReplicas:properties.template.scale.maxReplicas,currentReplicas:properties.runningStatus.runningCount}" \
                 --output table
             ;;
@@ -192,17 +192,17 @@ scale_up() {
 
     case $platform in
         kubernetes)
-            kubectl scale deployment aasim-api -n production --replicas=$replicas
+            kubectl scale deployment OBSOLIO-api -n production --replicas=$replicas
             ;;
 
         docker-swarm)
-            docker service scale aasim_api=$replicas
+            docker service scale OBSOLIO_api=$replicas
             ;;
 
         aws-ecs)
             aws ecs update-service \
-                --cluster aasim-production \
-                --service aasim-api \
+                --cluster OBSOLIO-production \
+                --service OBSOLIO-api \
                 --desired-count $replicas
             ;;
 
@@ -223,17 +223,17 @@ scale_down() {
 
     case $platform in
         kubernetes)
-            kubectl scale deployment aasim-api -n production --replicas=$replicas
+            kubectl scale deployment OBSOLIO-api -n production --replicas=$replicas
             ;;
 
         docker-swarm)
-            docker service scale aasim_api=$replicas
+            docker service scale OBSOLIO_api=$replicas
             ;;
 
         aws-ecs)
             aws ecs update-service \
-                --cluster aasim-production \
-                --service aasim-api \
+                --cluster OBSOLIO-production \
+                --service OBSOLIO-api \
                 --desired-count $replicas
             ;;
 
@@ -253,7 +253,7 @@ show_metrics() {
 
     case $platform in
         kubernetes)
-            kubectl top pods -n production -l app=aasim
+            kubectl top pods -n production -l app=OBSOLIO
             echo ""
             kubectl top nodes
             ;;
@@ -264,7 +264,7 @@ show_metrics() {
 
         *)
             log_info "Fetching from Prometheus..."
-            curl -s "http://localhost:9090/api/v1/query?query=aasim_http_requests_total" | jq '.data.result'
+            curl -s "http://localhost:9090/api/v1/query?query=OBSOLIO_http_requests_total" | jq '.data.result'
             ;;
     esac
 }
@@ -288,7 +288,7 @@ run_scaling_test() {
     # Get API endpoint
     case $platform in
         kubernetes)
-            API_URL=$(kubectl get svc aasim-api -n production -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+            API_URL=$(kubectl get svc OBSOLIO-api -n production -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
             ;;
         docker-swarm)
             API_URL="localhost:8000"

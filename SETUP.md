@@ -29,7 +29,7 @@ If sodium appears in the list, it's enabled.
 1. **Clone the repository**
    ```bash
    git clone <repository-url>
-   cd Aasim-BE
+   cd OBSOLIO-BE
    ```
 
 2. **Install dependencies**
