@@ -39,8 +39,16 @@ class SubscriptionController extends Controller
             ], 404);
         }
 
-        $subscription = \App\Models\Tenant::find($user->tenant_id)
-            ->activeSubscription()
+        $tenant = \App\Models\Tenant::find($user->tenant_id);
+
+        if (!$tenant) {
+            return response()->json([
+                'data' => null,
+                'message' => 'Tenant not found for this user.',
+            ], 404);
+        }
+
+        $subscription = $tenant->activeSubscription()
             ->with('plan')
             ->first();
 

@@ -31,7 +31,8 @@ class InitializeTenancyByHeader extends IdentificationMiddleware
         // 1. Priority: Check for X-Tenant-ID header
         if ($request->hasHeader('X-Tenant-ID')) {
             $tenantId = $request->header('X-Tenant-ID');
-            return $this->initializeTenancy($tenantId, $request, $next);
+            $tenantId = $request->header('X-Tenant-ID');
+            return $this->tryInitializeTenancy($tenantId, $request, $next);
         }
 
         // 2. Fallback: Check for Subdomain/Domain
@@ -74,7 +75,10 @@ class InitializeTenancyByHeader extends IdentificationMiddleware
             // Try to find tenant
             $tenant = \App\Models\Tenant::find($potentialTenantId);
             if ($tenant) {
-                return $this->initializeTenancy($potentialTenantId, $request, $next);
+                $tenant = \App\Models\Tenant::find($potentialTenantId);
+                if ($tenant) {
+                    return $this->tryInitializeTenancy($potentialTenantId, $request, $next);
+                }
             }
         }
 
@@ -87,7 +91,7 @@ class InitializeTenancyByHeader extends IdentificationMiddleware
         return $next($request);
     }
 
-    protected function initializeTenancy($id, $request, $next)
+    protected function tryInitializeTenancy($id, $request, $next)
     {
         try {
             $this->tenancy->initialize($id);
