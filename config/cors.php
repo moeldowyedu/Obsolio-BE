@@ -21,7 +21,12 @@ return [
 
     'allowed_origins' => explode(',', env('CORS_ALLOWED_ORIGINS', 'http://localhost:5173,http://127.0.0.1:5173')),
 
-    'allowed_origins_patterns' => ['*.localhost:5173', '*.obsolio.com'], // Allow subdomains
+    'allowed_origins_patterns' => [
+        'http://*.localhost:5173',
+        'https://*.localhost:5173',
+        'http://*.obsolio.com',
+        'https://*.obsolio.com',
+    ], // Allow subdomains with protocol
 
     'allowed_headers' => ['*'],
 
