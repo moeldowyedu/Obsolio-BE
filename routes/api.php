@@ -25,6 +25,7 @@ use App\Http\Controllers\Api\V1\UserActivityController;
 use App\Http\Controllers\Api\V1\RoleController;
 use App\Http\Controllers\Api\V1\PermissionController;
 use App\Http\Controllers\Api\V1\TenantSetupController;
+use App\Http\Controllers\Api\V1\Admin\ImpersonationController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -62,23 +63,37 @@ Route::get('/v1', function () {
 });
 
 // Public routes
-Route::prefix('v1')->group(function () {
-    // Authentication
-    Route::post('/auth/register', [AuthController::class, 'register']);
-    Route::post('/auth/login', [AuthController::class, 'login']);
-    Route::post('/auth/forgot-password', [AuthController::class, 'forgotPassword']);
-    Route::post('/auth/reset-password', [AuthController::class, 'resetPassword']);
 
-    // Public marketplace
-    Route::get('/marketplace', [MarketplaceController::class, 'index']);
-    Route::get('/marketplace/{id}', [MarketplaceController::class, 'show']);
+// Public routes (Central Domain)
+Route::middleware(['check.subdomain:central'])->group(function () {
+    Route::prefix('v1')->group(function () {
+        // Authentication
+        Route::post('/auth/register', [AuthController::class, 'register']);
+        Route::post('/auth/login', [AuthController::class, 'login']); // Login is shared but logic differs? Or specific logic in controller
+        Route::post('/auth/forgot-password', [AuthController::class, 'forgotPassword']);
+        Route::post('/auth/reset-password', [AuthController::class, 'resetPassword']);
 
-    // Public engines list
-    Route::get('/engines', [EngineController::class, 'index']);
+        // Public marketplace
+        Route::get('/marketplace', [MarketplaceController::class, 'index']);
+        Route::get('/marketplace/{id}', [MarketplaceController::class, 'show']);
+
+        // Public engines list
+        Route::get('/engines', [EngineController::class, 'index']);
+    });
 });
 
-// Protected routes
-Route::prefix('v1')->middleware(['jwt.auth', 'tenancy.header', 'tenant.status'])->group(function () {
+// Admin Routes (Admin Domain)
+Route::middleware(['check.subdomain:admin', 'jwt.auth', 'system_admin'])->prefix('v1/admin')->group(function () {
+    Route::get('/tenants', [\App\Http\Controllers\Api\V1\TenantController::class, 'indexAdmin']);
+    Route::put('/tenants/{id}', [\App\Http\Controllers\Api\V1\TenantController::class, 'updateAdmin']);
+
+    // Impersonation
+    Route::post('/impersonate/{tenantId}', [ImpersonationController::class, 'impersonate']);
+    Route::post('/stop-impersonation', [ImpersonationController::class, 'stopImpersonation']);
+});
+
+// Tenant Routes (Tenant Domain)
+Route::middleware(['check.subdomain:tenant', 'jwt.auth', 'tenant.status'])->prefix('v1')->group(function () {
     // Auth
     Route::post('/auth/logout', [AuthController::class, 'logout']);
     Route::post('/auth/refresh', [AuthController::class, 'refresh']);
@@ -228,7 +243,4 @@ Route::prefix('v1')->middleware(['jwt.auth', 'tenancy.header', 'tenant.status'])
 });
 
 // System Admin Routes
-Route::prefix('v1/admin')->middleware(['jwt.auth', 'system_admin'])->group(function () {
-    Route::get('/tenants', [\App\Http\Controllers\Api\V1\TenantController::class, 'indexAdmin']);
-    Route::put('/tenants/{id}', [\App\Http\Controllers\Api\V1\TenantController::class, 'updateAdmin']);
-});
+

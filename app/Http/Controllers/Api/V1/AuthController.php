@@ -299,6 +299,7 @@ class AuthController extends Controller
 
         try {
             if (!$token = auth('api')->attempt($credentials)) {
+                // ... log failed login ...
                 // Log failed login attempt
                 $user = User::where('email', $request->email)->first();
                 if ($user) {
@@ -310,6 +311,39 @@ class AuthController extends Controller
                     'message' => 'Invalid email or password',
                 ], 401);
             }
+
+            $user = auth('api')->user();
+            $domainType = $request->get('domain_type');
+            $currentTenant = $request->get('tenant');
+
+            // Domain Access Control
+            if ($domainType === 'admin') {
+                // Only system admins on admin domain
+                $isSystemAdmin = $user->is_system_admin || in_array($user->role, ['system_owner', 'system_admin']);
+
+                if (!$isSystemAdmin) {
+                    auth('api')->logout();
+                    return response()->json(['success' => false, 'message' => 'Unauthorized access to admin portal'], 403);
+                }
+            } elseif ($domainType === 'tenant') {
+                // Tenant domain access check
+                // 1. System admins can access if impersonating? (Impersonation handles token generation separately, so standard login might allow system admin to login to tenant? No, requirements say "System admins authenticate via admin subdomain only")
+                // So standard login here implies REGULAR user or Tenant Admin.
+
+                // Check if user belongs to this tenant
+                $membership = $user->tenantMemberships()->where('tenant_id', $currentTenant->id)->exists();
+
+                // Also allow if user.tenant_id matches (legacy single tenant user)
+                $isHomeTenant = $user->tenant_id === $currentTenant->id;
+
+                if (!$membership && !$isHomeTenant) {
+                    auth('api')->logout();
+                    return response()->json(['success' => false, 'message' => 'You do not have access to this workspace'], 403);
+                }
+            }
+            // Central domain login might be restricted or redirect? 
+            // For now specific implementation not requested, assuming allowed if valid user.
+
 
             $user = auth('api')->user();
 

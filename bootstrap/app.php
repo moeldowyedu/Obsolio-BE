@@ -23,6 +23,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'tenant.status' => \App\Http\Middleware\CheckTenantStatus::class,
             'tenancy.header' => \App\Http\Middleware\InitializeTenancyByHeader::class,
             'system_admin' => \App\Http\Middleware\EnsureIsSystemAdmin::class,
+            'check.subdomain' => \App\Http\Middleware\CheckSubdomain::class,
         ]);
 
         // Add global middleware
