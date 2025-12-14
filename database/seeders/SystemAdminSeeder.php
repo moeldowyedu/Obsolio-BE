@@ -28,6 +28,7 @@ class SystemAdminSeeder extends Seeder
                 'email_verified_at' => now(),
                 'is_system_admin' => true,
                 'status' => 'active',
+                'phone' => '+1234567890',
             ]
         );
 
