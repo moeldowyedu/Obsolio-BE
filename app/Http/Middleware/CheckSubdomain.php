@@ -27,7 +27,8 @@ class CheckSubdomain
         if (
             ($isLocal && $partCount === 1) ||
             (!$isLocal && $partCount === 2) ||
-            ($parts[0] === 'www')
+            ($parts[0] === 'www') ||
+            ($parts[0] === 'api')
         ) {
 
             $domainType = 'central';
