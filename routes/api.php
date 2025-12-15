@@ -112,6 +112,15 @@ Route::middleware(['check.subdomain:tenant', 'jwt.auth', 'tenant.status'])->pref
     Route::put('/auth/profile', [AuthController::class, 'updateProfile']);
     Route::post('/auth/change-password', [AuthController::class, 'changePassword']);
 
+    // Email Verification
+    Route::get('/auth/email/verify/{id}/{hash}', [AuthController::class, 'verify'])
+        ->middleware(['signed', 'throttle:6,1'])
+        ->name('verification.verify');
+
+    Route::post('/auth/email/resend', [AuthController::class, 'resendVerification'])
+        ->middleware(['throttle:6,1'])
+        ->name('verification.resend');
+
     // Tenant Setup (after registration)
     Route::get('/tenant-setup/status', [TenantSetupController::class, 'checkSetupStatus']);
     Route::post('/tenant-setup/organization', [TenantSetupController::class, 'setupOrganization']);

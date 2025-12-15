@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -12,8 +12,9 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 use Tymon\JWTAuth\Contracts\JWTSubject;
+use App\Notifications\VerifyEmail; // We will create this
 
-class User extends Authenticatable implements JWTSubject
+class User extends Authenticatable implements JWTSubject, MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, HasApiTokens, HasRoles;
@@ -181,6 +182,16 @@ class User extends Authenticatable implements JWTSubject
     public function getJWTIdentifier()
     {
         return $this->getKey();
+    }
+
+    /**
+     * Send the email verification notification.
+     *
+     * @return void
+     */
+    public function sendEmailVerificationNotification()
+    {
+        $this->notify(new VerifyEmail);
     }
 
     /**

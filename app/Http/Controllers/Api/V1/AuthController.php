@@ -190,6 +190,9 @@ class AuthController extends Controller
                     $tenant->id
                 );
 
+                // Step 7.5: Send Verification Email
+                $user->sendEmailVerificationNotification();
+
                 // Step 8: Return success
                 return response()->json([
                     'success' => true,
@@ -892,8 +895,105 @@ class AuthController extends Controller
     }
 
     /**
-     * Detect location from IP (simplified - in production use GeoIP service).
+     * @OA\Get(
+     *     path="/auth/email/verify/{id}/{hash}",
+     *     summary="Verify email address",
+     *     operationId="verifyEmail",
+     *     tags={"Authentication"},
+     *     @OA\Parameter(name="id", in="path", required=true, schema=@OA\Schema(type="integer")),
+     *     @OA\Parameter(name="hash", in="path", required=true, schema=@OA\Schema(type="string")),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Email verified",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Email verified successfully")
+     *         )
+     *     )
+     * )
      */
+    public function verify(Request $request): JsonResponse // Changed to JsonResponse for API
+    {
+        $user = User::find($request->route('id'));
+
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'Invalid verification link'], 400);
+        }
+
+        if (!hash_equals((string) $request->route('hash'), sha1($user->getEmailForVerification()))) {
+            return response()->json(['success' => false, 'message' => 'Invalid verification link'], 400);
+        }
+
+        if ($user->hasVerifiedEmail()) {
+            return response()->json(['success' => true, 'message' => 'Email already verified']);
+            // OR redirect to frontend login?
+            // Since this is API, return JSON. Frontend should handle the API call.
+            // Wait, the email link points HERE (API).
+            // So this endpoint should probably REDIRECT to the frontend dashboard/login with a success query param.
+
+            // Redirect to frontend
+            // $frontendUrl = config('app.frontend_url') . '/login?verified=1';
+            // return redirect($frontendUrl);
+        }
+
+        if ($user->markEmailAsVerified()) {
+            event(new \Illuminate\Auth\Events\Verified($user));
+        }
+
+        // Log verification
+        $this->logActivity($user->id, 'verify', 'update', 'User', $user->id, "Email verified: {$user->email}", $request);
+
+        // Redirect to Frontend Login
+        // Assuming frontend is at root of subdomain
+        // $protocol = $request->secure() ? 'https://' : 'http://';
+        // $redirect = $protocol . $request->getHost() . '/login?verified=1';
+        // return redirect($redirect);
+
+        // For API-first response as requested by "Create email verification endpoint: GET /api/email/verify/{id}/{hash}"
+        // use JSON. But user experience implies browser click.
+        // I will return JSON for now as per "Delivrables" usually implied API.
+        // User asked: "Verification link should be tenant-aware".
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Email verified successfully'
+        ]);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/auth/email/resend",
+     *     summary="Resend verification email",
+     *     operationId="resendVerification",
+     *     tags={"Authentication"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Verification link sent",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Verification link sent")
+     *         )
+     *     )
+     * )
+     */
+    public function resendVerification(Request $request): JsonResponse
+    {
+        if ($request->user()->hasVerifiedEmail()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Email is already verified'
+            ]);
+        }
+
+        $request->user()->sendEmailVerificationNotification();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Verification link sent'
+        ]);
+    }
+
     private function detectLocation(?string $ip): ?string
     {
         // In production, integrate with a GeoIP service like MaxMind
