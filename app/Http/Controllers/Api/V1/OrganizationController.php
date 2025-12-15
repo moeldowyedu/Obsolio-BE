@@ -41,7 +41,7 @@ class OrganizationController extends Controller
     public function index(): AnonymousResourceCollection
     {
         $organizations = Organization::where('tenant_id', tenant('id'))
-            ->withCount(['branches', 'departments', 'users'])
+            ->withCount(['users'])
             ->paginate(request('per_page', 15));
 
         return OrganizationResource::collection($organizations);
@@ -115,7 +115,7 @@ class OrganizationController extends Controller
     {
         $this->authorize('view', $organization);
 
-        $organization->loadCount(['branches', 'departments', 'users', 'projects']);
+        $organization->loadCount(['users']);
 
         return new OrganizationResource($organization);
     }
@@ -243,7 +243,7 @@ class OrganizationController extends Controller
             ->causedBy(auth()->user())
             ->log('Organization switched');
 
-        $organization->loadCount(['branches', 'departments', 'users', 'projects']);
+        $organization->loadCount(['users']);
 
         return new OrganizationResource($organization);
     }
