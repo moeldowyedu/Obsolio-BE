@@ -27,30 +27,23 @@ class VerifyEmailNotification extends VerifyEmail
     /**
      * Build the mail representation of the notification.
      */
+    /**
+     * Build the mail representation of the notification.
+     */
     public function toMail($notifiable)
     {
-        $verificationUrl = $this->verificationUrl($notifiable);
+        // 1. Generate the URL (Server-side signed route)
+        $verifyUrl = $this->verificationUrl($notifiable);
 
-        // Get tenant subdomain preference
-        $tenant = $notifiable->tenant;
-        // Check if tenant exists, otherwise fallback or handle error. 
-        // Assuming tenant relation is loaded or available.
-        $subdomain = $tenant ? $tenant->subdomain_preference : 'workspace';
-        $workspaceUrl = $subdomain . '.obsolio.com';
+        // 2. Transform into Frontend URL
+        $frontendUrl = \Illuminate\Support\Facades\Config::get('app.frontend_url', 'https://obsolio.com');
+        $query = parse_url($verifyUrl, PHP_URL_QUERY);
+
+        // Final Link: https://obsolio.com/verify-email/{id}/{hash}?signature=...
+        $actionUrl = "{$frontendUrl}/verify-email/{$notifiable->getKey()}/" . sha1($notifiable->getEmailForVerification()) . "?{$query}";
 
         return (new MailMessage)
             ->subject('Activate Your OBSOLIO Workspace')
-            ->greeting('Welcome to OBSOLIO!')
-            ->line("Hi {$notifiable->name},")
-            ->line("You're just one step away from accessing your workspace!")
-            ->line('')
-            ->line("**Your Workspace URL:** {$workspaceUrl}")
-            ->line('')
-            ->action('Activate My Workspace', $verificationUrl)
-            ->line('')
-            ->line('⏰ This link will expire in 24 hours.')
-            ->line('')
-            ->line("If you didn't create an account, you can safely ignore this email.")
-            ->salutation("Best regards,\nThe OBSOLIO Team");
+            ->view('emails.verify-email', ['actionUrl' => $actionUrl]);
     }
 }

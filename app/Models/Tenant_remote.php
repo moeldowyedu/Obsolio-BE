@@ -29,22 +29,6 @@ class Tenant extends BaseTenant implements TenantWithDatabase
         'subdomain_activated_at',
     ];
 
-    public static function getCustomColumns(): array
-    {
-        return [
-            'id',
-            'subdomain_preference',
-            'subdomain_activated_at',
-            'status',
-            'trial_ends_at',
-            'plan_id',
-            'billing_cycle',
-            'name',
-            'short_name',
-            'type',
-        ];
-    }
-
     /**
      * The attributes that should be cast.
      *

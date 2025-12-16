@@ -24,6 +24,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'tenancy.header' => \App\Http\Middleware\InitializeTenancyByHeader::class,
             'system_admin' => \App\Http\Middleware\EnsureIsSystemAdmin::class,
             'check.subdomain' => \App\Http\Middleware\CheckSubdomain::class,
+
+            // ✅ Stancl's Built-in Middleware
+            'tenancy.domain' => \Stancl\Tenancy\Middleware\InitializeTenancyByDomain::class,
+            'tenancy.prevent_central' => \Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains::class,
         ]);
 
         // Add global middleware

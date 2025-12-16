@@ -16,9 +16,12 @@ return [
      * Only relevant if you're using the domain or subdomain identification middleware.
      */
     'central_domains' => [
-        'obsolio.com',
         '127.0.0.1',
         'localhost',
+        'obsolio.com',           // ✅ Production marketing domain
+        'www.obsolio.com',       // ✅ WWW variant
+        'api.obsolio.com',       // ✅ API domain (if used separately)
+        'console.obsolio.com',   // ✅ System admin console
     ],
 
     /**

@@ -74,6 +74,9 @@ class AuthController extends Controller
      */
     public function register(Request $request): JsonResponse
     {
+        \Log::info('Register Request Payload:', $request->all());
+        \Log::info('Subdomain Value:', ['val' => $request->subdomain]);
+
         // 1. Validation
         $rules = [
             'type' => 'required|in:personal,organization',
@@ -208,6 +211,128 @@ class AuthController extends Controller
                 'error' => $e->getMessage(),
             ], 500);
         }
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/auth/check-subdomain",
+     *     summary="Check if a subdomain is available",
+     *     operationId="checkSubdomain",
+     *     tags={"Authentication"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"subdomain"},
+     *             @OA\Property(property="subdomain", type="string", example="my-workspace")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Check result",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="available", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Subdomain is available")
+     *         )
+     *     )
+     * )
+     */
+    public function checkSubdomain(Request $request): JsonResponse
+    {
+        $request->validate([
+            'subdomain' => 'required|string|max:63|regex:/^[a-z0-9](?:[a-z0-9\-]{0,61}[a-z0-9])?$/',
+        ]);
+
+        $subdomain = $request->subdomain;
+
+        // Check reserved words/domains
+        if (in_array($subdomain, ['www', 'api', 'admin', 'console', 'mail', 'dashboard', 'app'])) {
+            return response()->json([
+                'available' => false,
+                'message' => 'This subdomain is reserved.'
+            ]);
+        }
+
+        // Check if subdomain exists in tenants table using id or subdomain_preference
+        $exists = \App\Models\Tenant::where('id', $subdomain)
+            ->orWhere('subdomain_preference', $subdomain)
+            ->exists();
+
+        if ($exists) {
+            return response()->json([
+                'available' => false,
+                'message' => 'This subdomain is already taken.'
+            ]);
+        }
+
+        return response()->json([
+            'available' => true,
+            'message' => 'Subdomain is available.'
+        ]);
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/tenants/check-availability/{subdomain}",
+     *     summary="Check if a subdomain is available (GET)",
+     *     operationId="checkAvailability",
+     *     tags={"Authentication"},
+     *     @OA\Parameter(
+     *         name="subdomain",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Check result",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="available", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Subdomain is available")
+     *         )
+     *     )
+     * )
+     */
+    public function checkAvailability(Request $request, $subdomain): JsonResponse
+    {
+        // Manual validation since it's a route param
+        if (!preg_match('/^[a-z0-9](?:[a-z0-9\-]{0,61}[a-z0-9])?$/', $subdomain)) {
+            return response()->json([
+                'available' => false,
+                'message' => 'Invalid subdomain format.'
+            ]);
+        }
+
+        if (strlen($subdomain) > 63) {
+            return response()->json([
+                'available' => false,
+                'message' => 'Subdomain too long.'
+            ]);
+        }
+
+        // Check reserved words/domains
+        if (in_array($subdomain, ['www', 'api', 'admin', 'console', 'mail', 'dashboard', 'app'])) {
+            return response()->json([
+                'available' => false,
+                'message' => 'This subdomain is reserved.'
+            ]);
+        }
+
+        // Check if subdomain exists in tenants table using id or subdomain_preference
+        $exists = \App\Models\Tenant::where('id', $subdomain)
+            ->orWhere('subdomain_preference', $subdomain)
+            ->exists();
+
+        if ($exists) {
+            return response()->json([
+                'available' => false,
+                'message' => 'This subdomain is already taken.'
+            ]);
+        }
+
+        return response()->json([
+            'available' => true,
+            'message' => 'Subdomain is available.'
+        ]);
     }
 
     /**
@@ -951,6 +1076,14 @@ class AuthController extends Controller
                 $tenant->domains()->create([
                     'domain' => $subdomain . '.obsolio.com'
                 ]);
+
+                // Notify System Admin
+                try {
+                    \Illuminate\Support\Facades\Notification::route('mail', 'admin@obsolio.com')
+                        ->notify(new \App\Notifications\NewTenantVerifiedNotification($tenant, $user));
+                } catch (\Exception $e) {
+                    \Log::error('Failed to send admin notification: ' . $e->getMessage());
+                }
 
                 // Log verification activity
                 \App\Models\UserActivity::create([

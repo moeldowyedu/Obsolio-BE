@@ -1,0 +1,30 @@
+                                                   Table "public.tenants"
+         Column         |              Type              | Collation | Nullable |                  Default                  
+------------------------+--------------------------------+-----------+----------+-------------------------------------------
+ id                     | character varying(255)         |           | not null | 
+ created_at             | timestamp(0) without time zone |           |          | 
+ updated_at             | timestamp(0) without time zone |           |          | 
+ data                   | json                           |           |          | 
+ plan_id                | character varying(255)         |           |          | 
+ billing_cycle          | character varying(255)         |           |          | 
+ name                   | character varying(255)         |           |          | 
+ short_name             | character varying(255)         |           |          | 
+ domain                 | character varying(255)         |           |          | 
+ trial_ends_at          | timestamp(0) without time zone |           |          | 
+ subdomain_preference   | character varying(63)          |           |          | 
+ subdomain_activated_at | timestamp(0) without time zone |           |          | 
+ status                 | character varying(255)         |           | not null | 'pending_verification'::character varying
+Indexes:
+    "tenants_pkey" PRIMARY KEY, btree (id)
+    "tenants_domain_unique" UNIQUE CONSTRAINT, btree (domain)
+Check constraints:
+    "tenants_status_check" CHECK (status::text = ANY (ARRAY['pending_verification'::character varying, 'active'::character varying, 'inactive'::character varying, 'suspended'::character varying]::text[]))
+Referenced by:
+    TABLE "domains" CONSTRAINT "domains_tenant_id_foreign" FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON UPDATE CASCADE ON DELETE CASCADE
+    TABLE "impersonation_logs" CONSTRAINT "impersonation_logs_impersonated_tenant_id_foreign" FOREIGN KEY (impersonated_tenant_id) REFERENCES tenants(id) ON DELETE CASCADE
+    TABLE "organizations" CONSTRAINT "organizations_tenant_id_foreign" FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE
+    TABLE "tenant_memberships" CONSTRAINT "tenant_memberships_tenant_id_foreign" FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE
+    TABLE "user_activities" CONSTRAINT "user_activities_tenant_id_foreign" FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE
+    TABLE "user_sessions" CONSTRAINT "user_sessions_tenant_id_foreign" FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE
+    TABLE "users" CONSTRAINT "users_tenant_id_foreign" FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE
+
