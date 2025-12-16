@@ -81,39 +81,57 @@ class AuthController extends Controller
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:8',
             'country' => 'required|string|max:100',
-            'phone' => 'required|string|max:20', // With country code
-            // Subdomain is REQUIRED for ALL types and MUST BE UNIQUE
-            'subdomain' => 'required|string|max:63|regex:/^[a-z0-9](?:[a-z0-9\-]{0,61}[a-z0-9])?$/|unique:tenants,id',
+            'phone' => 'required|string|max:20',
+            'subdomain' => [
+                'required',
+                'string',
+                'max:63',
+                'regex:/^[a-z0-9](?:[a-z0-9\-]{0,61}[a-z0-9])?$/',
+                function ($attribute, $value, $fail) {
+                    // Check if subdomain already exists (active OR pending)
+                    $exists = \App\Models\Tenant::where('id', $value)
+                        ->orWhere('subdomain_preference', $value)
+                        ->exists();
+
+                    if ($exists) {
+                        $fail('This subdomain is already taken.');
+                    }
+                },
+            ],
         ];
 
         if ($request->type === 'organization') {
             $rules['organizationFullName'] = 'required|string|max:255';
-            $rules['organizationShortName'] = 'nullable|string|max:50'; // Just a display short name, not unique
-            $rules['organizationLogo'] = 'nullable'; // Manually validate below to allow string OR file
+            $rules['organizationShortName'] = 'nullable|string|max:50';
+            $rules['organizationLogo'] = 'nullable';
         }
 
         $request->validate($rules);
 
-        // Manual validation for organizationLogo to support both string URL and File
-        if ($request->type === 'organization' && $request->organizationLogo) {
-            if ($request->hasFile('organizationLogo')) {
-                $request->validate(['organizationLogo' => 'image|max:2048']);
-            } else {
-                $request->validate(['organizationLogo' => 'string|max:500']);
-            }
-        }
-
         try {
             return DB::transaction(function () use ($request) {
-                // Step 1: Create Tenant (Workspace)
-                $tenantData = $this->prepareTenantData($request);
-                $tenant = Tenant::create($tenantData);
+                // Generate TEMPORARY tenant ID
+                $tempTenantId = 'pending-' . \Illuminate\Support\Str::random(20);
 
-                // Create Domain for Tenant (Workspace Subdomain)
-                // The 'id' of the tenant IS the shortname/subdomain now (from prepareTenantData)
-                $subdomain = $tenant->id;
-                $tenant->domains()->create(['domain' => $subdomain . '.' . (config('tenancy.central_domains')[0] ?? 'obsolio.com')]);
+                // Step 1: Create Tenant (PENDING STATUS)
+                $tenantData = [
+                    'id' => $tempTenantId, // Temporary ID, will change after verification
+                    'subdomain_preference' => $request->subdomain, // Save desired subdomain
+                    'name' => $request->type === 'personal'
+                        ? $request->fullName . "'s Workspace"
+                        : $request->organizationFullName,
+                    'short_name' => $request->type === 'personal'
+                        ? $request->subdomain
+                        : ($request->organizationShortName ?? $request->subdomain),
+                    'type' => $request->type,
+                    'status' => 'pending_verification', // ⚠️ IMPORTANT
+                    'trial_ends_at' => now()->addDays(7),
+                ];
 
+                $tenant = \App\Models\Tenant::create($tenantData);
+
+                // ⚠️ IMPORTANT: DO NOT CREATE DOMAIN HERE
+                // Domain will be created AFTER email verification in verify() method
 
                 // Step 2: Create Organization (if applicable)
                 if ($request->type === 'organization') {
@@ -131,58 +149,40 @@ class AuthController extends Controller
                         'country' => $request->country,
                         'phone' => $request->phone,
                         'logo_url' => $logoUrl,
-                        // Defaults or other fields can be set here
                     ]);
                 }
 
-                // Step 3: Create User
-                $user = User::create([
+                // Step 3: Create User (PENDING STATUS)
+                $user = \App\Models\User::create([
                     'tenant_id' => $tenant->id,
                     'name' => $request->fullName,
                     'email' => $request->email,
                     'password' => Hash::make($request->password),
                     'phone' => $request->phone,
                     'country' => $request->country,
-                    'status' => 'active',
+                    'status' => 'pending_verification', // ⚠️ IMPORTANT
                     'trial_ends_at' => now()->addDays(7),
                 ]);
 
-                // Step 4: Create Membership with owner role
-                TenantMembership::create([
+                // Step 4: Create Membership
+                \App\Models\TenantMembership::create([
                     'tenant_id' => $tenant->id,
                     'user_id' => $user->id,
-                    'role' => TenantMembership::ROLE_OWNER,
+                    'role' => \App\Models\TenantMembership::ROLE_OWNER,
                     'joined_at' => now(),
                 ]);
 
-                // Step 5: Generate JWT token
-                $token = JWTAuth::fromUser($user);
+                // Step 5: Send Verification Email
+                $user->sendEmailVerificationNotification();
 
-                // Step 6: Create session
-                $sessionId = Str::uuid()->toString();
-                UserSession::create([
-                    'tenant_id' => $tenant->id,
-                    'user_id' => $user->id,
-                    'session_id' => $sessionId,
-                    'ip_address' => $request->ip(),
-                    'user_agent' => $request->userAgent(),
-                    'device_type' => $this->detectDeviceType($request->userAgent()),
-                    'browser' => $this->detectBrowser($request->userAgent()),
-                    'platform' => $this->detectPlatform($request->userAgent()),
-                    'location' => $this->detectLocation($request->ip()),
-                    'started_at' => now(),
-                    'last_activity_at' => now(),
-                    'is_active' => true,
-                ]);
-
-                // Step 7: Log activity
+                // Step 6: Log activity
                 $this->logActivity(
                     $user->id,
                     'registration',
                     'create',
                     'User',
                     $user->id,
-                    "User registered: {$user->email} ({$request->type})",
+                    "User registered (pending verification): {$user->email}",
                     $request,
                     'success',
                     null,
@@ -190,20 +190,14 @@ class AuthController extends Controller
                     $tenant->id
                 );
 
-                // Step 7.5: Send Verification Email
-                $user->sendEmailVerificationNotification();
-
-                // Step 8: Return success
+                // Step 7: Return response (NO TOKEN - user not verified)
                 return response()->json([
                     'success' => true,
-                    'message' => 'Registration successful',
+                    'message' => 'Registration successful! Please check your email to verify your account.',
                     'data' => [
-                        'user' => $user->fresh(), // Reload to get all fields
-                        'tenant' => $tenant->load('organizations'), // Load organizations to get logo/details
-                        'token' => $token,
-                        'token_type' => 'bearer',
-                        'expires_in' => (int) config('jwt.ttl') * 60,
-                        'workspace_url' => 'https://' . $subdomain . '.' . (config('tenancy.central_domains')[0] ?? 'obsolio.com')
+                        'email' => $user->email,
+                        'workspace_preview' => $request->subdomain . '.obsolio.com',
+                        'verification_required' => true,
                     ],
                 ], 201);
             });
@@ -908,52 +902,83 @@ class AuthController extends Controller
      *     )
      * )
      */
-    public function verify(Request $request): JsonResponse // Changed to JsonResponse for API
+    public function verify(Request $request)
     {
-        $user = User::find($request->route('id'));
+        $user = \App\Models\User::find($request->route('id'));
 
+        // Validation checks
         if (!$user) {
-            return response()->json(['success' => false, 'message' => 'Invalid verification link'], 400);
+            $frontendUrl = config('app.frontend_url', 'https://obsolio.com');
+            return redirect($frontendUrl . '/verification-failed?reason=invalid_link');
         }
 
         if (!hash_equals((string) $request->route('hash'), sha1($user->getEmailForVerification()))) {
-            return response()->json(['success' => false, 'message' => 'Invalid verification link'], 400);
+            $frontendUrl = config('app.frontend_url', 'https://obsolio.com');
+            return redirect($frontendUrl . '/verification-failed?reason=invalid_hash');
         }
 
+        // Already verified? Redirect to workspace
         if ($user->hasVerifiedEmail()) {
-            return response()->json(['success' => true, 'message' => 'Email already verified']);
-            // OR redirect to frontend login?
-            // Since this is API, return JSON. Frontend should handle the API call.
-            // Wait, the email link points HERE (API).
-            // So this endpoint should probably REDIRECT to the frontend dashboard/login with a success query param.
-
-            // Redirect to frontend
-            // $frontendUrl = config('app.frontend_url') . '/login?verified=1';
-            // return redirect($frontendUrl);
+            $tenant = $user->tenant;
+            $workspaceUrl = 'https://' . $tenant->id . '.obsolio.com/login?already_verified=1';
+            return redirect($workspaceUrl);
         }
 
-        if ($user->markEmailAsVerified()) {
-            event(new \Illuminate\Auth\Events\Verified($user));
+        try {
+            DB::transaction(function () use ($user) {
+                // Mark email as verified
+                if ($user->markEmailAsVerified()) {
+                    event(new \Illuminate\Auth\Events\Verified($user));
+                }
+
+                // Update user status
+                $user->update(['status' => 'active']);
+
+                // Get tenant
+                $tenant = $user->tenant;
+
+                // ⚠️ IMPORTANT: CREATE SUBDOMAIN NOW
+                $subdomain = $tenant->subdomain_preference;
+
+                // Change tenant ID from temporary to actual subdomain
+                $tenant->update([
+                    'id' => $subdomain,
+                    'status' => 'active',
+                    'subdomain_activated_at' => now(),
+                ]);
+
+                // ⚠️ IMPORTANT: CREATE DOMAIN RECORD NOW
+                $tenant->domains()->create([
+                    'domain' => $subdomain . '.obsolio.com'
+                ]);
+
+                // Log verification activity
+                \App\Models\UserActivity::create([
+                    'tenant_id' => $tenant->id,
+                    'user_id' => $user->id,
+                    'activity_type' => 'verification',
+                    'action' => 'update',
+                    'entity_type' => 'User',
+                    'entity_id' => $user->id,
+                    'description' => "Email verified and workspace activated: {$user->email}",
+                    'ip_address' => request()->ip(),
+                    'user_agent' => request()->userAgent(),
+                    'status' => 'success',
+                ]);
+            });
+
+            // Success! Redirect to workspace
+            $tenant = $user->fresh()->tenant;
+            $workspaceUrl = 'https://' . $tenant->id . '.obsolio.com/login?verified=1';
+
+            return redirect($workspaceUrl);
+
+        } catch (\Exception $e) {
+            \Log::error('Email verification failed: ' . $e->getMessage());
+
+            $frontendUrl = config('app.frontend_url', 'https://obsolio.com');
+            return redirect($frontendUrl . '/verification-failed?reason=server_error');
         }
-
-        // Log verification
-        $this->logActivity($user->id, 'verify', 'update', 'User', $user->id, "Email verified: {$user->email}", $request);
-
-        // Redirect to Frontend Login
-        // Assuming frontend is at root of subdomain
-        // $protocol = $request->secure() ? 'https://' : 'http://';
-        // $redirect = $protocol . $request->getHost() . '/login?verified=1';
-        // return redirect($redirect);
-
-        // For API-first response as requested by "Create email verification endpoint: GET /api/email/verify/{id}/{hash}"
-        // use JSON. But user experience implies browser click.
-        // I will return JSON for now as per "Delivrables" usually implied API.
-        // User asked: "Verification link should be tenant-aware".
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Email verified successfully'
-        ]);
     }
 
     /**
@@ -975,18 +1000,43 @@ class AuthController extends Controller
      */
     public function resendVerification(Request $request): JsonResponse
     {
-        if ($request->user()->hasVerifiedEmail()) {
+        // Validate email
+        $request->validate([
+            'email' => 'required|email|exists:users,email'
+        ]);
+
+        // Find user
+        $user = \App\Models\User::where('email', $request->email)->first();
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User not found'
+            ], 404);
+        }
+
+        // Already verified?
+        if ($user->hasVerifiedEmail()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Email is already verified'
+                'message' => 'Email is already verified. You can login now.'
             ]);
         }
 
-        $request->user()->sendEmailVerificationNotification();
+        // Check if expired (older than 7 days)
+        if ($user->created_at->diffInDays(now()) > 7) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Verification period expired. Please register again.'
+            ], 410);
+        }
+
+        // Send new verification email
+        $user->sendEmailVerificationNotification();
 
         return response()->json([
             'success' => true,
-            'message' => 'Verification link sent'
+            'message' => 'Verification email sent! Please check your inbox.'
         ]);
     }
 

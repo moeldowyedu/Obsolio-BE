@@ -41,7 +41,11 @@ class CheckSubdomain
                 'matches_console_origin' => $origin && (str_contains($origin, '//console.') || str_contains($origin, '//admin.'))
             ]);
 
-            if ($parts[0] === 'api' && $origin && (str_contains($origin, '//console.') || str_contains($origin, '//admin.'))) {
+            if (
+                ($parts[0] === 'api' || $parts[0] === 'localhost' || $isLocal) &&
+                $origin &&
+                (str_contains($origin, '//console.') || str_contains($origin, '//admin.') || str_contains($origin, 'console.localhost'))
+            ) {
                 $domainType = 'admin';
                 $request->merge(['domain_type' => 'admin']);
             } else {

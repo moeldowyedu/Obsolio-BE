@@ -12,7 +12,7 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 use Tymon\JWTAuth\Contracts\JWTSubject;
-use App\Notifications\VerifyEmail; // We will create this
+use App\Notifications\VerifyEmailNotification;
 
 class User extends Authenticatable implements JWTSubject, MustVerifyEmail
 {
@@ -191,7 +191,7 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
      */
     public function sendEmailVerificationNotification()
     {
-        $this->notify(new VerifyEmail);
+        $this->notify(new VerifyEmailNotification);
     }
 
     /**

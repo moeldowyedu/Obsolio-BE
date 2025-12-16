@@ -73,6 +73,14 @@ Route::middleware(['check.subdomain:central'])->group(function () {
         Route::post('/auth/forgot-password', [AuthController::class, 'forgotPassword']);
         Route::post('/auth/reset-password', [AuthController::class, 'resetPassword']);
 
+        // Email Verification Routes - NO AUTH REQUIRED
+        Route::get('/auth/email/verify/{id}/{hash}', [AuthController::class, 'verify'])
+            ->middleware(['signed', 'throttle:6,1'])
+            ->name('verification.verify');
+
+        Route::post('/auth/email/resend', [AuthController::class, 'resendVerification'])
+            ->name('verification.resend');
+
         // Public marketplace
         // Route::get('/marketplace', [MarketplaceController::class, 'index']);
         // Route::get('/marketplace/{id}', [MarketplaceController::class, 'show']);
@@ -119,14 +127,7 @@ Route::middleware(['check.subdomain:tenant', 'jwt.auth', 'tenant.status'])->pref
     Route::put('/auth/profile', [AuthController::class, 'updateProfile']);
     Route::post('/auth/change-password', [AuthController::class, 'changePassword']);
 
-    // Email Verification
-    Route::get('/auth/email/verify/{id}/{hash}', [AuthController::class, 'verify'])
-        ->middleware(['signed', 'throttle:6,1'])
-        ->name('verification.verify');
 
-    Route::post('/auth/email/resend', [AuthController::class, 'resendVerification'])
-        ->middleware(['throttle:6,1'])
-        ->name('verification.resend');
 
     // Tenant Setup (after registration)
     Route::get('/tenant-setup/status', [TenantSetupController::class, 'checkSetupStatus']);
