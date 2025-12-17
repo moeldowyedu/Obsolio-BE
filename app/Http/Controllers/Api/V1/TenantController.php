@@ -375,4 +375,90 @@ class TenantController extends Controller
 
         return new TenantResource($tenant);
     }
+    /**
+     * Find tenant by subdomain (Public).
+     * Used for the "Workspace Incomplete" page to determine status.
+     */
+    public function findBySubdomain(string $subdomain): JsonResponse
+    {
+        // Find tenant by ID (which is the subdomain/slug)
+        $tenant = Tenant::with('ownerMembership.user')->find($subdomain);
+
+        if (!$tenant) {
+            return response()->json([
+                'message' => 'Tenant not found',
+            ], 404);
+        }
+
+        $owner = $tenant->ownerMembership?->user;
+        $requiresVerification = $owner && !$owner->hasVerifiedEmail();
+
+        return response()->json([
+            'data' => [
+                'id' => $tenant->id,
+                'name' => $tenant->name,
+                'status' => $tenant->status,
+                'requires_verification' => $requiresVerification,
+                'owner_id' => $owner?->id,
+                // Add masked email for UI if needed "Verification sent to a...s@domain.com"
+                'owner_email_masked' => $owner ? $this->maskEmail($owner->email) : null,
+            ]
+        ]);
+    }
+
+    /**
+     * Resend verification email to tenant owner (Public).
+     */
+    public function resendVerification(string $subdomain): JsonResponse
+    {
+        $tenant = Tenant::with('ownerMembership.user')->find($subdomain);
+
+        if (!$tenant) {
+            return response()->json([
+                'message' => 'Tenant not found',
+            ], 404);
+        }
+
+        $owner = $tenant->ownerMembership?->user;
+
+        if (!$owner) {
+            return response()->json([
+                'message' => 'Tenant has no owner',
+            ], 404);
+        }
+
+        if ($owner->hasVerifiedEmail()) {
+            return response()->json([
+                'message' => 'Email already verified',
+            ], 400);
+        }
+
+        $owner->sendEmailVerificationNotification();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Verification email sent',
+        ]);
+    }
+
+    private function maskEmail($email)
+    {
+        if (!$email)
+            return null;
+        $parts = explode('@', $email);
+        if (count($parts) != 2)
+            return $email;
+
+        $name = $parts[0];
+        $domain = $parts[1];
+
+        $len = strlen($name);
+        if ($len <= 2) {
+            return $name . '@' . $domain;
+        }
+
+        $maskedName = substr($name, 0, 1) . str_repeat('*', $len - 2) . substr($name, -1);
+        return $maskedName . '@' . $domain;
+    }
 }
+

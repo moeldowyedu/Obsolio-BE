@@ -51,6 +51,10 @@ Route::prefix('v1')->group(function () {
     Route::post('/auth/logout', [AuthController::class, 'logout'])->middleware('jwt.auth');
     Route::get('/tenants/check-availability/{subdomain}', [AuthController::class, 'checkAvailability']);
 
+    // Tenant Verification Helpers (Public)
+    Route::get('/tenants/find-by-subdomain/{subdomain}', [TenantController::class, 'findBySubdomain']);
+    Route::post('/tenants/resend-verification/{subdomain}', [TenantController::class, 'resendVerification']);
+
     // Email Verification Routes (No Auth Required)
     Route::get('/auth/email/verify/{id}/{hash}', [AuthController::class, 'verify'])
         ->middleware(['signed'])
