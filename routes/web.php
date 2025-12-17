@@ -15,3 +15,7 @@ Route::get('/api-docs-json', function () {
         'Content-Type' => 'application/json',
     ]);
 });
+
+Route::get('/api/test-web', function () {
+    return 'Web OK';
+});

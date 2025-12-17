@@ -26,9 +26,13 @@ return Application::configure(basePath: dirname(__DIR__))
             'check.subdomain' => \App\Http\Middleware\CheckSubdomain::class,
 
             // ✅ Stancl's Built-in Middleware
-            'tenancy.domain' => \Stancl\Tenancy\Middleware\InitializeTenancyByDomain::class,
+            'tenancy.domain' => \App\Http\Middleware\SmartInitializeTenancyByDomain::class,
             'tenancy.prevent_central' => \Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains::class,
         ]);
+
+        // Trust all proxies (CloudPanel/Nginx)
+        $middleware->trustProxies(at: '*');
+
 
         // Add global middleware
         $middleware->append(\App\Http\Middleware\CDNHeaders::class);

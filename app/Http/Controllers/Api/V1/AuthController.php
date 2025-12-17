@@ -176,7 +176,18 @@ class AuthController extends Controller
                 ]);
 
                 // Step 5: Send Verification Email
-                $user->sendEmailVerificationNotification();
+                \Log::info('Attempting to send verification email', ['user_id' => $user->id, 'email' => $user->email]);
+                try {
+                    $user->sendEmailVerificationNotification();
+                    \Log::info('Verification email sent successfully', ['user_id' => $user->id]);
+                } catch (\Exception $e) {
+                    \Log::error('Failed to send verification email', [
+                        'user_id' => $user->id,
+                        'error' => $e->getMessage(),
+                        'trace' => $e->getTraceAsString()
+                    ]);
+                }
+
 
                 // Step 6: Log activity
                 $this->logActivity(
@@ -430,7 +441,7 @@ class AuthController extends Controller
         }
 
         // 2. Add Membership Tenants
-        $membershipTenants = $user->tenantMemberships()->with('tenant')->get()->pluck('tenant');
+        $membershipTenants = $user->tenantMemberships()->with('tenant')->get()->pluck('tenant')->filter();
         $tenants = $tenants->merge($membershipTenants)->unique('id');
 
         $result = $tenants->map(function ($tenant) use ($request) {
@@ -460,6 +471,7 @@ class AuthController extends Controller
             'tenants' => $result
         ]);
     }
+
 
     /**
      * @OA\Post(
@@ -1183,4 +1195,5 @@ class AuthController extends Controller
 
         return null; // In production: use GeoIP lookup
     }
+
 }
