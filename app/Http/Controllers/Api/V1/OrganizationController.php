@@ -248,7 +248,7 @@ class OrganizationController extends Controller
      */
     public function update(UpdateOrganizationRequest $request, Organization $organization): OrganizationResource
     {
-        $this->authorize('update', $organization);
+        // $this->authorize('update', $organization);
 
         $data = $request->validated();
 

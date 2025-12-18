@@ -435,6 +435,11 @@ class TenantController extends Controller
         } else {
             $tenant = tenant();
 
+            if (!$tenant) {
+                // Return 404 if no tenant context found
+                abort(404, 'Tenant context not found.');
+            }
+
             // Ensure we have a Tenant model instance
             if (!($tenant instanceof Tenant)) {
                 $tenant = Tenant::find($tenant->id);
