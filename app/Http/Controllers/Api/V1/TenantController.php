@@ -10,7 +10,10 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use OpenApi\Annotations as OA;
 
+/**
+ */
 class TenantController extends Controller
 {
     /**
@@ -26,7 +29,27 @@ class TenantController extends Controller
      *     @OA\Response(
      *         response=200,
      *         description="Successful operation",
-     *         @OA\JsonContent(type="array", @OA\Items(type="object"))
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="array",
+     *                 @OA\Items(
+     *                     type="object",
+     *                     @OA\Property(property="id", type="string", example="my-org"),
+     *                     @OA\Property(property="name", type="string", example="My Organization"),
+     *                     @OA\Property(property="short_name", type="string", example="MYORG"),
+     *                     @OA\Property(property="type", type="string", example="organization"),
+     *                     @OA\Property(property="status", type="string", example="active"),
+     *                     @OA\Property(property="subdomain_preference", type="string", example="my-org"),
+     *                     @OA\Property(property="subdomain_activated_at", type="string", format="date-time", example="2023-10-27T10:00:00.000000Z"),
+     *                     @OA\Property(property="is_on_trial", type="boolean", example=true),
+     *                     @OA\Property(property="trial_ends_at", type="string", format="date-time", example="2023-11-03T10:00:00.000000Z"),
+     *                     @OA\Property(property="domains", type="array", @OA\Items(type="string", example="my-org.obsolio.com")),
+     *                     @OA\Property(property="logo_url", type="string", example="https://example.com/logo.png")
+     *                 )
+     *             )
+     *         )
      *     )
      * )
      */
@@ -113,7 +136,26 @@ class TenantController extends Controller
      *     @OA\Response(
      *         response=201,
      *         description="Tenant created successfully",
-     *         @OA\JsonContent(type="object")
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Tenant created successfully"),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(property="id", type="string", example="my-org"),
+     *                 @OA\Property(property="name", type="string", example="My Organization"),
+     *                 @OA\Property(property="short_name", type="string", example="MYORG"),
+     *                 @OA\Property(property="type", type="string", example="organization"),
+     *                 @OA\Property(property="status", type="string", example="active"),
+     *                 @OA\Property(property="subdomain_preference", type="string", example="my-org"),
+     *                 @OA\Property(property="subdomain_activated_at", type="string", format="date-time", example="2023-10-27T10:00:00.000000Z"),
+     *                 @OA\Property(property="is_on_trial", type="boolean", example=true),
+     *                 @OA\Property(property="trial_ends_at", type="string", format="date-time", example="2023-11-03T10:00:00.000000Z"),
+     *                 @OA\Property(property="domains", type="array", @OA\Items(type="string", example="my-org.obsolio.com")),
+     *                 @OA\Property(property="logo_url", type="string", example="https://example.com/logo.png")
+     *             )
+     *         )
      *     )
      * )
      */
@@ -207,7 +249,26 @@ class TenantController extends Controller
      *     @OA\Response(
      *         response=200,
      *         description="Tenant switched successfully",
-     *         @OA\JsonContent(type="object")
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Switched to tenant successfully"),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(property="id", type="string", example="my-org"),
+     *                 @OA\Property(property="name", type="string", example="My Organization"),
+     *                 @OA\Property(property="short_name", type="string", example="MYORG"),
+     *                 @OA\Property(property="type", type="string", example="organization"),
+     *                 @OA\Property(property="status", type="string", example="active"),
+     *                 @OA\Property(property="subdomain_preference", type="string", example="my-org"),
+     *                 @OA\Property(property="subdomain_activated_at", type="string", format="date-time", example="2023-10-27T10:00:00.000000Z"),
+     *                 @OA\Property(property="is_on_trial", type="boolean", example=true),
+     *                 @OA\Property(property="trial_ends_at", type="string", format="date-time", example="2023-11-03T10:00:00.000000Z"),
+     *                 @OA\Property(property="domains", type="array", @OA\Items(type="string", example="my-org.obsolio.com")),
+     *                 @OA\Property(property="logo_url", type="string", example="https://example.com/logo.png")
+     *             )
+     *         )
      *     ),
      *     @OA\Response(
      *         response=403,
@@ -271,7 +332,24 @@ class TenantController extends Controller
      *     @OA\Response(
      *         response=200,
      *         description="Successful operation",
-     *         @OA\JsonContent(type="object")
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(property="id", type="string", example="my-org"),
+     *                 @OA\Property(property="name", type="string", example="My Organization"),
+     *                 @OA\Property(property="short_name", type="string", example="MYORG"),
+     *                 @OA\Property(property="type", type="string", example="organization"),
+     *                 @OA\Property(property="status", type="string", example="active"),
+     *                 @OA\Property(property="subdomain_preference", type="string", example="my-org"),
+     *                 @OA\Property(property="subdomain_activated_at", type="string", format="date-time", example="2023-10-27T10:00:00.000000Z"),
+     *                 @OA\Property(property="is_on_trial", type="boolean", example=true),
+     *                 @OA\Property(property="trial_ends_at", type="string", format="date-time", example="2023-11-03T10:00:00.000000Z"),
+     *                 @OA\Property(property="domains", type="array", @OA\Items(type="string", example="my-org.obsolio.com")),
+     *                 @OA\Property(property="logo_url", type="string", example="https://example.com/logo.png")
+     *             )
+     *         )
      *     )
      * )
      */
@@ -320,7 +398,24 @@ class TenantController extends Controller
      *     @OA\Response(
      *         response=200,
      *         description="Tenant updated successfully",
-     *         @OA\JsonContent(type="object")
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(property="id", type="string", example="my-org"),
+     *                 @OA\Property(property="name", type="string", example="My Organization"),
+     *                 @OA\Property(property="short_name", type="string", example="MYORG"),
+     *                 @OA\Property(property="type", type="string", example="organization"),
+     *                 @OA\Property(property="status", type="string", example="active"),
+     *                 @OA\Property(property="subdomain_preference", type="string", example="my-org"),
+     *                 @OA\Property(property="subdomain_activated_at", type="string", format="date-time", example="2023-10-27T10:00:00.000000Z"),
+     *                 @OA\Property(property="is_on_trial", type="boolean", example=true),
+     *                 @OA\Property(property="trial_ends_at", type="string", format="date-time", example="2023-11-03T10:00:00.000000Z"),
+     *                 @OA\Property(property="domains", type="array", @OA\Items(type="string", example="my-org.obsolio.com")),
+     *                 @OA\Property(property="logo_url", type="string", example="https://example.com/logo.png")
+     *             )
+     *         )
      *     )
      * )
      */

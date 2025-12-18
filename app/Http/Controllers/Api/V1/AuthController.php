@@ -45,6 +45,7 @@ class AuthController extends Controller
      *         response=201,
      *         description="Registration successful",
      *         @OA\JsonContent(
+     *             type="object",
      *             @OA\Property(property="success", type="boolean", example=true),
      *             @OA\Property(property="message", type="string", example="Registration successful"),
      *             @OA\Property(property="data", type="object",
@@ -54,7 +55,9 @@ class AuthController extends Controller
      *                     @OA\Property(property="email", type="string", example="john.doe@example.com"),
      *                     @OA\Property(property="phone", type="string", example="+1234567890"),
      *                     @OA\Property(property="country", type="string", example="USA"),
-     *                     @OA\Property(property="status", type="string", example="active")
+     *                     @OA\Property(property="status", type="string", example="active"),
+     *                     @OA\Property(property="is_system_admin", type="boolean", example=false),
+     *                     @OA\Property(property="created_at", type="string", format="date-time", example="2023-10-27T09:00:00.000000Z")
      *                 ),
      *                 @OA\Property(property="tenant", type="object",
      *                     @OA\Property(property="id", type="string", example="john-doe-abc1"),
@@ -92,7 +95,7 @@ class AuthController extends Controller
                 'regex:/^[a-z0-9](?:[a-z0-9\-]{0,61}[a-z0-9])?$/',
                 function ($attribute, $value, $fail) {
                     // Check if subdomain already exists (active OR pending)
-                    $exists = \App\Models\Tenant::where('id', $value)
+                    $exists = Tenant::where('id', $value)
                         ->orWhere('subdomain_preference', $value)
                         ->exists();
 
@@ -114,7 +117,7 @@ class AuthController extends Controller
         try {
             return DB::transaction(function () use ($request) {
                 // Generate TEMPORARY tenant ID
-                $tempTenantId = 'pending-' . \Illuminate\Support\Str::random(20);
+                $tempTenantId = 'pending-' . Str::random(20);
 
                 // Step 1: Create Tenant (PENDING STATUS)
                 $tenantData = [
@@ -131,7 +134,7 @@ class AuthController extends Controller
                     'trial_ends_at' => now()->addDays(7),
                 ];
 
-                $tenant = \App\Models\Tenant::create($tenantData);
+                $tenant = Tenant::create($tenantData);
 
                 // ⚠️ IMPORTANT: DO NOT CREATE DOMAIN HERE
                 // Domain will be created AFTER email verification in verify() method
@@ -156,7 +159,7 @@ class AuthController extends Controller
                 }
 
                 // Step 3: Create User (PENDING STATUS)
-                $user = \App\Models\User::create([
+                $user = User::create([
                     'tenant_id' => $tenant->id,
                     'name' => $request->fullName,
                     'email' => $request->email,
@@ -168,10 +171,10 @@ class AuthController extends Controller
                 ]);
 
                 // Step 4: Create Membership
-                \App\Models\TenantMembership::create([
+                TenantMembership::create([
                     'tenant_id' => $tenant->id,
                     'user_id' => $user->id,
-                    'role' => \App\Models\TenantMembership::ROLE_OWNER,
+                    'role' => TenantMembership::ROLE_OWNER,
                     'joined_at' => now(),
                 ]);
 
@@ -264,7 +267,7 @@ class AuthController extends Controller
         }
 
         // Check if subdomain exists in tenants table using id or subdomain_preference
-        $exists = \App\Models\Tenant::where('id', $subdomain)
+        $exists = Tenant::where('id', $subdomain)
             ->orWhere('subdomain_preference', $subdomain)
             ->exists();
 
@@ -329,7 +332,7 @@ class AuthController extends Controller
         }
 
         // Check if subdomain exists in tenants table using id or subdomain_preference
-        $exists = \App\Models\Tenant::where('id', $subdomain)
+        $exists = Tenant::where('id', $subdomain)
             ->orWhere('subdomain_preference', $subdomain)
             ->exists();
 
@@ -491,13 +494,18 @@ class AuthController extends Controller
      *         response=200,
      *         description="Login successful",
      *         @OA\JsonContent(
+     *             type="object",
      *             @OA\Property(property="success", type="boolean", example=true),
      *             @OA\Property(property="message", type="string", example="Login successful"),
      *             @OA\Property(property="data", type="object",
      *                 @OA\Property(property="user", type="object",
      *                     @OA\Property(property="id", type="integer", example=1),
      *                     @OA\Property(property="name", type="string", example="John Doe"),
-     *                     @OA\Property(property="email", type="string", example="john.doe@example.com")
+     *                     @OA\Property(property="email", type="string", example="john.doe@example.com"),
+     *                     @OA\Property(property="phone", type="string", example="+1234567890"),
+     *                     @OA\Property(property="country", type="string", example="USA"),
+     *                     @OA\Property(property="status", type="string", example="active"),
+     *                     @OA\Property(property="is_system_admin", type="boolean", example=false)
      *                 ),
      *                 @OA\Property(property="token", type="string", example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."),
      *                 @OA\Property(property="token_type", type="string", example="bearer"),
@@ -598,7 +606,7 @@ class AuthController extends Controller
                     'user' => $user->load('tenant.organizations'),
                     'token' => $token,
                     'token_type' => 'bearer',
-                    'expires_in' => auth('api')->factory()->getTTL() * 60,
+                    'expires_in' => JWTAuth::factory()->getTTL() * 60,
                     'session_id' => $sessionId,
                 ],
             ]);
@@ -754,7 +762,7 @@ class AuthController extends Controller
     public function refresh(): JsonResponse
     {
         try {
-            $newToken = auth('api')->refresh();
+            $newToken = JWTAuth::parseToken()->refresh();
 
             return response()->json([
                 'success' => true,
@@ -762,7 +770,7 @@ class AuthController extends Controller
                 'data' => [
                     'token' => $newToken,
                     'token_type' => 'bearer',
-                    'expires_in' => auth('api')->factory()->getTTL() * 60,
+                    'expires_in' => JWTAuth::factory()->getTTL() * 60,
                 ],
             ]);
         } catch (\Exception $e) {
@@ -1044,7 +1052,7 @@ class AuthController extends Controller
      */
     public function verifyEmail(Request $request)
     {
-        $user = \App\Models\User::find($request->route('id'));
+        $user = User::find($request->route('id'));
 
         // Validation checks
         if (!$user) {
@@ -1101,7 +1109,7 @@ class AuthController extends Controller
                 }
 
                 // Log verification activity
-                \App\Models\UserActivity::create([
+                UserActivity::create([
                     'tenant_id' => $tenant->id,
                     'user_id' => $user->id,
                     'activity_type' => 'verification',
@@ -1154,7 +1162,7 @@ class AuthController extends Controller
         ]);
 
         // Find user
-        $user = \App\Models\User::where('email', $request->email)->first();
+        $user = User::where('email', $request->email)->first();
 
         if (!$user) {
             return response()->json([

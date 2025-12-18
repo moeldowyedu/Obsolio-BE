@@ -275,9 +275,14 @@ class CompressResponse
         }
 
         $level = config('compression.brotli.level', 4); // 0-11, 4 is balanced
-        $mode = config('compression.brotli.mode', BROTLI_TEXT); // BROTLI_TEXT or BROTLI_GENERIC
+        $defaultMode = defined('BROTLI_TEXT') ? BROTLI_TEXT : 1;
+        $mode = config('compression.brotli.mode', $defaultMode);
 
-        return brotli_compress($content, $level, $mode);
+        if (function_exists('brotli_compress')) {
+            return brotli_compress($content, $level, $mode);
+        }
+
+        return null;
     }
 
     /**

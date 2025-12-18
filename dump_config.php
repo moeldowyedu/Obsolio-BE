@@ -1,1 +1,3 @@
-<?php require __DIR__ . " /vendor/autoload.php\; \ = require_once __DIR__ . \/bootstrap/app.php\; \->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap(); var_dump(config(\tenancy.central_domains\));
+<?php
+// This file is intentionally left empty to resolve syntax errors.
+// It can be safely deleted.

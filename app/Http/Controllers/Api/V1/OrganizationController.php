@@ -9,13 +9,15 @@ use App\Http\Resources\OrganizationResource;
 use App\Models\Organization;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use OpenApi\Annotations as OA;
 
+/**
+ */
 class OrganizationController extends Controller
 {
     /**
      * Display a listing of organizations.
-     */
-    /**
+     *
      * @OA\Get(
      *     path="/organizations",
      *     summary="List organizations",
@@ -33,7 +35,26 @@ class OrganizationController extends Controller
      *         response=200,
      *         description="Successful operation",
      *         @OA\JsonContent(
-     *             @OA\Property(property="data", type="array", @OA\Items(type="object"))
+     *             type="object",
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="array",
+     *                 @OA\Items(
+     *                     type="object",
+     *                     @OA\Property(property="id", type="string", format="uuid", example="98765432-1234-1234-1234-1234567890ab"),
+     *                     @OA\Property(property="name", type="string", example="Acme Corp"),
+     *                     @OA\Property(property="short_name", type="string", example="ACME"),
+     *                     @OA\Property(property="phone", type="string", example="+1234567890"),
+     *                     @OA\Property(property="industry", type="string", example="Technology"),
+     *                     @OA\Property(property="company_size", type="string", example="100-500"),
+     *                     @OA\Property(property="country", type="string", example="USA"),
+     *                     @OA\Property(property="timezone", type="string", example="UTC"),
+     *                     @OA\Property(property="logo_url", type="string", example="https://example.com/logo.png"),
+     *                     @OA\Property(property="description", type="string", example="We make everything."),
+     *                     @OA\Property(property="created_at", type="string", format="date-time"),
+     *                     @OA\Property(property="users_count", type="integer", example=10)
+     *                 )
+     *             )
      *         )
      *     )
      * )
@@ -75,7 +96,25 @@ class OrganizationController extends Controller
      *     @OA\Response(
      *         response=201,
      *         description="Organization created successfully",
-     *         @OA\JsonContent(type="object")
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(property="id", type="string", format="uuid", example="98765432-1234-1234-1234-1234567890ab"),
+     *                 @OA\Property(property="name", type="string", example="Acme Corp"),
+     *                 @OA\Property(property="short_name", type="string", example="ACME"),
+     *                 @OA\Property(property="phone", type="string", example="+1234567890"),
+     *                 @OA\Property(property="industry", type="string", example="Technology"),
+     *                 @OA\Property(property="company_size", type="string", example="100-500"),
+     *                 @OA\Property(property="country", type="string", example="USA"),
+     *                 @OA\Property(property="timezone", type="string", example="UTC"),
+     *                 @OA\Property(property="logo_url", type="string", example="https://example.com/logo.png"),
+     *                 @OA\Property(property="description", type="string", example="We make everything."),
+     *                 @OA\Property(property="created_at", type="string", format="date-time"),
+     *                 @OA\Property(property="users_count", type="integer", example=10)
+     *             )
+     *         )
      *     ),
      *     @OA\Response(response=422, description="Validation error")
      * )
@@ -117,7 +156,25 @@ class OrganizationController extends Controller
      *     @OA\Response(
      *         response=200,
      *         description="Successful operation",
-     *         @OA\JsonContent(type="object")
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(property="id", type="string", format="uuid", example="98765432-1234-1234-1234-1234567890ab"),
+     *                 @OA\Property(property="name", type="string", example="Acme Corp"),
+     *                 @OA\Property(property="short_name", type="string", example="ACME"),
+     *                 @OA\Property(property="phone", type="string", example="+1234567890"),
+     *                 @OA\Property(property="industry", type="string", example="Technology"),
+     *                 @OA\Property(property="company_size", type="string", example="100-500"),
+     *                 @OA\Property(property="country", type="string", example="USA"),
+     *                 @OA\Property(property="timezone", type="string", example="UTC"),
+     *                 @OA\Property(property="logo_url", type="string", example="https://example.com/logo.png"),
+     *                 @OA\Property(property="description", type="string", example="We make everything."),
+     *                 @OA\Property(property="created_at", type="string", format="date-time"),
+     *                 @OA\Property(property="users_count", type="integer", example=10)
+     *             )
+     *         )
      *     ),
      *     @OA\Response(response=404, description="Organization not found")
      * )
@@ -166,7 +223,25 @@ class OrganizationController extends Controller
      *     @OA\Response(
      *         response=200,
      *         description="Organization updated successfully",
-     *         @OA\JsonContent(type="object")
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(property="id", type="string", format="uuid", example="98765432-1234-1234-1234-1234567890ab"),
+     *                 @OA\Property(property="name", type="string", example="Acme Corp"),
+     *                 @OA\Property(property="short_name", type="string", example="ACME"),
+     *                 @OA\Property(property="phone", type="string", example="+1234567890"),
+     *                 @OA\Property(property="industry", type="string", example="Technology"),
+     *                 @OA\Property(property="company_size", type="string", example="100-500"),
+     *                 @OA\Property(property="country", type="string", example="USA"),
+     *                 @OA\Property(property="timezone", type="string", example="UTC"),
+     *                 @OA\Property(property="logo_url", type="string", example="https://example.com/logo.png"),
+     *                 @OA\Property(property="description", type="string", example="We make everything."),
+     *                 @OA\Property(property="created_at", type="string", format="date-time"),
+     *                 @OA\Property(property="users_count", type="integer", example=10)
+     *             )
+     *         )
      *     ),
      *     @OA\Response(response=422, description="Validation error")
      * )
