@@ -1039,7 +1039,7 @@ class AuthController extends Controller
      *     )
      * )
      */
-    public function verify(Request $request)
+    public function verifyEmail(Request $request)
     {
         $user = \App\Models\User::find($request->route('id'));
 
