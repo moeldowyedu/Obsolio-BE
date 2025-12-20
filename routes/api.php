@@ -75,7 +75,7 @@ Route::middleware([
     // TENANT AUTHENTICATION (Requires JWT + Tenant Context)
     // =========================================================================
     Route::middleware(['jwt.auth', 'tenant.status'])->group(function () {
-        
+
         // Auth Management
         Route::post('/auth/logout', [AuthController::class, 'logout']);
         Route::post('/auth/refresh', [AuthController::class, 'refresh']);

@@ -21,13 +21,38 @@ class Organization extends Model
      */
     public function resolveRouteBinding($value, $field = null)
     {
-        // If exact UUID match, use default binding
+        // 1. Try finding by UUID
         if (\Illuminate\Support\Str::isUuid($value)) {
-            return $this->where('id', $value)->firstOrFail();
+            $org = $this->where('id', $value)->first();
+            if ($org)
+                return $org;
         }
 
-        // Otherwise try short_name
-        return $this->where('short_name', $value)->firstOrFail();
+        // 2. Try finding by short_name
+        $org = $this->where('short_name', $value)->first();
+        if ($org)
+            return $org;
+
+        // 3. Fallback: Check if 'value' is actually a Tenant ID/Slug and create the Org
+        // This handles legacy/broken states where Tenant exists but Org does not.
+        $tenant = Tenant::where('id', $value)->orWhere('slug', $value)->first();
+
+        if ($tenant) {
+            // Check if this tenant already has ANY organization (maybe named differently?)
+            $existingOrg = $this->where('tenant_id', $tenant->id)->first();
+            if ($existingOrg)
+                return $existingOrg;
+
+            // Create the default organization
+            return self::create([
+                'tenant_id' => $tenant->id,
+                'name' => $tenant->organization_name ?? $tenant->name ?? 'Default Organization',
+                'short_name' => $tenant->slug ?? \Illuminate\Support\Str::slug($tenant->name),
+                'settings' => [],
+            ]);
+        }
+
+        abort(404, 'Organization not found.');
     }
 
     /**

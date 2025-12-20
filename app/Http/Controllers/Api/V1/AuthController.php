@@ -599,6 +599,36 @@ class AuthController extends Controller
             // Log successful login
             $this->logActivity($user->id, 'login', 'read', 'User', $user->id, "User logged in: {$user->email}", $request, 'success', null, false, $user->tenant_id);
 
+            // Create cookies
+            $cookieDomain = config('session.domain') ?? $request->getHost();
+            // Handle localhost specifically if needed, or rely on config
+
+            $tokenCookie = cookie(
+                'obsolio_auth_token',
+                $token,
+                JWTAuth::factory()->getTTL(), // minutes
+                '/',
+                $cookieDomain,
+                config('session.secure'), // secure
+                false // httpOnly = false so frontend can read it
+            );
+
+            $userCookie = cookie(
+                'obsolio_user',
+                json_encode([
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'tenant_id' => $user->tenant_id,
+                    'avatar' => $user->avatar_url ?? null
+                ]),
+                JWTAuth::factory()->getTTL(),
+                '/',
+                $cookieDomain,
+                config('session.secure'),
+                false
+            );
+
             return response()->json([
                 'success' => true,
                 'message' => 'Login successful',
@@ -609,7 +639,7 @@ class AuthController extends Controller
                     'expires_in' => JWTAuth::factory()->getTTL() * 60,
                     'session_id' => $sessionId,
                 ],
-            ]);
+            ])->withCookie($tokenCookie)->withCookie($userCookie);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -723,10 +753,13 @@ class AuthController extends Controller
 
             auth('api')->logout();
 
+            $cookieDomain = config('session.domain') ?? $request->getHost();
+
             return response()->json([
                 'success' => true,
                 'message' => 'Successfully logged out',
-            ]);
+            ])->withCookie(cookie()->forget('obsolio_auth_token', '/', $cookieDomain))
+                ->withCookie(cookie()->forget('obsolio_user', '/', $cookieDomain));
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
