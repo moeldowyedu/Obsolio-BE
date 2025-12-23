@@ -16,6 +16,7 @@ use App\Http\Controllers\Api\V1\SubscriptionController;
 use App\Http\Controllers\Api\V1\AgentController;
 use App\Http\Controllers\Api\V1\MarketplaceController;
 use App\Http\Controllers\Api\V1\BillingController;
+use App\Http\Controllers\Api\V1\PaymentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -178,13 +179,17 @@ Route::middleware([
             Route::get('/invoices/{id}', [BillingController::class, 'showInvoice']);
 
             // Payment Methods
-            Route::get('/payment-methods', [BillingController::class, 'paymentMethods']);
             Route::post('/payment-methods', [BillingController::class, 'addPaymentMethod']);
             Route::post('/payment-methods/{id}/set-default', [BillingController::class, 'setDefaultPaymentMethod']);
             Route::delete('/payment-methods/{id}', [BillingController::class, 'deletePaymentMethod']);
         });
     });
 });
+
+// =============================================================================
+// INCLUDE SEPARATE ROUTE FILES
+// =============================================================================
+require __DIR__ . '/paymob_routes.php';
 
 // =============================================================================
 // SYSTEM ADMIN ROUTES (console.obsolio.com)
