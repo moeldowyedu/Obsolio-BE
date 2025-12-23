@@ -13,6 +13,8 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             SystemAdminSeeder::class,
+            SubscriptionPlanSeeder::class,
+            AgentSeeder::class,
         ]);
 
         $this->command->info('Database seeding completed successfully!');

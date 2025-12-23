@@ -586,5 +586,39 @@ class TenantController extends Controller
 
         return $maskedName . '@' . $domain;
     }
+    /**
+     * Get tenant details for admin (System Admin).
+     */
+    public function showAdmin(string $id): JsonResponse
+    {
+        $tenant = Tenant::with([
+            'plan',
+            'organization',
+            'memberships.user',
+            'subscriptions' => function ($query) {
+                $query->latest()->limit(5);
+            },
+            'agents',
+        ])->findOrFail($id);
+
+        // Get usage statistics
+        $stats = [
+            'total_users' => $tenant->memberships()->count(),
+            'total_agents' => $tenant->agents()->count(),
+            'active_agents' => $tenant->agents()->wherePivot('status', 'active')->count(),
+            'total_subscriptions' => $tenant->subscriptions()->count(),
+            'active_subscription' => $tenant->activeSubscription,
+            'storage_used_mb' => 0, // TODO: Calculate actual storage
+            'trial_days_remaining' => $tenant->trialDaysRemaining(),
+        ];
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'tenant' => $tenant,
+                'stats' => $stats,
+            ],
+        ]);
+    }
 }
 

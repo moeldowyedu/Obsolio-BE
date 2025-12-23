@@ -245,4 +245,35 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
 
         return $claims;
     }
+    /**
+     * Get user's activity logs.
+     */
+    public function activityLogs()
+    {
+        return $this->hasMany(ActivityLog::class);
+    }
+
+    /**
+     * Get impersonations started by this admin.
+     */
+    public function impersonationsAsAdmin()
+    {
+        return $this->hasMany(ImpersonationLog::class, 'admin_user_id');
+    }
+
+    /**
+     * Get impersonations where this user was the target.
+     */
+    public function impersonationsAsTarget()
+    {
+        return $this->hasMany(ImpersonationLog::class, 'target_user_id');
+    }
+
+    /**
+     * Log an activity for this user.
+     */
+    public function logActivity(string $action, string $description, ?array $metadata = null): ActivityLog
+    {
+        return ActivityLog::logActivity($this->id, $action, $description, $metadata);
+    }
 }

@@ -11,110 +11,49 @@ class Tenant extends BaseTenant implements TenantWithDatabase
 {
     use HasDatabase, HasDomains;
 
-    /**
-     * Retrieve the model for a bound value.
-     *
-     * @param  mixed  $value
-     * @param  string|null  $field
-     * @return \Illuminate\Database\Eloquent\Model|null
-     */
-    public function resolveRouteBinding($value, $field = null)
-    {
-        // If exact UUID match, use default binding
-        if (\Illuminate\Support\Str::isUuid($value)) {
-            return $this->where('id', $value)->firstOrFail();
-        }
-
-        // Otherwise try subdomain_preference
-        return $this->where('id', $value)->firstOrFail();
-    }
-
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
     protected $fillable = [
         'id',
+        'plan_id',
+        'organization_id',
         'name',
-        'short_name',
+        'email',
+        'phone',
         'type',
         'status',
         'trial_ends_at',
-        'plan_id',
-        'billing_cycle',
         'subdomain_preference',
-        'subdomain_activated_at',
     ];
 
-    public static function getCustomColumns(): array
-    {
-        return [
-            'id',
-            'subdomain_preference',
-            'subdomain_activated_at',
-            'status',
-            'trial_ends_at',
-            'plan_id',
-            'billing_cycle',
-            'name',
-            'short_name',
-            'type',
-        ];
-    }
-
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
     protected $casts = [
         'trial_ends_at' => 'datetime',
     ];
 
     /**
-     * Get the organizations for the tenant.
+     * Get the subscription plan.
      */
-    public function organizations()
+    public function plan()
     {
-        return $this->hasMany(Organization::class);
+        return $this->belongsTo(SubscriptionPlan::class, 'plan_id');
     }
 
     /**
-     * Get the users for the tenant.
+     * Get the organization.
      */
-    public function users()
+    public function organization()
     {
-        return $this->hasMany(User::class);
+        return $this->belongsTo(Organization::class);
     }
 
     /**
-     * Get the memberships for the tenant.
+     * Get tenant memberships.
      */
     public function memberships()
     {
-        return $this->hasMany(TenantMembership::class, 'tenant_id');
+        return $this->hasMany(TenantMembership::class);
     }
 
     /**
-     * Get the owner membership for the tenant.
-     */
-    public function ownerMembership()
-    {
-        return $this->hasOne(TenantMembership::class, 'tenant_id')
-            ->where('role', TenantMembership::ROLE_OWNER);
-    }
-
-    /**
-     * Get the agents for the tenant.
-     */
-    public function agents()
-    {
-        return $this->hasMany(Agent::class);
-    }
-
-    /**
-     * Get the subscriptions for the tenant.
+     * Get all subscriptions.
      */
     public function subscriptions()
     {
@@ -126,9 +65,42 @@ class Tenant extends BaseTenant implements TenantWithDatabase
      */
     public function activeSubscription()
     {
-        return $this->hasOne(Subscription::class)
-            ->where('status', 'active')
-            ->latest();
+        return $this->hasOne(Subscription::class)->whereIn('status', ['trialing', 'active']);
+    }
+
+    /**
+     * Get tenant agents.
+     */
+    public function agents()
+    {
+        return $this->belongsToMany(Agent::class, 'tenant_agents')
+            ->withPivot([
+                'status',
+                'purchased_at',
+                'activated_at',
+                'expires_at',
+                'last_used_at',
+                'usage_count',
+                'configuration',
+                'metadata'
+            ])
+            ->withTimestamps();
+    }
+
+    /**
+     * Get tenant invoices.
+     */
+    public function invoices()
+    {
+        return $this->hasMany(BillingInvoice::class);
+    }
+
+    /**
+     * Get payment methods.
+     */
+    public function paymentMethods()
+    {
+        return $this->hasMany(PaymentMethod::class);
     }
 
     /**
@@ -140,10 +112,14 @@ class Tenant extends BaseTenant implements TenantWithDatabase
     }
 
     /**
-     * Check if tenant trial has expired.
+     * Get days remaining in trial.
      */
-    public function hasExpiredTrial(): bool
+    public function trialDaysRemaining(): int
     {
-        return $this->trial_ends_at && $this->trial_ends_at->isPast();
+        if (!$this->trial_ends_at) {
+            return 0;
+        }
+
+        return max(0, now()->diffInDays($this->trial_ends_at, false));
     }
 }

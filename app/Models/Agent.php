@@ -6,61 +6,163 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Agent extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory, HasUuids, SoftDeletes;
 
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
     protected $fillable = [
-        'tenant_id',
-        'created_by_user_id',
         'name',
+        'slug',
+        'category',
         'description',
-        'type',
-        'engines_used',
-        'config',
-        'input_schema',
-        'output_schema',
-        'rubric_config',
-        'status',
-        'is_published',
-        'marketplace_listing_id',
+        'long_description',
+        'icon_url',
+        'banner_url',
+        'capabilities',
+        'supported_languages',
+        'price_model',
+        'base_price',
+        'monthly_price',
+        'annual_price',
+        'is_marketplace',
+        'is_active',
+        'is_featured',
         'version',
+        'total_installs',
+        'rating',
+        'review_count',
+        'created_by_user_id',
     ];
 
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
     protected $casts = [
-        'engines_used' => 'array',
-        'config' => 'array',
-        'input_schema' => 'array',
-        'output_schema' => 'array',
-        'rubric_config' => 'array',
-        'is_published' => 'boolean',
-        'version' => 'integer',
+        'capabilities' => 'array',
+        'supported_languages' => 'array',
+        'is_marketplace' => 'boolean',
+        'is_active' => 'boolean',
+        'is_featured' => 'boolean',
+        'base_price' => 'decimal:2',
+        'monthly_price' => 'decimal:2',
+        'annual_price' => 'decimal:2',
+        'rating' => 'decimal:2',
     ];
 
-    public function tenant(): BelongsTo
-    {
-        return $this->belongsTo(Tenant::class);
-    }
-
-    public function createdBy(): BelongsTo
+    /**
+     * Get the user who created this agent.
+     */
+    public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by_user_id');
     }
 
-    public function jobFlows(): HasMany
+    /**
+     * Get the tenants that have this agent.
+     */
+    public function tenants(): BelongsToMany
     {
-        return $this->hasMany(JobFlow::class);
+        return $this->belongsToMany(Tenant::class, 'tenant_agents')
+            ->withPivot([
+                'status',
+                'purchased_at',
+                'activated_at',
+                'expires_at',
+                'last_used_at',
+                'usage_count',
+                'configuration',
+                'metadata'
+            ])
+            ->withTimestamps();
     }
 
-    public function executions(): HasMany
+    /**
+     * Check if agent is free.
+     */
+    public function isFree(): bool
     {
-        return $this->hasMany(AgentExecution::class);
+        return $this->price_model === 'free';
     }
 
-    public function marketplaceListing()
+    /**
+     * Check if agent is marketplace agent.
+     */
+    public function isMarketplace(): bool
     {
-        return $this->hasOne(MarketplaceListing::class);
+        return $this->is_marketplace;
+    }
+
+    /**
+     * Check if agent is featured.
+     */
+    public function isFeatured(): bool
+    {
+        return $this->is_featured;
+    }
+
+    /**
+     * Increment total installs.
+     */
+    public function incrementInstalls(): void
+    {
+        $this->increment('total_installs');
+    }
+
+    /**
+     * Update rating.
+     */
+    public function updateRating(float $newRating): void
+    {
+        $totalRatings = $this->review_count;
+        $currentTotal = $this->rating * $totalRatings;
+        $newTotal = $currentTotal + $newRating;
+        $newCount = $totalRatings + 1;
+
+        $this->update([
+            'rating' => round($newTotal / $newCount, 2),
+            'review_count' => $newCount,
+        ]);
+    }
+
+    /**
+     * Scope: Active agents only.
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
+    /**
+     * Scope: Marketplace agents only.
+     */
+    public function scopeMarketplace($query)
+    {
+        return $query->where('is_marketplace', true);
+    }
+
+    /**
+     * Scope: Featured agents.
+     */
+    public function scopeFeatured($query)
+    {
+        return $query->where('is_featured', true);
+    }
+
+    /**
+     * Scope: By category.
+     */
+    public function scopeByCategory($query, string $category)
+    {
+        return $query->where('category', $category);
     }
 }
