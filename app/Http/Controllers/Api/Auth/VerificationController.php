@@ -28,58 +28,71 @@ class VerificationController extends Controller
             // Check if hash matches
             if (!hash_equals((string) $hash, sha1($user->getEmailForVerification()))) {
                 Log::warning('Hash mismatch', ['user_id' => $id]);
-                
-                return response()->json([
-                    'message' => 'Invalid verification link.',
-                    'error' => 'hash_mismatch'
-                ], 403);
+
+                // Redirect to frontend with error
+                return redirect(config('app.frontend_url') . '/verification-error?reason=invalid_link');
             }
 
             // Check if already verified
             if ($user->hasVerifiedEmail()) {
                 Log::info('Already verified', ['user_id' => $id]);
-                
-                return response()->json([
-                    'message' => 'Email already verified.',
-                    'already_verified' => true
-                ], 200);
+
+                // Redirect to frontend with already verified status
+                return redirect(config('app.frontend_url') . '/verification-success?already_verified=true');
             }
 
             // Check expiration
             $expires = $request->get('expires');
             if ($expires && now()->timestamp > $expires) {
-                return response()->json([
-                    'message' => 'Verification link has expired.',
-                    'error' => 'link_expired'
-                ], 403);
+                return redirect(config('app.frontend_url') . '/verification-error?reason=expired');
             }
 
             // Custom signature validation (handles domain variations)
             $signature = $request->get('signature');
             if (!$signature || !$this->isValidSignature($request, $user)) {
                 Log::warning('Invalid signature', ['user_id' => $id]);
-                
-                return response()->json([
-                    'message' => 'Invalid verification link.',
-                    'error' => 'invalid_signature'
-                ], 403);
+
+                return redirect(config('app.frontend_url') . '/verification-error?reason=invalid_signature');
             }
 
             // Mark as verified
             $user->markEmailAsVerified();
+
+            // Update user status to active
+            $user->update(['status' => 'active']);
+
+            // Update tenant status to active
+            $tenant = $user->tenant;
+            if ($tenant && $tenant->status === 'pending_verification') {
+                $tenant->update(['status' => 'active']);
+
+                // Create the domain for the tenant NOW that it's verified
+                $domain = config('tenancy.central_domains')[0] ?? 'obsolio.com';
+                $subdomain = $tenant->subdomain_preference ?? $tenant->id;
+
+                // Update tenant ID to use the preferred subdomain
+                if ($tenant->subdomain_preference && $tenant->id !== $tenant->subdomain_preference) {
+                    $tenant->update(['id' => $tenant->subdomain_preference]);
+                }
+
+                // Create domain
+                $tenant->domains()->create([
+                    'domain' => "{$subdomain}.{$domain}"
+                ]);
+
+                Log::info('Tenant activated and domain created', [
+                    'tenant_id' => $tenant->id,
+                    'domain' => "{$subdomain}.{$domain}"
+                ]);
+            }
+
             event(new Verified($user));
 
             Log::info('Email verified successfully', ['user_id' => $id]);
 
-            return response()->json([
-                'message' => 'Email verified successfully!',
-                'verified' => true,
-                'user' => [
-                    'id' => $user->id,
-                    'email' => $user->email,
-                    'email_verified_at' => $user->email_verified_at
-                ]
-            ], 200);
+            // Redirect to frontend with success
+            $workspaceUrl = $tenant ? "https://{$tenant->id}.{$domain}" : config('app.frontend_url');
+            return redirect(config('app.frontend_url') . '/verification-success?workspace=' . urlencode($workspaceUrl));
 
         } catch (\Exception $e) {
             Log::error('Verification error', [
@@ -87,10 +100,7 @@ class VerificationController extends Controller
                 'error' => $e->getMessage()
             ]);
 
-            return response()->json([
-                'message' => 'Verification failed.',
-                'error' => 'verification_error'
-            ], 500);
+            return redirect(config('app.frontend_url') . '/verification-error?reason=server_error');
         }
     }
 
@@ -100,7 +110,7 @@ class VerificationController extends Controller
     protected function isValidSignature(Request $request, User $user)
     {
         $signature = $request->get('signature');
-        
+
         // Build URLs to check (both domains)
         $urls = [
             $this->buildUrl($request, 'https://obsolio.com'),
@@ -110,7 +120,7 @@ class VerificationController extends Controller
         // Check if signature matches either URL
         foreach ($urls as $url) {
             $expected = hash_hmac('sha256', $url, config('app.key'));
-            
+
             if (hash_equals($expected, $signature)) {
                 return true;
             }
@@ -127,13 +137,13 @@ class VerificationController extends Controller
         $path = $request->path();
         $query = $request->query();
         unset($query['signature']);
-        
+
         $url = $baseUrl . '/' . $path;
-        
+
         if (!empty($query)) {
             $url .= '?' . http_build_query($query);
         }
-        
+
         return $url;
     }
 
