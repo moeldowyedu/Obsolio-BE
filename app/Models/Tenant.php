@@ -37,11 +37,11 @@ class Tenant extends BaseTenant implements TenantWithDatabase
     }
 
     /**
-     * Get the organization.
+     * Get the organizations for this tenant.
      */
-    public function organization()
+    public function organizations()
     {
-        return $this->belongsTo(Organization::class);
+        return $this->hasMany(Organization::class);
     }
 
     /**
