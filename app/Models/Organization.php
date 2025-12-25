@@ -13,6 +13,32 @@ class Organization extends Model
     use HasFactory, HasUuids;
 
     /**
+     * The "booted" method of the model.
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::updated(function ($organization) {
+            if ($organization->isDirty(['name', 'short_name']) && $organization->tenant) {
+                $organization->tenant->update([
+                    'name' => $organization->name,
+                    'short_name' => $organization->short_name,
+                ]);
+            }
+        });
+
+        static::created(function ($organization) {
+            if ($organization->tenant) {
+                $organization->tenant->update([
+                    'name' => $organization->name,
+                    'short_name' => $organization->short_name,
+                ]);
+            }
+        });
+    }
+
+    /**
      * Retrieve the model for a bound value.
      *
      * @param  mixed  $value
