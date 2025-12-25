@@ -1883,6 +1883,453 @@ Get system activity logs.
 
 ---
 
+## Payment Endpoints (Paymob Integration)
+
+### Create Subscription Payment
+
+Create a payment intent for subscription using Paymob gateway.
+
+**Endpoint:** `POST /api/v1/payments/subscription`
+
+**Authentication:** Required (JWT)
+
+**Request Headers:**
+```
+Authorization: Bearer {token}
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "plan_id": "9d4e5f6g-7h8i-9j0k-1l2m-3n4o5p6q7r8s",
+  "billing_cycle": "monthly",
+  "phone": "+201234567890"
+}
+```
+
+**Request Fields:**
+- `plan_id` (required, uuid): ID of the subscription plan
+- `billing_cycle` (required, enum): Either "monthly" or "annual"
+- `phone` (optional, string): Customer phone number (defaults to +201000000000)
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "invoice_id": "9d4e5f6g-7h8i-9j0k-1l2m-3n4o5p6q7r8s",
+    "iframe_url": "https://accept.paymob.com/api/acceptance/iframes/799158?payment_token=ZXlKaGJHY2lPaUpJ...",
+    "amount": 49.00,
+    "amount_egp": 1494.50,
+    "currency": "EGP"
+  }
+}
+```
+
+**Error Response (500):**
+```json
+{
+  "success": false,
+  "message": "Failed to create payment",
+  "error": "Paymob API error details"
+}
+```
+
+**Usage Example:**
+```javascript
+// Create subscription payment
+const response = await fetch('/api/v1/payments/subscription', {
+  method: 'POST',
+  headers: {
+    'Authorization': `Bearer ${token}`,
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    plan_id: '9d4e5f6g-7h8i-9j0k-1l2m-3n4o5p6q7r8s',
+    billing_cycle: 'monthly',
+    phone: '+201234567890'
+  })
+});
+
+const data = await response.json();
+
+if (data.success) {
+  // Redirect user to Paymob iframe
+  window.location.href = data.data.iframe_url;
+}
+```
+
+---
+
+### Paymob Callback (Webhook)
+
+Handles Paymob payment callbacks after payment completion.
+
+**Endpoint:** `POST /api/v1/webhooks/paymob/callback`
+
+**Authentication:** Not required (HMAC verification)
+
+**Request Body (from Paymob):**
+```json
+{
+  "obj": {
+    "id": 123456789,
+    "pending": false,
+    "amount_cents": 149450,
+    "success": true,
+    "is_auth": false,
+    "is_capture": false,
+    "is_standalone_payment": true,
+    "is_voided": false,
+    "is_refunded": false,
+    "is_3d_secure": false,
+    "integration_id": 123456,
+    "profile_id": 654321,
+    "has_parent_transaction": false,
+    "order": {
+      "id": 987654321,
+      "created_at": "2025-12-25T10:30:00.000000Z",
+      "delivery_needed": false,
+      "merchant": {
+        "id": 111111,
+        "created_at": "2025-01-01T00:00:00.000000Z",
+        "phones": ["+201000000000"],
+        "company_emails": ["admin@obsolio.com"],
+        "company_name": "OBSOLIO",
+        "state": "",
+        "country": "EG",
+        "city": "Cairo",
+        "postal_code": "",
+        "street": ""
+      },
+      "collector": null,
+      "amount_cents": 149450,
+      "shipping_data": {
+        "id": 222222,
+        "first_name": "Acme Corp",
+        "last_name": "",
+        "street": "N/A",
+        "building": "N/A",
+        "floor": "N/A",
+        "apartment": "N/A",
+        "city": "Cairo",
+        "state": "Cairo",
+        "country": "EG",
+        "email": "admin@acme.com",
+        "phone_number": "+201234567890",
+        "postal_code": "N/A",
+        "extra_description": "",
+        "shipping_method": "N/A",
+        "order_id": 987654321,
+        "order": 987654321
+      },
+      "currency": "EGP",
+      "is_payment_locked": false,
+      "is_return": false,
+      "is_cancel": false,
+      "is_returned": false,
+      "is_canceled": false,
+      "merchant_order_id": "INV-1735124400",
+      "wallet_notification": null,
+      "paid_amount_cents": 149450,
+      "notify_user_with_email": false,
+      "items": [
+        {
+          "name": "Professional Plan",
+          "description": "Subscription - monthly",
+          "amount_cents": 149450,
+          "quantity": 1
+        }
+      ],
+      "order_url": "https://accept.paymob.com/standalone/?ref=i_...",
+      "commission_fees": 0,
+      "delivery_fees_cents": 0,
+      "delivery_vat_cents": 0,
+      "payment_method": "tbc",
+      "merchant_staff_tag": null,
+      "api_source": "OTHER",
+      "data": {}
+    },
+    "created_at": "2025-12-25T10:30:15.000000Z",
+    "transaction_processed_callback_responses": [],
+    "currency": "EGP",
+    "source_data": {
+      "type": "card",
+      "pan": "2346",
+      "sub_type": "MasterCard"
+    },
+    "api_source": "OTHER",
+    "terminal_id": null,
+    "merchant_commission": 0,
+    "installment": null,
+    "discount_details": [],
+    "is_void": false,
+    "is_refund": false,
+    "data": {
+      "klass": "VPCPayment",
+      "gateway_integration_pk": 123456,
+      "batch_number": "20251225",
+      "card_num": "512345xxxxxx2346",
+      "receipt_no": "334455667788",
+      "acq_response_code": "00",
+      "avs_acq_response_code": "Unsupported",
+      "authorize_id": "334455",
+      "transaction_no": "9988776655",
+      "merchant": "Test Merchant",
+      "message": "Approved",
+      "txn_response_code": "0"
+    },
+    "is_hidden": false,
+    "payment_key_claims": {
+      "user_id": 333333,
+      "amount_cents": 149450,
+      "currency": "EGP",
+      "integration_id": 123456,
+      "pmk_ip": "192.168.1.100",
+      "billing_data": {
+        "apartment": "N/A",
+        "first_name": "Acme Corp",
+        "last_name": "",
+        "street": "N/A",
+        "building": "N/A",
+        "phone_number": "+201234567890",
+        "country": "EG",
+        "email": "admin@acme.com",
+        "floor": "N/A",
+        "state": "Cairo"
+      },
+      "lock_order_when_paid": false,
+      "exp": 1735210815
+    },
+    "error_occured": false,
+    "is_live": false,
+    "other_endpoint_reference": null,
+    "refunded_amount_cents": 0,
+    "source_id": -1,
+    "is_captured": false,
+    "captured_amount": 0,
+    "merchant_staff_tag": null,
+    "updated_at": "2025-12-25T10:30:30.000000Z",
+    "is_settled": false,
+    "bill_balanced": false,
+    "is_bill": false,
+    "owner": 333333,
+    "parent_transaction": null
+  },
+  "type": "TRANSACTION",
+  "hmac": "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6"
+}
+```
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "message": "Payment processed successfully"
+}
+```
+
+**Error Response (500):**
+```json
+{
+  "success": false,
+  "message": "Payment verification failed"
+}
+```
+
+**Notes:**
+- This endpoint is called by Paymob servers, not by your frontend
+- HMAC signature is verified to ensure authenticity
+- Updates invoice status to "paid" and activates subscription
+- Creates payment transaction record
+
+---
+
+### Payment Response (User Redirect)
+
+Handles user redirect after completing payment on Paymob iframe.
+
+**Endpoint:** `GET /api/v1/payments/response`
+
+**Authentication:** Required (JWT)
+
+**Query Parameters:**
+- `success` (required, string): "true" or "false"
+- `invoice_id` (required, uuid): ID of the invoice
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "message": "Payment completed successfully",
+  "data": {
+    "invoice_id": "9d4e5f6g-7h8i-9j0k-1l2m-3n4o5p6q7r8s",
+    "invoice_number": "INV-1735124400",
+    "amount": 49.00,
+    "currency": "USD"
+  }
+}
+```
+
+**Error Response (200):**
+```json
+{
+  "success": false,
+  "message": "Payment was not completed or failed"
+}
+```
+
+**Usage Example:**
+```javascript
+// After user completes payment on Paymob iframe, they're redirected to:
+// https://yourapp.com/payment-success?success=true&invoice_id=9d4e5f6g-7h8i-9j0k-1l2m-3n4o5p6q7r8s
+
+// Your frontend should call this endpoint to verify payment status
+const params = new URLSearchParams(window.location.search);
+const response = await fetch(`/api/v1/payments/response?${params}`, {
+  headers: {
+    'Authorization': `Bearer ${token}`
+  }
+});
+
+const data = await response.json();
+if (data.success) {
+  // Show success message and redirect to dashboard
+  window.location.href = '/dashboard';
+}
+```
+
+---
+
+### Refund Payment
+
+Process a refund for a paid invoice.
+
+**Endpoint:** `POST /api/v1/payments/refund/{invoice_id}`
+
+**Authentication:** Required (JWT + Admin)
+
+**Request Headers:**
+```
+Authorization: Bearer {token}
+Content-Type: application/json
+```
+
+**URL Parameters:**
+- `invoice_id` (required, uuid): ID of the invoice to refund
+
+**Request Body:**
+```json
+{
+  "reason": "Customer requested refund due to service not meeting expectations"
+}
+```
+
+**Request Fields:**
+- `reason` (optional, string, max 500): Reason for refund
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "message": "Refund processed successfully",
+  "data": {
+    "refund_id": "123456789"
+  }
+}
+```
+
+**Error Response (400):**
+```json
+{
+  "success": false,
+  "message": "Only paid invoices can be refunded"
+}
+```
+
+**Error Response (500):**
+```json
+{
+  "success": false,
+  "message": "Refund failed",
+  "error": "Paymob API error details"
+}
+```
+
+**Usage Example:**
+```bash
+curl -X POST https://api.obsolio.com/api/v1/payments/refund/9d4e5f6g-7h8i-9j0k-1l2m-3n4o5p6q7r8s \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "reason": "Customer requested refund"
+  }'
+```
+
+---
+
+## Paymob Payment Flow
+
+### Complete Payment Flow Diagram
+
+```
+1. User selects plan
+   ↓
+2. Frontend calls POST /api/v1/payments/subscription
+   ↓
+3. Backend creates:
+   - BillingInvoice (status: pending)
+   - Paymob Order
+   - Payment Key
+   ↓
+4. Backend returns iframe_url
+   ↓
+5. Frontend redirects user to Paymob iframe
+   ↓
+6. User enters card details and completes payment
+   ↓
+7. Paymob calls POST /api/v1/webhooks/paymob/callback
+   ↓
+8. Backend verifies HMAC and updates:
+   - Invoice status → "paid"
+   - Subscription status → "active"
+   - Creates PaymentTransaction record
+   ↓
+9. Paymob redirects user back to your app
+   ↓
+10. Frontend calls GET /api/v1/payments/response
+    ↓
+11. Backend confirms payment status
+    ↓
+12. User sees success message
+```
+
+### Payment Configuration
+
+The following environment variables must be set:
+
+```env
+PAYMOB_API_KEY=your_api_key_here
+PAYMOB_INTEGRATION_ID=your_integration_id_here
+PAYMOB_HMAC_SECRET=your_hmac_secret_here
+PAYMOB_IFRAME_ID=799158
+PAYMOB_CURRENCY=EGP
+```
+
+### Exchange Rate
+
+Currently using hardcoded exchange rate (1 USD = 30.5 EGP). In production, integrate with a real-time exchange rate API.
+
+### Security
+
+- **HMAC Verification**: All webhook callbacks are verified using HMAC signature
+- **JWT Authentication**: All payment endpoints (except webhook) require authentication
+- **Tenant Isolation**: Payments are tenant-scoped
+- **Invoice Validation**: Only paid invoices can be refunded
+
+---
+
 ## Support
 
 For API support, contact:
