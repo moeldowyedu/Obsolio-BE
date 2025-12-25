@@ -21,6 +21,15 @@ class CheckTenantStatus
             return $next($request);
         }
 
+        // Check if tenant is pending verification
+        if ($tenant->status === 'pending_verification') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Workspace not found. Please verify your email to activate your workspace.',
+                'code' => 'WORKSPACE_NOT_VERIFIED'
+            ], 404);
+        }
+
         // Check if tenant is suspended/inactive
         if ($tenant->status !== 'active') {
             return response()->json([
