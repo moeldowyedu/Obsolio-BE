@@ -150,7 +150,9 @@ class VerificationController extends Controller
 
         Log::warning('Signature validation failed', [
             'user_id' => $user->id,
-            'checked_count' => count($urls)
+            'checked_count' => count($urls),
+            'received_signature' => $signature,
+            'checked_urls' => $urls
         ]);
 
         return false;
