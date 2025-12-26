@@ -23,6 +23,14 @@ class Tenant extends BaseTenant implements TenantWithDatabase
         'subdomain_activated_at',
     ];
 
+    /**
+     * Get the owner membership.
+     */
+    public function ownerMembership()
+    {
+        return $this->hasOne(TenantMembership::class)->where('role', 'owner');
+    }
+
     protected $casts = [
         'subdomain_activated_at' => 'datetime',
     ];

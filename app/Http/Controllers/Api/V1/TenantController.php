@@ -101,9 +101,9 @@ class TenantController extends Controller
             // Add other admin-editable fields here if needed
         ]);
 
-        if (array_key_exists('end_date', $validated)) {
-            $tenant->trial_ends_at = $validated['end_date'];
-        }
+        // if (array_key_exists('end_date', $validated)) {
+        //     $tenant->trial_ends_at = $validated['end_date'];
+        // }
 
         $tenant->save();
 
