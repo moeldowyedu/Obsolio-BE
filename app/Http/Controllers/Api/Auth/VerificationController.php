@@ -52,7 +52,7 @@ class VerificationController extends Controller
             if (!$signature || !$this->isValidSignature($request, $user)) {
                 Log::warning('Invalid signature', ['user_id' => $id]);
 
-                return redirect(config('app.frontend_url') . '/verification-error?reason=invalid_signature');
+                return redirect(config('app.frontend_url') . '/verification-error?reason=invalid_signature_v2_debug');
             }
 
             // Mark as verified
