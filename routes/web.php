@@ -39,9 +39,9 @@ Route::get('/email/verify', function () {
 })->middleware('auth:api')->name('verification.notice');
 
 // Email verification handler (THIS IS THE CRITICAL ONE!)
-Route::get('/verify-email/{id}/{hash}', [AuthController::class, 'verifyEmail'])
-    ->middleware(['signed', 'throttle:6,1'])
-    ->name('verification.verify');
+// Route::get('/verify-email/{id}/{hash}', [AuthController::class, 'verifyEmail'])
+//     ->middleware(['signed', 'throttle:6,1'])
+//     ->name('verification.verify');
 
 // Resend verification email
 Route::post('/email/verification-notification', [AuthController::class, 'resendVerificationEmail'])
