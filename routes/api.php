@@ -61,6 +61,7 @@ Route::prefix('v1')->group(function () {
     Route::post('/auth/lookup-tenant', [AuthController::class, 'lookupTenant'])
         ->withoutMiddleware(['tenancy.domain', 'tenancy.prevent_central', 'tenancy.header']);
     Route::post('/auth/logout', [AuthController::class, 'logout'])->middleware('jwt.auth');
+    Route::get('/tenants', [TenantController::class, 'index'])->middleware('jwt.auth'); // List my tenants
     Route::get('/tenants/check-availability/{subdomain}', [AuthController::class, 'checkAvailability']);
 
     // =========================================================================

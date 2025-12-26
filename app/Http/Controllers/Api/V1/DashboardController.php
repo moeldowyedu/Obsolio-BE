@@ -40,7 +40,11 @@ class DashboardController extends Controller
     public function dashboardStats(): JsonResponse
     {
         try {
-            $user = auth('api')->user();
+            $user = request()->user();
+
+            if (!$user) {
+                return response()->json(['message' => 'Unauthenticated.'], 401);
+            }
 
             $stats = [
                 'users' => [
