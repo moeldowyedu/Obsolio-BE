@@ -9,20 +9,21 @@ return new class extends Migration {
      * Run the migrations.
      *
      * This migration modifies the existing agents table to support asynchronous execution:
-     * - Adds columns: runtime_type, execution_timeout_ms (FIRST)
-     * - Then removes columns: category, total_installs, rating, review_count, is_marketplace
+     * - Adds columns: runtime_type (nullable), execution_timeout_ms
+     * - Removes columns: category, total_installs, rating, review_count, is_marketplace
      *
-     * Note: Data migration (2025_12_27_000000_migrate_agent_categories_data) should run
-     * AFTER agent_categories and agent_category_map tables are created but BEFORE this migration.
+     * Note: The runtime_type column is kept nullable here. The NOT NULL constraint
+     * will be added in migration 2025_12_27_130000_finalize_agents_table_changes.php
+     * AFTER the data migration populates the values.
      */
     public function up(): void
     {
-        // STEP 1: Add new columns FIRST (so data migration can use them)
+        // STEP 1: Add new columns (runtime_type is nullable for now)
         Schema::table('agents', function (Blueprint $table) {
             // Check if columns don't already exist
             if (!Schema::hasColumn('agents', 'runtime_type')) {
                 $table->string('runtime_type')
-                    ->nullable() // Temporarily nullable for data migration
+                    ->nullable() // Will be made NOT NULL after data migration
                     ->after('created_by_user_id')
                     ->comment('Runtime environment: n8n | custom');
             }
@@ -35,7 +36,7 @@ return new class extends Migration {
             }
         });
 
-        // STEP 2: Now remove old columns
+        // STEP 2: Remove old columns
         Schema::table('agents', function (Blueprint $table) {
             // Drop indexes first if they exist
             if (Schema::hasColumn('agents', 'category')) {
@@ -57,11 +58,6 @@ return new class extends Migration {
             if (!empty($columns_to_drop)) {
                 $table->dropColumn($columns_to_drop);
             }
-        });
-
-        // STEP 3: Make runtime_type NOT NULL now that data migration has run
-        Schema::table('agents', function (Blueprint $table) {
-            $table->string('runtime_type')->nullable(false)->change();
         });
     }
 
