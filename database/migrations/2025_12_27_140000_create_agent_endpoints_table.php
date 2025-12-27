@@ -37,15 +37,15 @@ return new class extends Migration {
                     ->on('agents')
                     ->onDelete('cascade');
 
-                // Check constraint for type
-                DB::statement('ALTER TABLE agent_endpoints ADD CONSTRAINT check_type CHECK (type IN (\'trigger\', \'callback\'))');
-
                 // Indexes
                 $table->index('agent_id');
                 $table->index('type');
                 $table->index('is_active');
                 $table->unique(['agent_id', 'type'], 'unique_agent_endpoint_type');
             });
+
+            // Add check constraint after table creation
+            DB::statement('ALTER TABLE agent_endpoints ADD CONSTRAINT check_type CHECK (type IN (\'trigger\', \'callback\'))');
         }
     }
 

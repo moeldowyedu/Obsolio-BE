@@ -26,14 +26,14 @@ return new class extends Migration
                     ->on('agent_runs')
                     ->onDelete('cascade');
 
-                // Check constraint for event
-                DB::statement("ALTER TABLE agent_run_events ADD CONSTRAINT check_event CHECK (event IN ('accepted', 'running', 'progress', 'completed', 'failed', 'usage'))");
-
                 // Indexes
                 $table->index('run_id');
                 $table->index('event');
                 $table->index('created_at');
             });
+
+            // Add check constraint after table creation
+            DB::statement("ALTER TABLE agent_run_events ADD CONSTRAINT check_event CHECK (event IN ('accepted', 'running', 'progress', 'completed', 'failed', 'usage'))");
         }
     }
 

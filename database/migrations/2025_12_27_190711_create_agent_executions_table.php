@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -29,15 +30,15 @@ return new class extends Migration
                     ->on('agents')
                     ->onDelete('cascade');
 
-                // Check constraint for state
-                DB::statement("ALTER TABLE agent_runs ADD CONSTRAINT check_state CHECK (state IN ('pending', 'accepted', 'running', 'completed', 'failed', 'cancelled', 'timeout'))");
-
                 // Indexes
                 $table->index('agent_id');
                 $table->index('state');
                 $table->index('started_at');
                 $table->index(['agent_id', 'state']);
             });
+
+            // Add check constraint after table creation
+            DB::statement("ALTER TABLE agent_runs ADD CONSTRAINT check_state CHECK (state IN ('pending', 'accepted', 'running', 'completed', 'failed', 'cancelled', 'timeout'))");
         }
     }
 
