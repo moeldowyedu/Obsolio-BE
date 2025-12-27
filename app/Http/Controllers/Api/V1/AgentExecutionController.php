@@ -17,11 +17,92 @@ class AgentExecutionController extends Controller
     /**
      * Execute an agent asynchronously.
      *
-     * POST /v1/agents/{id}/run
-     *
-     * @param string $id Agent UUID
-     * @param Request $request
-     * @return JsonResponse
+     * @OA\Post(
+     *     path="/v1/agents/{id}/run",
+     *     summary="Execute an agent asynchronously",
+     *     description="Initiates asynchronous execution of an agent. The agent will process the request in the background and send results to the callback webhook.",
+     *     operationId="executeAgent",
+     *     tags={"Agent Execution"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="Agent UUID",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid", example="550e8400-e29b-41d4-a716-446655440000")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"input"},
+     *             @OA\Property(
+     *                 property="input",
+     *                 type="object",
+     *                 description="Input parameters for the agent execution",
+     *                 example={"query": "What is the weather today?", "location": "Cairo"}
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=202,
+     *         description="Agent execution initiated successfully",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Agent execution initiated"),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(property="run_id", type="string", format="uuid", example="660e8400-e29b-41d4-a716-446655440001"),
+     *                 @OA\Property(property="status", type="string", example="running"),
+     *                 @OA\Property(
+     *                     property="agent",
+     *                     type="object",
+     *                     @OA\Property(property="id", type="string", format="uuid", example="550e8400-e29b-41d4-a716-446655440000"),
+     *                     @OA\Property(property="name", type="string", example="Weather Agent"),
+     *                     @OA\Property(property="runtime_type", type="string", example="n8n")
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Agent is not active or no trigger endpoint configured",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Agent is not active")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Agent not found",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Agent not found")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation failed",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Validation failed"),
+     *             @OA\Property(property="errors", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Agent failed to accept execution or internal error",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Failed to connect to agent")
+     *         )
+     *     )
+     * )
      */
     public function run(string $id, Request $request): JsonResponse
     {
@@ -146,10 +227,74 @@ class AgentExecutionController extends Controller
     /**
      * Get agent run status.
      *
-     * GET /v1/agent-runs/{run_id}
-     *
-     * @param string $runId Run UUID
-     * @return JsonResponse
+     * @OA\Get(
+     *     path="/v1/agent-runs/{run_id}",
+     *     summary="Get agent execution status",
+     *     description="Retrieve the status and results of an agent execution run",
+     *     operationId="getAgentRunStatus",
+     *     tags={"Agent Execution"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="run_id",
+     *         in="path",
+     *         description="Agent Run UUID",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid", example="660e8400-e29b-41d4-a716-446655440001")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Run status retrieved successfully",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(property="run_id", type="string", format="uuid", example="660e8400-e29b-41d4-a716-446655440001"),
+     *                 @OA\Property(property="status", type="string", enum={"pending", "running", "completed", "failed"}, example="completed"),
+     *                 @OA\Property(
+     *                     property="input",
+     *                     type="object",
+     *                     example={"query": "What is the weather today?", "location": "Cairo"}
+     *                 ),
+     *                 @OA\Property(
+     *                     property="output",
+     *                     type="object",
+     *                     nullable=true,
+     *                     example={"result": "The weather in Cairo is sunny, 28°C"}
+     *                 ),
+     *                 @OA\Property(property="error", type="string", nullable=true, example=null),
+     *                 @OA\Property(property="created_at", type="string", format="date-time", example="2025-12-27T10:00:00.000000Z"),
+     *                 @OA\Property(property="updated_at", type="string", format="date-time", example="2025-12-27T10:00:05.000000Z"),
+     *                 @OA\Property(
+     *                     property="agent",
+     *                     type="object",
+     *                     @OA\Property(property="id", type="string", format="uuid", example="550e8400-e29b-41d4-a716-446655440000"),
+     *                     @OA\Property(property="name", type="string", example="Weather Agent"),
+     *                     @OA\Property(property="runtime_type", type="string", example="n8n")
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Agent run not found",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Agent run not found")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Internal server error",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Internal server error")
+     *         )
+     *     )
+     * )
      */
     public function getRunStatus(string $runId): JsonResponse
     {
@@ -194,10 +339,90 @@ class AgentExecutionController extends Controller
     /**
      * Webhook callback for agent execution results.
      *
-     * POST /v1/webhooks/agents/callback
-     *
-     * @param Request $request
-     * @return JsonResponse
+     * @OA\Post(
+     *     path="/v1/webhooks/agents/callback",
+     *     summary="Agent execution callback webhook",
+     *     description="Webhook endpoint for agents to send execution results. This endpoint does not require JWT authentication but validates a secret token instead.",
+     *     operationId="agentExecutionCallback",
+     *     tags={"Agent Execution"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"run_id", "status", "secret"},
+     *             @OA\Property(property="run_id", type="string", format="uuid", example="660e8400-e29b-41d4-a716-446655440001"),
+     *             @OA\Property(property="status", type="string", enum={"completed", "failed"}, example="completed"),
+     *             @OA\Property(
+     *                 property="output",
+     *                 type="object",
+     *                 nullable=true,
+     *                 example={"result": "The weather in Cairo is sunny, 28°C"}
+     *             ),
+     *             @OA\Property(property="error", type="string", nullable=true, example=null),
+     *             @OA\Property(property="secret", type="string", example="your-callback-secret-token")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Callback received and processed successfully",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Callback received and processed"),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(property="run_id", type="string", format="uuid", example="660e8400-e29b-41d4-a716-446655440001"),
+     *                 @OA\Property(property="status", type="string", example="completed")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="No active callback endpoint configured",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="No active callback endpoint configured for this agent")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Invalid secret token",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Invalid secret")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Agent run not found",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Agent run not found")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation failed",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Validation failed"),
+     *             @OA\Property(property="errors", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Internal server error",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="success", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Internal server error")
+     *         )
+     *     )
+     * )
      */
     public function callback(Request $request): JsonResponse
     {
