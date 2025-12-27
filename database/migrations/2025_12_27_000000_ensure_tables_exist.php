@@ -111,6 +111,13 @@ return new class extends Migration {
                 $table->foreign('triggered_by_user_id')->references('id')->on('users')->nullOnDelete();
             });
         }
+
+        // 5. Ensure 'short_name' exists in 'tenants' table
+        if (Schema::hasTable('tenants') && !Schema::hasColumn('tenants', 'short_name')) {
+            Schema::table('tenants', function (Blueprint $table) {
+                $table->string('short_name')->nullable();
+            });
+        }
     }
 
     /**

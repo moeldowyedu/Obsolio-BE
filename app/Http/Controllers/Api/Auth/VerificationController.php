@@ -64,7 +64,10 @@ class VerificationController extends Controller
             // Update tenant status to active
             $tenant = $user->tenant;
             if ($tenant && $tenant->status === 'pending_verification') {
-                $tenant->update(['status' => 'active']);
+                $tenant->update([
+                    'status' => 'active',
+                    'subdomain_activated_at' => now(),
+                ]);
 
                 // Create the domain for the tenant NOW that it's verified
                 $domain = config('tenancy.central_domains')[0] ?? 'obsolio.com';
