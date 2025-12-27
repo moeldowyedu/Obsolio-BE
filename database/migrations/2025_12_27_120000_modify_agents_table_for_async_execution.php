@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration {
     /**
@@ -38,13 +39,18 @@ return new class extends Migration {
 
         // STEP 2: Remove old columns
         Schema::table('agents', function (Blueprint $table) {
-            // Drop indexes first if they exist
-            if (Schema::hasColumn('agents', 'category')) {
-                $table->dropIndex(['agents_category_index']);
-                $table->dropIndex(['agents_category_is_active_index']);
-            }
-            if (Schema::hasColumn('agents', 'is_marketplace')) {
-                $table->dropIndex(['agents_is_marketplace_index']);
+            // Drop indexes first if they exist (using DB::statement for safety)
+            // Note: We use raw SQL to avoid Laravel's index name generation issues
+            try {
+                if (Schema::hasColumn('agents', 'category')) {
+                    DB::statement('DROP INDEX IF EXISTS agents_category_index');
+                    DB::statement('DROP INDEX IF EXISTS agents_category_is_active_index');
+                }
+                if (Schema::hasColumn('agents', 'is_marketplace')) {
+                    DB::statement('DROP INDEX IF EXISTS agents_is_marketplace_index');
+                }
+            } catch (\Exception $e) {
+                // Indexes might not exist, that's okay
             }
 
             // Remove columns that are no longer needed
