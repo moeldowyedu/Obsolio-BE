@@ -15,6 +15,1169 @@
         }
     ],
     "paths": {
+        "/api/v1/admin/users": {
+            "get": {
+                "tags": [
+                    "Admin - Users"
+                ],
+                "summary": "List all users",
+                "description": "Get a paginated list of all users with optional filters",
+                "operationId": "adminListUsers",
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Search by name or email",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "role",
+                        "in": "query",
+                        "description": "Filter by role",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Filter by verification status",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "verified",
+                                "unverified"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Users list retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/admin/users/{id}": {
+            "get": {
+                "tags": [
+                    "Admin - Users"
+                ],
+                "summary": "Get user details",
+                "description": "Get detailed information about a specific user",
+                "operationId": "adminGetUser",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "User ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User details retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "User not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Admin - Users"
+                ],
+                "summary": "Delete a user",
+                "description": "Soft delete a user (prevents deletion of system admins)",
+                "operationId": "adminDeleteUser",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "User ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User deleted successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "User deleted successfully"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Cannot delete system admin"
+                    },
+                    "404": {
+                        "description": "User not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/admin/plans": {
+            "get": {
+                "tags": [
+                    "Admin - Subscription Plans"
+                ],
+                "summary": "List all subscription plans",
+                "description": "Get all subscription plans with optional filters",
+                "operationId": "adminListPlans",
+                "parameters": [
+                    {
+                        "name": "type",
+                        "in": "query",
+                        "description": "Filter by plan type",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "personal",
+                                "organization"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "active",
+                        "in": "query",
+                        "description": "Filter by active status",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "true",
+                                "false"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Plans list retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Admin - Subscription Plans"
+                ],
+                "summary": "Create a subscription plan",
+                "description": "Create a new subscription plan",
+                "operationId": "adminCreatePlan",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "type",
+                                    "tier",
+                                    "max_users",
+                                    "max_agents",
+                                    "storage_gb",
+                                    "trial_days"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "maxLength": 100,
+                                        "example": "Pro Plan"
+                                    },
+                                    "type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "personal",
+                                            "organization"
+                                        ],
+                                        "example": "personal"
+                                    },
+                                    "tier": {
+                                        "type": "string",
+                                        "enum": [
+                                            "free",
+                                            "pro",
+                                            "team",
+                                            "business",
+                                            "enterprise"
+                                        ],
+                                        "example": "pro"
+                                    },
+                                    "price_monthly": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 29.99
+                                    },
+                                    "price_annual": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 299.99
+                                    },
+                                    "max_users": {
+                                        "type": "integer",
+                                        "example": 5
+                                    },
+                                    "max_agents": {
+                                        "type": "integer",
+                                        "example": 10
+                                    },
+                                    "storage_gb": {
+                                        "type": "integer",
+                                        "example": 50
+                                    },
+                                    "trial_days": {
+                                        "type": "integer",
+                                        "example": 14
+                                    },
+                                    "features": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "limits": {
+                                        "type": "object"
+                                    },
+                                    "description": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Plan created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/admin/plans/{id}": {
+            "put": {
+                "tags": [
+                    "Admin - Subscription Plans"
+                ],
+                "summary": "Update a subscription plan",
+                "description": "Update an existing subscription plan",
+                "operationId": "adminUpdatePlan",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Plan ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "maxLength": 100
+                                    },
+                                    "price_monthly": {
+                                        "type": "number",
+                                        "format": "float"
+                                    },
+                                    "price_annual": {
+                                        "type": "number",
+                                        "format": "float"
+                                    },
+                                    "max_users": {
+                                        "type": "integer"
+                                    },
+                                    "max_agents": {
+                                        "type": "integer"
+                                    },
+                                    "storage_gb": {
+                                        "type": "integer"
+                                    },
+                                    "trial_days": {
+                                        "type": "integer"
+                                    },
+                                    "features": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "limits": {
+                                        "type": "object"
+                                    },
+                                    "description": {
+                                        "type": "string"
+                                    },
+                                    "is_active": {
+                                        "type": "boolean"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Plan updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Plan not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Admin - Subscription Plans"
+                ],
+                "summary": "Delete a subscription plan",
+                "description": "Delete a subscription plan (only if no active subscriptions exist)",
+                "operationId": "adminDeletePlan",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Plan ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Plan deleted successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Cannot delete plan with active subscriptions"
+                    },
+                    "404": {
+                        "description": "Plan not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/admin/agents": {
+            "get": {
+                "tags": [
+                    "Admin - Agents"
+                ],
+                "summary": "List all agents",
+                "description": "Get a paginated list of all agents including deleted ones",
+                "operationId": "adminListAgents",
+                "parameters": [
+                    {
+                        "name": "category",
+                        "in": "query",
+                        "description": "Filter by category",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "active",
+                        "in": "query",
+                        "description": "Filter by active status",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "true",
+                                "false"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "marketplace",
+                        "in": "query",
+                        "description": "Filter by marketplace status",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "true",
+                                "false"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Agents list retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Admin - Agents"
+                ],
+                "summary": "Create a new agent",
+                "description": "Create a new agent in the system",
+                "operationId": "adminCreateAgent",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "slug",
+                                    "category",
+                                    "price_model"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "maxLength": 255,
+                                        "example": "Data Analyst Agent"
+                                    },
+                                    "slug": {
+                                        "type": "string",
+                                        "example": "data-analyst"
+                                    },
+                                    "category": {
+                                        "type": "string",
+                                        "maxLength": 100,
+                                        "example": "analytics"
+                                    },
+                                    "description": {
+                                        "type": "string"
+                                    },
+                                    "long_description": {
+                                        "type": "string"
+                                    },
+                                    "icon_url": {
+                                        "type": "string",
+                                        "format": "url"
+                                    },
+                                    "banner_url": {
+                                        "type": "string",
+                                        "format": "url"
+                                    },
+                                    "capabilities": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "supported_languages": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "price_model": {
+                                        "type": "string",
+                                        "enum": [
+                                            "free",
+                                            "one_time",
+                                            "subscription",
+                                            "usage_based"
+                                        ]
+                                    },
+                                    "base_price": {
+                                        "type": "number",
+                                        "format": "float"
+                                    },
+                                    "monthly_price": {
+                                        "type": "number",
+                                        "format": "float"
+                                    },
+                                    "annual_price": {
+                                        "type": "number",
+                                        "format": "float"
+                                    },
+                                    "is_marketplace": {
+                                        "type": "boolean"
+                                    },
+                                    "is_featured": {
+                                        "type": "boolean"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Agent created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/admin/agents/{id}": {
+            "put": {
+                "tags": [
+                    "Admin - Agents"
+                ],
+                "summary": "Update an agent",
+                "description": "Update an existing agent",
+                "operationId": "adminUpdateAgent",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Agent ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "maxLength": 255
+                                    },
+                                    "description": {
+                                        "type": "string"
+                                    },
+                                    "long_description": {
+                                        "type": "string"
+                                    },
+                                    "icon_url": {
+                                        "type": "string",
+                                        "format": "url"
+                                    },
+                                    "banner_url": {
+                                        "type": "string",
+                                        "format": "url"
+                                    },
+                                    "capabilities": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "price_model": {
+                                        "type": "string",
+                                        "enum": [
+                                            "free",
+                                            "one_time",
+                                            "subscription",
+                                            "usage_based"
+                                        ]
+                                    },
+                                    "base_price": {
+                                        "type": "number",
+                                        "format": "float"
+                                    },
+                                    "monthly_price": {
+                                        "type": "number",
+                                        "format": "float"
+                                    },
+                                    "annual_price": {
+                                        "type": "number",
+                                        "format": "float"
+                                    },
+                                    "is_active": {
+                                        "type": "boolean"
+                                    },
+                                    "is_featured": {
+                                        "type": "boolean"
+                                    },
+                                    "is_marketplace": {
+                                        "type": "boolean"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Agent updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Agent not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Admin - Agents"
+                ],
+                "summary": "Delete an agent",
+                "description": "Soft delete an agent",
+                "operationId": "adminDeleteAgent",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Agent ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Agent deleted successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Agent not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/admin/analytics/overview": {
+            "get": {
+                "tags": [
+                    "Admin - Analytics"
+                ],
+                "summary": "Get analytics overview",
+                "description": "Get high-level analytics overview",
+                "operationId": "adminAnalyticsOverview",
+                "responses": {
+                    "200": {
+                        "description": "Analytics overview retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "total_tenants": {
+                                                    "type": "integer"
+                                                },
+                                                "active_tenants": {
+                                                    "type": "integer"
+                                                },
+                                                "total_users": {
+                                                    "type": "integer"
+                                                },
+                                                "total_subscriptions": {
+                                                    "type": "integer"
+                                                },
+                                                "total_revenue_monthly": {
+                                                    "type": "number"
+                                                },
+                                                "total_agents": {
+                                                    "type": "integer"
+                                                },
+                                                "active_agents": {
+                                                    "type": "integer"
+                                                },
+                                                "featured_agents": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/admin/analytics/revenue": {
+            "get": {
+                "tags": [
+                    "Admin - Analytics"
+                ],
+                "summary": "Get revenue analytics",
+                "description": "Get revenue analytics for a specific period",
+                "operationId": "adminRevenueAnalytics",
+                "parameters": [
+                    {
+                        "name": "period",
+                        "in": "query",
+                        "description": "Time period for analytics",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "default": "month",
+                            "enum": [
+                                "day",
+                                "week",
+                                "month",
+                                "year"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Revenue analytics retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "summary": {
+                                                    "type": "object"
+                                                },
+                                                "daily_breakdown": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/admin/analytics/agents": {
+            "get": {
+                "tags": [
+                    "Admin - Analytics"
+                ],
+                "summary": "Get agent analytics",
+                "description": "Get analytics about agents by category and top performing agents",
+                "operationId": "adminAgentAnalytics",
+                "responses": {
+                    "200": {
+                        "description": "Agent analytics retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "by_category": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "top_agents": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/admin/activity-logs": {
+            "get": {
+                "tags": [
+                    "Admin - Activity Logs"
+                ],
+                "summary": "Get activity logs",
+                "description": "Get paginated activity logs with optional filters",
+                "operationId": "adminActivityLogs",
+                "parameters": [
+                    {
+                        "name": "user_id",
+                        "in": "query",
+                        "description": "Filter by user ID",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "action",
+                        "in": "query",
+                        "description": "Filter by action type",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Activity logs retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/admin/impersonation-logs": {
+            "get": {
+                "tags": [
+                    "Admin - Activity Logs"
+                ],
+                "summary": "Get impersonation logs",
+                "description": "Get paginated impersonation logs",
+                "operationId": "adminImpersonationLogs",
+                "responses": {
+                    "200": {
+                        "description": "Impersonation logs retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/auth/register": {
             "post": {
                 "tags": [
@@ -137,6 +1300,15 @@
                                                         "status": {
                                                             "type": "string",
                                                             "example": "active"
+                                                        },
+                                                        "is_system_admin": {
+                                                            "type": "boolean",
+                                                            "example": false
+                                                        },
+                                                        "created_at": {
+                                                            "type": "string",
+                                                            "format": "date-time",
+                                                            "example": "2023-10-27T09:00:00.000000Z"
                                                         }
                                                     },
                                                     "type": "object"
@@ -189,6 +1361,164 @@
                     },
                     "422": {
                         "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/auth/check-subdomain": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Check if a subdomain is available",
+                "operationId": "checkSubdomain",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "subdomain"
+                                ],
+                                "properties": {
+                                    "subdomain": {
+                                        "type": "string",
+                                        "example": "my-workspace"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Check result",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "available": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Subdomain is available"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/tenants/check-availability/{subdomain}": {
+            "get": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Check if a subdomain is available (GET)",
+                "operationId": "checkAvailability",
+                "parameters": [
+                    {
+                        "name": "subdomain",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Check result",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "available": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Subdomain is available"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/lookup-tenant": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Lookup tenants for a user",
+                "operationId": "lookupTenant",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "identifier"
+                                ],
+                                "properties": {
+                                    "identifier": {
+                                        "description": "Email or Phone",
+                                        "type": "string",
+                                        "example": "john.doe@example.com"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Tenant lookup successful",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "tenants": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "string",
+                                                        "example": "my-workspace"
+                                                    },
+                                                    "name": {
+                                                        "type": "string",
+                                                        "example": "My Workspace"
+                                                    },
+                                                    "login_url": {
+                                                        "type": "string",
+                                                        "example": "https://my-workspace.obsolio.com/login"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -256,6 +1586,22 @@
                                                         "email": {
                                                             "type": "string",
                                                             "example": "john.doe@example.com"
+                                                        },
+                                                        "phone": {
+                                                            "type": "string",
+                                                            "example": "+1234567890"
+                                                        },
+                                                        "country": {
+                                                            "type": "string",
+                                                            "example": "USA"
+                                                        },
+                                                        "status": {
+                                                            "type": "string",
+                                                            "example": "active"
+                                                        },
+                                                        "is_system_admin": {
+                                                            "type": "boolean",
+                                                            "example": false
                                                         }
                                                     },
                                                     "type": "object"
@@ -327,9 +1673,17 @@
                                                     "type": "string",
                                                     "example": "+1234567890"
                                                 },
+                                                "country": {
+                                                    "type": "string",
+                                                    "example": "USA"
+                                                },
                                                 "status": {
                                                     "type": "string",
                                                     "example": "active"
+                                                },
+                                                "is_system_admin": {
+                                                    "type": "boolean",
+                                                    "example": false
                                                 },
                                                 "last_login_at": {
                                                     "type": "string",
@@ -517,6 +1871,10 @@
                                         "type": "string",
                                         "example": "+1234567890"
                                     },
+                                    "country": {
+                                        "type": "string",
+                                        "example": "USA"
+                                    },
                                     "avatar_url": {
                                         "type": "string",
                                         "example": "https://example.com/new-avatar.jpg"
@@ -654,6 +2012,91 @@
                 ]
             }
         },
+        "/auth/email/verify/{id}/{hash}": {
+            "get": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Verify email address",
+                "operationId": "verifyEmail",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "hash",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Email verified",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Email verified successfully"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/email/resend": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Resend verification email",
+                "operationId": "resendVerification",
+                "responses": {
+                    "200": {
+                        "description": "Verification link sent",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Verification link sent"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/dashboard/stats": {
             "get": {
                 "tags": [
@@ -712,6 +2155,7 @@
                     "Organizations"
                 ],
                 "summary": "List organizations",
+                "description": "Display a listing of organizations.",
                 "operationId": "getOrganizations",
                 "parameters": [
                     {
@@ -735,6 +2179,57 @@
                                         "data": {
                                             "type": "array",
                                             "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "string",
+                                                        "format": "uuid",
+                                                        "example": "98765432-1234-1234-1234-1234567890ab"
+                                                    },
+                                                    "name": {
+                                                        "type": "string",
+                                                        "example": "Acme Corp"
+                                                    },
+                                                    "short_name": {
+                                                        "type": "string",
+                                                        "example": "ACME"
+                                                    },
+                                                    "phone": {
+                                                        "type": "string",
+                                                        "example": "+1234567890"
+                                                    },
+                                                    "industry": {
+                                                        "type": "string",
+                                                        "example": "Technology"
+                                                    },
+                                                    "company_size": {
+                                                        "type": "string",
+                                                        "example": "100-500"
+                                                    },
+                                                    "country": {
+                                                        "type": "string",
+                                                        "example": "USA"
+                                                    },
+                                                    "timezone": {
+                                                        "type": "string",
+                                                        "example": "UTC"
+                                                    },
+                                                    "logo_url": {
+                                                        "type": "string",
+                                                        "example": "https://example.com/logo.png"
+                                                    },
+                                                    "description": {
+                                                        "type": "string",
+                                                        "example": "We make everything."
+                                                    },
+                                                    "created_at": {
+                                                        "type": "string",
+                                                        "format": "date-time"
+                                                    },
+                                                    "users_count": {
+                                                        "type": "integer",
+                                                        "example": 10
+                                                    }
+                                                },
                                                 "type": "object"
                                             }
                                         }
@@ -762,7 +2257,6 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "type": "object",
                                 "required": [
                                     "name"
                                 ],
@@ -780,31 +2274,26 @@
                                         "example": "+1234567890"
                                     },
                                     "industry": {
-                                        "type": "string",
-                                        "example": "Technology"
+                                        "type": "string"
                                     },
                                     "company_size": {
-                                        "type": "string",
-                                        "example": "100-500"
+                                        "type": "string"
                                     },
                                     "country": {
-                                        "type": "string",
-                                        "example": "USA"
+                                        "type": "string"
                                     },
                                     "timezone": {
-                                        "type": "string",
-                                        "example": "UTC"
+                                        "type": "string"
                                     },
                                     "description": {
-                                        "type": "string",
-                                        "example": "We make everything."
+                                        "type": "string"
                                     },
                                     "logo_url": {
                                         "type": "string",
-                                        "format": "uri",
-                                        "example": "https://example.com/logo.png"
+                                        "format": "uri"
                                     }
-                                }
+                                },
+                                "type": "object"
                             }
                         }
                     }
@@ -815,10 +2304,8 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "object",
                                     "properties": {
                                         "data": {
-                                            "type": "object",
                                             "properties": {
                                                 "id": {
                                                     "type": "string",
@@ -869,9 +2356,11 @@
                                                     "type": "integer",
                                                     "example": 10
                                                 }
-                                            }
+                                            },
+                                            "type": "object"
                                         }
-                                    }
+                                    },
+                                    "type": "object"
                                 }
                             }
                         }
@@ -912,6 +2401,62 @@
                         "content": {
                             "application/json": {
                                 "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "string",
+                                                    "format": "uuid",
+                                                    "example": "98765432-1234-1234-1234-1234567890ab"
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "Acme Corp"
+                                                },
+                                                "short_name": {
+                                                    "type": "string",
+                                                    "example": "ACME"
+                                                },
+                                                "phone": {
+                                                    "type": "string",
+                                                    "example": "+1234567890"
+                                                },
+                                                "industry": {
+                                                    "type": "string",
+                                                    "example": "Technology"
+                                                },
+                                                "company_size": {
+                                                    "type": "string",
+                                                    "example": "100-500"
+                                                },
+                                                "country": {
+                                                    "type": "string",
+                                                    "example": "USA"
+                                                },
+                                                "timezone": {
+                                                    "type": "string",
+                                                    "example": "UTC"
+                                                },
+                                                "logo_url": {
+                                                    "type": "string",
+                                                    "example": "https://example.com/logo.png"
+                                                },
+                                                "description": {
+                                                    "type": "string",
+                                                    "example": "We make everything."
+                                                },
+                                                "created_at": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                },
+                                                "users_count": {
+                                                    "type": "integer",
+                                                    "example": 10
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
                                     "type": "object"
                                 }
                             }
@@ -950,6 +2495,42 @@
                     "content": {
                         "application/json": {
                             "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Acme Corp"
+                                    },
+                                    "short_name": {
+                                        "type": "string",
+                                        "example": "ACME"
+                                    },
+                                    "phone": {
+                                        "type": "string",
+                                        "example": "+1234567890"
+                                    },
+                                    "industry": {
+                                        "type": "string"
+                                    },
+                                    "company_size": {
+                                        "type": "string"
+                                    },
+                                    "country": {
+                                        "type": "string"
+                                    },
+                                    "timezone": {
+                                        "type": "string"
+                                    },
+                                    "description": {
+                                        "type": "string"
+                                    },
+                                    "logo_url": {
+                                        "type": "string",
+                                        "format": "uri"
+                                    },
+                                    "settings": {
+                                        "type": "object"
+                                    }
+                                },
                                 "type": "object"
                             }
                         }
@@ -961,6 +2542,62 @@
                         "content": {
                             "application/json": {
                                 "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "string",
+                                                    "format": "uuid",
+                                                    "example": "98765432-1234-1234-1234-1234567890ab"
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "Acme Corp"
+                                                },
+                                                "short_name": {
+                                                    "type": "string",
+                                                    "example": "ACME"
+                                                },
+                                                "phone": {
+                                                    "type": "string",
+                                                    "example": "+1234567890"
+                                                },
+                                                "industry": {
+                                                    "type": "string",
+                                                    "example": "Technology"
+                                                },
+                                                "company_size": {
+                                                    "type": "string",
+                                                    "example": "100-500"
+                                                },
+                                                "country": {
+                                                    "type": "string",
+                                                    "example": "USA"
+                                                },
+                                                "timezone": {
+                                                    "type": "string",
+                                                    "example": "UTC"
+                                                },
+                                                "logo_url": {
+                                                    "type": "string",
+                                                    "example": "https://example.com/logo.png"
+                                                },
+                                                "description": {
+                                                    "type": "string",
+                                                    "example": "We make everything."
+                                                },
+                                                "created_at": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                },
+                                                "users_count": {
+                                                    "type": "integer",
+                                                    "example": 10
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
                                     "type": "object"
                                 }
                             }
@@ -1424,61 +3061,66 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "type": "object",
-                                        "properties": {
-                                            "id": {
-                                                "type": "string",
-                                                "example": "my-org"
-                                            },
-                                            "name": {
-                                                "type": "string",
-                                                "example": "My Organization"
-                                            },
-                                            "short_name": {
-                                                "type": "string",
-                                                "example": "MYORG"
-                                            },
-                                            "type": {
-                                                "type": "string",
-                                                "example": "organization"
-                                            },
-                                            "status": {
-                                                "type": "string",
-                                                "example": "active"
-                                            },
-                                            "subdomain_preference": {
-                                                "type": "string",
-                                                "example": "my-org"
-                                            },
-                                            "subdomain_activated_at": {
-                                                "type": "string",
-                                                "format": "date-time",
-                                                "example": "2023-10-27T10:00:00.000000Z"
-                                            },
-                                            "is_on_trial": {
-                                                "type": "boolean",
-                                                "example": true
-                                            },
-                                            "trial_ends_at": {
-                                                "type": "string",
-                                                "format": "date-time",
-                                                "example": "2023-11-03T10:00:00.000000Z"
-                                            },
-                                            "domains": {
-                                                "type": "array",
-                                                "items": {
-                                                    "type": "string",
-                                                    "example": "my-org.obsolio.com"
-                                                }
-                                            },
-                                            "logo_url": {
-                                                "type": "string",
-                                                "example": "https://example.com/logo.png"
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "string",
+                                                        "example": "my-org"
+                                                    },
+                                                    "name": {
+                                                        "type": "string",
+                                                        "example": "My Organization"
+                                                    },
+                                                    "short_name": {
+                                                        "type": "string",
+                                                        "example": "MYORG"
+                                                    },
+                                                    "type": {
+                                                        "type": "string",
+                                                        "example": "organization"
+                                                    },
+                                                    "status": {
+                                                        "type": "string",
+                                                        "example": "active"
+                                                    },
+                                                    "subdomain_preference": {
+                                                        "type": "string",
+                                                        "example": "my-org"
+                                                    },
+                                                    "subdomain_activated_at": {
+                                                        "type": "string",
+                                                        "format": "date-time",
+                                                        "example": "2023-10-27T10:00:00.000000Z"
+                                                    },
+                                                    "is_on_trial": {
+                                                        "type": "boolean",
+                                                        "example": true
+                                                    },
+                                                    "trial_ends_at": {
+                                                        "type": "string",
+                                                        "format": "date-time",
+                                                        "example": "2023-11-03T10:00:00.000000Z"
+                                                    },
+                                                    "domains": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "string",
+                                                            "example": "my-org.obsolio.com"
+                                                        }
+                                                    },
+                                                    "logo_url": {
+                                                        "type": "string",
+                                                        "example": "https://example.com/logo.png"
+                                                    }
+                                                },
+                                                "type": "object"
                                             }
                                         }
-                                    }
+                                    },
+                                    "type": "object"
                                 }
                             }
                         }
@@ -1538,10 +3180,16 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "object",
                                     "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Tenant created successfully"
+                                        },
                                         "data": {
-                                            "type": "object",
                                             "properties": {
                                                 "id": {
                                                     "type": "string",
@@ -1592,9 +3240,11 @@
                                                     "type": "string",
                                                     "example": "https://example.com/logo.png"
                                                 }
-                                            }
+                                            },
+                                            "type": "object"
                                         }
-                                    }
+                                    },
+                                    "type": "object"
                                 }
                             }
                         }
@@ -1631,7 +3281,6 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "object",
                                     "properties": {
                                         "success": {
                                             "type": "boolean",
@@ -1642,7 +3291,6 @@
                                             "example": "Switched to tenant successfully"
                                         },
                                         "data": {
-                                            "type": "object",
                                             "properties": {
                                                 "id": {
                                                     "type": "string",
@@ -1693,9 +3341,11 @@
                                                     "type": "string",
                                                     "example": "https://example.com/logo.png"
                                                 }
-                                            }
+                                            },
+                                            "type": "object"
                                         }
-                                    }
+                                    },
+                                    "type": "object"
                                 }
                             }
                         }
@@ -1724,10 +3374,8 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "object",
                                     "properties": {
                                         "data": {
-                                            "type": "object",
                                             "properties": {
                                                 "id": {
                                                     "type": "string",
@@ -1778,9 +3426,11 @@
                                                     "type": "string",
                                                     "example": "https://example.com/logo.png"
                                                 }
-                                            }
+                                            },
+                                            "type": "object"
                                         }
-                                    }
+                                    },
+                                    "type": "object"
                                 }
                             }
                         }
@@ -1824,10 +3474,8 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "object",
                                     "properties": {
                                         "data": {
-                                            "type": "object",
                                             "properties": {
                                                 "id": {
                                                     "type": "string",
@@ -1878,9 +3526,11 @@
                                                     "type": "string",
                                                     "example": "https://example.com/logo.png"
                                                 }
-                                            }
+                                            },
+                                            "type": "object"
                                         }
-                                    }
+                                    },
+                                    "type": "object"
                                 }
                             }
                         }
@@ -2222,6 +3872,118 @@
         }
     },
     "components": {
+        "schemas": {
+            "OrganizationResponse": {
+                "title": "Organization Response",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "example": "98765432-1234-1234-1234-1234567890ab"
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "Acme Corp"
+                    },
+                    "short_name": {
+                        "type": "string",
+                        "example": "ACME"
+                    },
+                    "phone": {
+                        "type": "string",
+                        "example": "+1234567890"
+                    },
+                    "industry": {
+                        "type": "string",
+                        "example": "Technology"
+                    },
+                    "company_size": {
+                        "type": "string",
+                        "example": "100-500"
+                    },
+                    "country": {
+                        "type": "string",
+                        "example": "USA"
+                    },
+                    "timezone": {
+                        "type": "string",
+                        "example": "UTC"
+                    },
+                    "logo_url": {
+                        "type": "string",
+                        "example": "https://example.com/logo.png"
+                    },
+                    "description": {
+                        "type": "string",
+                        "example": "We make everything."
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "users_count": {
+                        "type": "integer",
+                        "example": 10
+                    }
+                },
+                "type": "object"
+            },
+            "TenantResponse": {
+                "title": "Tenant Response",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "example": "my-org"
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "My Organization"
+                    },
+                    "short_name": {
+                        "type": "string",
+                        "example": "MYORG"
+                    },
+                    "type": {
+                        "type": "string",
+                        "example": "organization"
+                    },
+                    "status": {
+                        "type": "string",
+                        "example": "active"
+                    },
+                    "subdomain_preference": {
+                        "type": "string",
+                        "example": "my-org"
+                    },
+                    "subdomain_activated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2023-10-27T10:00:00.000000Z"
+                    },
+                    "is_on_trial": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "trial_ends_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2023-11-03T10:00:00.000000Z"
+                    },
+                    "domains": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "example": "my-org.obsolio.com"
+                        }
+                    },
+                    "logo_url": {
+                        "type": "string",
+                        "example": "https://example.com/logo.png"
+                    }
+                },
+                "type": "object"
+            }
+        },
         "securitySchemes": {
             "bearerAuth": {
                 "type": "http",
@@ -2231,6 +3993,26 @@
         }
     },
     "tags": [
+        {
+            "name": "Admin - Users",
+            "description": "Admin endpoints for user management"
+        },
+        {
+            "name": "Admin - Subscription Plans",
+            "description": "Admin endpoints for subscription plan management"
+        },
+        {
+            "name": "Admin - Agents",
+            "description": "Admin endpoints for agent management"
+        },
+        {
+            "name": "Admin - Analytics",
+            "description": "Admin endpoints for analytics and reports"
+        },
+        {
+            "name": "Admin - Activity Logs",
+            "description": "Admin endpoints for activity and impersonation logs"
+        },
         {
             "name": "Authentication",
             "description": "Authentication"
