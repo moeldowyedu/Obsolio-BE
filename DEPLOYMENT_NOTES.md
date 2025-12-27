@@ -71,20 +71,22 @@ php artisan migrate:status
 # Run migrations in this order:
 # 1. 2025_12_27_000002_create_agent_categories_table.php
 # 2. 2025_12_27_000003_create_agent_category_map_table.php
-# 3. 2025_12_27_120000_migrate_agent_categories_data.php (data migration)
-# 4. 2025_12_27_130000_modify_agents_table_for_async_execution.php
-# 5. 2025_12_27_140000_create_agent_endpoints_table.php
-# 6. 2025_12_27_150000_create_agent_runs_table.php
+# 3. 2025_12_27_120000_modify_agents_table_for_async_execution.php
+# 4. 2025_12_27_125000_migrate_agent_categories_data.php (data migration)
+# 5. 2025_12_27_130000_finalize_agents_table_changes.php
+# 6. 2025_12_27_140000_create_agent_endpoints_table.php
+# 7. 2025_12_27_150000_create_agent_runs_table.php
 
 # Run all migrations
 php artisan migrate --force
 ```
 
 **Why This Order Matters:**
-- Categories table must exist before data migration
-- Data migration must run before modifying agents table
-- Data migration copies existing categories and sets runtime_type
-- Agent table modification removes old columns
+- Categories tables must exist first (steps 1-2)
+- Agents table must have runtime_type column before data migration (step 3)
+- Data migration populates runtime_type values (step 4)
+- runtime_type constraint enforced after population (step 5)
+- Finally create endpoint and run tracking tables (steps 6-7)
 
 #### 4. Clear Caches
 ```bash
