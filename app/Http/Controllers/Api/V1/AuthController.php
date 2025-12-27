@@ -1070,8 +1070,8 @@ class AuthController extends Controller
      *     summary="Verify email address",
      *     operationId="verifyEmail",
      *     tags={"Authentication"},
-     *     @OA\Parameter(name="id", in="path", required=true, schema=@OA\Schema(type="integer")),
-     *     @OA\Parameter(name="hash", in="path", required=true, schema=@OA\Schema(type="string")),
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Parameter(name="hash", in="path", required=true, @OA\Schema(type="string")),
      *     @OA\Response(
      *         response=200,
      *         description="Email verified",
