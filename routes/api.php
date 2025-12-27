@@ -246,12 +246,27 @@ Route::prefix('v1/admin')->middleware(['jwt.auth', 'system_admin'])->group(funct
     Route::delete('/subscription-plans/{id}', [AdminController::class, 'deletePlan']);
 
     // =========================================================================
+    // AGENT CATEGORIES MANAGEMENT
+    // =========================================================================
+    Route::get('/agent-categories', [\App\Http\Controllers\Api\V1\Admin\AdminAgentCategoryController::class, 'index']);
+    Route::post('/agent-categories', [\App\Http\Controllers\Api\V1\Admin\AdminAgentCategoryController::class, 'store']);
+    Route::put('/agent-categories/{id}', [\App\Http\Controllers\Api\V1\Admin\AdminAgentCategoryController::class, 'update']);
+    Route::delete('/agent-categories/{id}', [\App\Http\Controllers\Api\V1\Admin\AdminAgentCategoryController::class, 'destroy']);
+
+    // =========================================================================
     // AGENTS MANAGEMENT
     // =========================================================================
     Route::get('/agents', [AdminController::class, 'listAgents']);
     Route::post('/agents', [AdminController::class, 'createAgent']);
     Route::put('/agents/{id}', [AdminController::class, 'updateAgent']);
     Route::delete('/agents/{id}', [AdminController::class, 'deleteAgent']);
+    Route::post('/agents/bulk-activate', [AdminController::class, 'bulkActivateAgents']);
+    Route::post('/agents/bulk-deactivate', [AdminController::class, 'bulkDeactivateAgents']);
+
+    // =========================================================================
+    // AGENT RUNS
+    // =========================================================================
+    Route::get('/agent-runs', [\App\Http\Controllers\Api\V1\Admin\AdminAgentRunsController::class, 'index']);
 
     // =========================================================================
     // ANALYTICS & REPORTS

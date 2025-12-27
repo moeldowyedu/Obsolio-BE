@@ -437,6 +437,112 @@ class AdminController extends Controller
         }
     }
 
+    /**
+     * Bulk activate agents.
+     *
+     * @OA\Post(
+     *     path="/api/v1/admin/agents/bulk-activate",
+     *     summary="Bulk activate agents",
+     *     description="Activate multiple agents at once",
+     *     operationId="adminBulkActivateAgents",
+     *     tags={"Admin - Agents"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"agent_ids"},
+     *             @OA\Property(property="agent_ids", type="array", @OA\Items(type="string", format="uuid"), example={"uuid1", "uuid2"})
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Agents activated successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string"),
+     *             @OA\Property(property="activated_count", type="integer")
+     *         )
+     *     )
+     * )
+     */
+    public function bulkActivateAgents(Request $request): JsonResponse
+    {
+        $request->validate([
+            'agent_ids' => 'required|array',
+            'agent_ids.*' => 'required|uuid|exists:agents,id',
+        ]);
+
+        try {
+            $count = Agent::whereIn('id', $request->agent_ids)
+                ->update(['is_active' => true]);
+
+            return response()->json([
+                'success' => true,
+                'message' => "{$count} agent(s) activated successfully",
+                'activated_count' => $count,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to activate agents',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Bulk deactivate agents.
+     *
+     * @OA\Post(
+     *     path="/api/v1/admin/agents/bulk-deactivate",
+     *     summary="Bulk deactivate agents",
+     *     description="Deactivate multiple agents at once",
+     *     operationId="adminBulkDeactivateAgents",
+     *     tags={"Admin - Agents"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"agent_ids"},
+     *             @OA\Property(property="agent_ids", type="array", @OA\Items(type="string", format="uuid"), example={"uuid1", "uuid2"})
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Agents deactivated successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string"),
+     *             @OA\Property(property="deactivated_count", type="integer")
+     *         )
+     *     )
+     * )
+     */
+    public function bulkDeactivateAgents(Request $request): JsonResponse
+    {
+        $request->validate([
+            'agent_ids' => 'required|array',
+            'agent_ids.*' => 'required|uuid|exists:agents,id',
+        ]);
+
+        try {
+            $count = Agent::whereIn('id', $request->agent_ids)
+                ->update(['is_active' => false]);
+
+            return response()->json([
+                'success' => true,
+                'message' => "{$count} agent(s) deactivated successfully",
+                'deactivated_count' => $count,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to deactivate agents',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
     // =========================================================================
     // ANALYTICS & REPORTS
     // =========================================================================
