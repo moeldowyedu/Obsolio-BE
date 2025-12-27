@@ -15,7 +15,7 @@ return new class extends Migration
             Schema::create('agent_executions', function (Blueprint $table) {
                 $table->uuid('id')->primary();
                 $table->uuid('agent_id');
-                $table->uuid('user_id')->nullable();
+                $table->unsignedBigInteger('user_id')->nullable();
                 $table->enum('status', ['pending', 'running', 'completed', 'failed'])->default('pending');
                 $table->jsonb('input')->nullable();
                 $table->jsonb('output')->nullable();
