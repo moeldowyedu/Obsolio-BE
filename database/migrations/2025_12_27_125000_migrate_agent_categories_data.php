@@ -1,6 +1,8 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -14,6 +16,23 @@ return new class extends Migration {
      */
     public function up(): void
     {
+        // Check if the 'category' column exists before trying to migrate
+        if (!Schema::hasColumn('agents', 'category')) {
+            // Old columns don't exist, nothing to migrate
+            // Just set default values for new columns
+            DB::table('agents')
+                ->whereNull('runtime_type')
+                ->orWhere('runtime_type', '')
+                ->update(['runtime_type' => 'custom']);
+
+            DB::table('agents')
+                ->whereNull('execution_timeout_ms')
+                ->orWhere('execution_timeout_ms', 0)
+                ->update(['execution_timeout_ms' => 30000]);
+
+            return;
+        }
+
         // Step 1: Get all distinct categories from existing agents
         $categories = DB::table('agents')
             ->select('category')
