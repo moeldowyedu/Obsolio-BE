@@ -11,36 +11,32 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (!Schema::hasTable('agent_executions')) {
-            Schema::create('agent_executions', function (Blueprint $table) {
+        if (!Schema::hasTable('agent_runs')) {
+            Schema::create('agent_runs', function (Blueprint $table) {
                 $table->uuid('id')->primary();
                 $table->uuid('agent_id');
-                $table->unsignedBigInteger('user_id')->nullable();
-                $table->enum('status', ['pending', 'running', 'completed', 'failed'])->default('pending');
-                $table->jsonb('input')->nullable();
+                $table->string('state', 20)->default('pending');
+                $table->jsonb('input');
                 $table->jsonb('output')->nullable();
                 $table->text('error')->nullable();
                 $table->timestamp('started_at')->nullable();
-                $table->timestamp('completed_at')->nullable();
+                $table->timestamp('finished_at')->nullable();
                 $table->timestamps();
 
-                // Foreign Keys
+                // Foreign key
                 $table->foreign('agent_id')
                     ->references('id')
                     ->on('agents')
                     ->onDelete('cascade');
 
-                $table->foreign('user_id')
-                    ->references('id')
-                    ->on('users')
-                    ->onDelete('set null');
+                // Check constraint for state
+                DB::statement("ALTER TABLE agent_runs ADD CONSTRAINT check_state CHECK (state IN ('pending', 'accepted', 'running', 'completed', 'failed', 'cancelled', 'timeout'))");
 
                 // Indexes
                 $table->index('agent_id');
-                $table->index('user_id');
-                $table->index('status');
+                $table->index('state');
                 $table->index('started_at');
-                $table->index(['agent_id', 'status']);
+                $table->index(['agent_id', 'state']);
             });
         }
     }
@@ -50,6 +46,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('agent_executions');
+        Schema::dropIfExists('agent_runs');
     }
 };

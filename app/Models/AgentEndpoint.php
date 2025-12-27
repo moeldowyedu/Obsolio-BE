@@ -20,7 +20,11 @@ class AgentEndpoint extends Model
         'agent_id',
         'type',
         'url',
+        'method',
+        'headers',
         'secret',
+        'timeout_ms',
+        'retries',
         'is_active',
     ];
 
@@ -30,7 +34,10 @@ class AgentEndpoint extends Model
      * @var array<string, string>
      */
     protected $casts = [
+        'headers' => 'array',
         'is_active' => 'boolean',
+        'timeout_ms' => 'integer',
+        'retries' => 'integer',
     ];
 
     /**

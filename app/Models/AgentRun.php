@@ -6,10 +6,13 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class AgentRun extends Model
 {
     use HasFactory, HasUuids;
+
+    protected $table = 'agent_runs';
 
     /**
      * The attributes that are mass assignable.
@@ -18,10 +21,12 @@ class AgentRun extends Model
      */
     protected $fillable = [
         'agent_id',
-        'status',
+        'state',
         'input',
         'output',
         'error',
+        'started_at',
+        'finished_at',
     ];
 
     /**
@@ -32,6 +37,8 @@ class AgentRun extends Model
     protected $casts = [
         'input' => 'array',
         'output' => 'array',
+        'started_at' => 'datetime',
+        'finished_at' => 'datetime',
     ];
 
     /**
@@ -43,73 +50,39 @@ class AgentRun extends Model
     }
 
     /**
-     * Check if the run is pending.
+     * Get all events for this run.
      */
-    public function isPending(): bool
+    public function events(): HasMany
     {
-        return $this->status === 'pending';
+        return $this->hasMany(AgentRunEvent::class, 'run_id');
     }
 
     /**
-     * Check if the run is running.
+     * Check if run is finished.
      */
-    public function isRunning(): bool
+    public function isFinished(): bool
     {
-        return $this->status === 'running';
+        return in_array($this->state, ['completed', 'failed', 'cancelled', 'timeout']);
     }
 
     /**
-     * Check if the run is completed.
+     * Calculate duration in milliseconds.
      */
-    public function isCompleted(): bool
+    public function getDurationMsAttribute(): ?int
     {
-        return $this->status === 'completed';
+        if (!$this->started_at || !$this->finished_at) {
+            return null;
+        }
+
+        return $this->started_at->diffInMilliseconds($this->finished_at);
     }
 
     /**
-     * Check if the run has failed.
+     * Scope: Filter by state.
      */
-    public function isFailed(): bool
+    public function scopeByState($query, string $state)
     {
-        return $this->status === 'failed';
-    }
-
-    /**
-     * Mark run as running.
-     */
-    public function markAsRunning(): void
-    {
-        $this->update(['status' => 'running']);
-    }
-
-    /**
-     * Mark run as completed.
-     */
-    public function markAsCompleted(array $output): void
-    {
-        $this->update([
-            'status' => 'completed',
-            'output' => $output,
-        ]);
-    }
-
-    /**
-     * Mark run as failed.
-     */
-    public function markAsFailed(string $error): void
-    {
-        $this->update([
-            'status' => 'failed',
-            'error' => $error,
-        ]);
-    }
-
-    /**
-     * Scope: Filter by status.
-     */
-    public function scopeByStatus($query, string $status)
-    {
-        return $query->where('status', $status);
+        return $query->where('state', $state);
     }
 
     /**
@@ -117,7 +90,7 @@ class AgentRun extends Model
      */
     public function scopePending($query)
     {
-        return $query->where('status', 'pending');
+        return $query->where('state', 'pending');
     }
 
     /**
@@ -125,7 +98,7 @@ class AgentRun extends Model
      */
     public function scopeRunning($query)
     {
-        return $query->where('status', 'running');
+        return $query->where('state', 'running');
     }
 
     /**
@@ -133,7 +106,7 @@ class AgentRun extends Model
      */
     public function scopeCompleted($query)
     {
-        return $query->where('status', 'completed');
+        return $query->where('state', 'completed');
     }
 
     /**
@@ -141,14 +114,6 @@ class AgentRun extends Model
      */
     public function scopeFailed($query)
     {
-        return $query->where('status', 'failed');
-    }
-
-    /**
-     * Scope: Recent runs (ordered by created_at desc).
-     */
-    public function scopeRecent($query)
-    {
-        return $query->orderBy('created_at', 'desc');
+        return $query->where('state', 'failed');
     }
 }

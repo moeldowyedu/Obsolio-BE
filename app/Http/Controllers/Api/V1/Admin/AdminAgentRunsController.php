@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api\V1\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\AgentExecution;
+use App\Models\AgentRun;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -29,7 +29,7 @@ class AdminAgentRunsController extends Controller
      *     @OA\Parameter(name="page", in="query", required=false, @OA\Schema(type="integer"), description="Page number"),
      *     @OA\Parameter(name="per_page", in="query", required=false, @OA\Schema(type="integer"), description="Items per page (max 100)"),
      *     @OA\Parameter(name="search", in="query", required=false, @OA\Schema(type="string"), description="Search by agent name or run ID"),
-     *     @OA\Parameter(name="status", in="query", required=false, @OA\Schema(type="string", enum={"pending", "running", "completed", "failed"}), description="Filter by status"),
+     *     @OA\Parameter(name="state", in="query", required=false, @OA\Schema(type="string", enum={"pending", "accepted", "running", "completed", "failed", "cancelled", "timeout"}), description="Filter by state"),
      *     @OA\Parameter(name="sort", in="query", required=false, @OA\Schema(type="string", enum={"started_at_desc", "started_at_asc", "duration_desc"}), description="Sort order"),
      *     @OA\Response(
      *         response=200,
@@ -63,27 +63,27 @@ class AdminAgentRunsController extends Controller
     {
         $perPage = min($request->query('per_page', 20), 100);
         $search = $request->query('search');
-        $status = $request->query('status');
+        $state = $request->query('state');
         $sort = $request->query('sort', 'started_at_desc');
 
-        $query = AgentExecution::query()
-            ->with(['agent:id,name,slug', 'user:id,name,email'])
-            ->select('agent_executions.*')
-            ->selectRaw('EXTRACT(EPOCH FROM (completed_at - started_at)) * 1000 as duration_ms');
+        $query = AgentRun::query()
+            ->with(['agent:id,name,slug'])
+            ->select('agent_runs.*')
+            ->selectRaw('EXTRACT(EPOCH FROM (finished_at - started_at)) * 1000 as duration_ms');
 
         // Search filter
         if ($search) {
             $query->where(function ($q) use ($search) {
-                $q->where('agent_executions.id', 'ILIKE', "%{$search}%")
+                $q->where('agent_runs.id', 'ILIKE', "%{$search}%")
                     ->orWhereHas('agent', function ($agentQuery) use ($search) {
                         $agentQuery->where('name', 'ILIKE', "%{$search}%");
                     });
             });
         }
 
-        // Status filter
-        if ($status) {
-            $query->where('status', $status);
+        // State filter
+        if ($state) {
+            $query->where('state', $state);
         }
 
         // Sorting
@@ -92,7 +92,7 @@ class AdminAgentRunsController extends Controller
                 $query->orderBy('started_at', 'asc');
                 break;
             case 'duration_desc':
-                $query->orderByRaw('(completed_at - started_at) DESC NULLS LAST');
+                $query->orderByRaw('(finished_at - started_at) DESC NULLS LAST');
                 break;
             case 'started_at_desc':
             default:
@@ -100,32 +100,29 @@ class AdminAgentRunsController extends Controller
                 break;
         }
 
-        $executions = $query->paginate($perPage);
+        $runs = $query->paginate($perPage);
 
         // Transform the data to match frontend expectations
-        $executions->getCollection()->transform(function ($execution) {
+        $runs->getCollection()->transform(function ($run) {
             return [
-                'id' => $execution->id,
-                'agent_id' => $execution->agent_id,
-                'agent_name' => $execution->agent?->name ?? 'Unknown Agent',
-                'status' => $execution->status,
-                'input' => $execution->input,
-                'output' => $execution->output,
-                'error' => $execution->error,
-                'started_at' => $execution->started_at?->toISOString(),
-                'completed_at' => $execution->completed_at?->toISOString(),
-                'duration_ms' => $execution->duration_ms ? (int) $execution->duration_ms : null,
-                'triggered_by' => $execution->user ? [
-                    'id' => $execution->user->id,
-                    'name' => $execution->user->name,
-                    'email' => $execution->user->email,
-                ] : null,
+                'id' => $run->id,
+                'agent_id' => $run->agent_id,
+                'agent_name' => $run->agent?->name ?? 'Unknown Agent',
+                'state' => $run->state,
+                'input' => $run->input,
+                'output' => $run->output,
+                'error' => $run->error,
+                'started_at' => $run->started_at?->toISOString(),
+                'finished_at' => $run->finished_at?->toISOString(),
+                'duration_ms' => $run->duration_ms ? (int) $run->duration_ms : null,
+                'created_at' => $run->created_at?->toISOString(),
+                'updated_at' => $run->updated_at?->toISOString(),
             ];
         });
 
         return response()->json([
             'success' => true,
-            'data' => $executions,
+            'data' => $runs,
         ]);
     }
 }

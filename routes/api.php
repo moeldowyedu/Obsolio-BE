@@ -269,6 +269,15 @@ Route::prefix('v1/admin')->middleware(['jwt.auth', 'system_admin'])->group(funct
     Route::get('/agent-runs', [\App\Http\Controllers\Api\V1\Admin\AdminAgentRunsController::class, 'index']);
 
     // =========================================================================
+    // AGENT ENDPOINTS
+    // =========================================================================
+    Route::get('/agent-endpoints', [\App\Http\Controllers\Api\V1\Admin\AdminAgentEndpointsController::class, 'index']);
+    Route::post('/agent-endpoints', [\App\Http\Controllers\Api\V1\Admin\AdminAgentEndpointsController::class, 'store']);
+    Route::get('/agent-endpoints/{id}', [\App\Http\Controllers\Api\V1\Admin\AdminAgentEndpointsController::class, 'show']);
+    Route::put('/agent-endpoints/{id}', [\App\Http\Controllers\Api\V1\Admin\AdminAgentEndpointsController::class, 'update']);
+    Route::delete('/agent-endpoints/{id}', [\App\Http\Controllers\Api\V1\Admin\AdminAgentEndpointsController::class, 'destroy']);
+
+    // =========================================================================
     // ANALYTICS & REPORTS
     // =========================================================================
     Route::get('/analytics/overview', [AdminController::class, 'analyticsOverview']);

@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration {
     /**
@@ -16,31 +17,36 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('agent_endpoints', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-            $table->uuid('agent_id')->comment('Reference to the agent');
-            $table->string('type')->comment('Endpoint type: trigger | callback');
-            $table->string('url')->comment('HTTP endpoint URL');
-            $table->string('secret')->comment('Secret token for authenticating webhooks');
-            $table->boolean('is_active')->default(true)->comment('Whether this endpoint is enabled');
-            $table->timestamps();
+        if (!Schema::hasTable('agent_endpoints')) {
+            Schema::create('agent_endpoints', function (Blueprint $table) {
+                $table->uuid('id')->primary();
+                $table->uuid('agent_id');
+                $table->string('type', 20)->comment('trigger | callback');
+                $table->string('url', 500);
+                $table->string('method', 10)->default('POST');
+                $table->jsonb('headers')->default('{}');
+                $table->string('secret', 255);
+                $table->integer('timeout_ms')->default(10000);
+                $table->integer('retries')->default(3);
+                $table->boolean('is_active')->default(true);
+                $table->timestamps();
 
-            // Foreign key to agents table
-            $table->foreign('agent_id')
-                ->references('id')
-                ->on('agents')
-                ->onDelete('cascade')
-                ->comment('Delete all endpoints when agent is deleted');
+                // Foreign key
+                $table->foreign('agent_id')
+                    ->references('id')
+                    ->on('agents')
+                    ->onDelete('cascade');
 
-            // Indexes for performance
-            $table->index('agent_id');
-            $table->index('type');
-            $table->index(['agent_id', 'type']);
-            $table->index('is_active');
+                // Check constraint for type
+                DB::statement('ALTER TABLE agent_endpoints ADD CONSTRAINT check_type CHECK (type IN (\'trigger\', \'callback\'))');
 
-            // Ensure each agent has only ONE trigger and ONE callback endpoint
-            $table->unique(['agent_id', 'type'], 'unique_agent_endpoint_type');
-        });
+                // Indexes
+                $table->index('agent_id');
+                $table->index('type');
+                $table->index('is_active');
+                $table->unique(['agent_id', 'type'], 'unique_agent_endpoint_type');
+            });
+        }
     }
 
     /**
