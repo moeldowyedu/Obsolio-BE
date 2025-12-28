@@ -71,6 +71,177 @@ class AdminController extends Controller
     }
 
     /**
+     * Create a new user.
+     *
+     * @OA\Post(
+     *     path="/api/v1/admin/users",
+     *     summary="Create new user",
+     *     description="Create a new user with role assignment",
+     *     operationId="adminCreateUser",
+     *     tags={"Admin - Users"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"name", "email", "password", "role"},
+     *             @OA\Property(property="name", type="string", example="John Doe"),
+     *             @OA\Property(property="email", type="string", example="john@example.com"),
+     *             @OA\Property(property="password", type="string", example="password123"),
+     *             @OA\Property(property="tenant_id", type="string", format="uuid"),
+     *             @OA\Property(property="role", type="string", enum={"system_admin", "tenant_admin", "user"}),
+     *             @OA\Property(property="email_verified", type="boolean")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="User created successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string"),
+     *             @OA\Property(property="data", type="object")
+     *         )
+     *     )
+     * )
+     */
+    public function createUser(Request $request): JsonResponse
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|string|min:8',
+            'tenant_id' => 'nullable|uuid|exists:tenants,id',
+            'role' => 'required|in:system_admin,tenant_admin,user',
+            'email_verified' => 'boolean',
+        ]);
+
+        try {
+            $user = User::create([
+                'id' => Str::uuid(),
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => bcrypt($request->password),
+                'tenant_id' => $request->tenant_id,
+                'email_verified_at' => $request->email_verified ? now() : null,
+            ]);
+
+            // Assign role
+            $user->assignRole($request->role);
+
+            // Log the creation
+            activity()
+                ->performedOn($user)
+                ->causedBy(auth()->user())
+                ->log('user_created_by_admin');
+
+            return response()->json([
+                'success' => true,
+                'message' => 'User created successfully',
+                'data' => $user->load('roles'),
+            ], 201);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to create user',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Update user information.
+     *
+     * @OA\Put(
+     *     path="/api/v1/admin/users/{id}",
+     *     summary="Update user",
+     *     description="Update user information and role",
+     *     operationId="adminUpdateUser",
+     *     tags={"Admin - Users"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string", format="uuid")),
+     *     @OA\RequestBody(
+     *         @OA\JsonContent(
+     *             @OA\Property(property="name", type="string"),
+     *             @OA\Property(property="email", type="string"),
+     *             @OA\Property(property="password", type="string"),
+     *             @OA\Property(property="role", type="string", enum={"system_admin", "tenant_admin", "user"}),
+     *             @OA\Property(property="email_verified", type="boolean")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="User updated successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string"),
+     *             @OA\Property(property="data", type="object")
+     *         )
+     *     )
+     * )
+     */
+    public function updateUser(Request $request, string $id): JsonResponse
+    {
+        $request->validate([
+            'name' => 'nullable|string|max:255',
+            'email' => 'nullable|email|unique:users,email,' . $id,
+            'password' => 'nullable|string|min:8',
+            'role' => 'nullable|in:system_admin,tenant_admin,user',
+            'email_verified' => 'nullable|boolean',
+        ]);
+
+        $user = User::findOrFail($id);
+
+        try {
+            $oldData = $user->toArray();
+
+            // Update basic fields
+            $updateData = [];
+            if ($request->filled('name')) {
+                $updateData['name'] = $request->name;
+            }
+            if ($request->filled('email')) {
+                $updateData['email'] = $request->email;
+            }
+            if ($request->filled('password')) {
+                $updateData['password'] = bcrypt($request->password);
+            }
+            if ($request->has('email_verified')) {
+                $updateData['email_verified_at'] = $request->email_verified ? now() : null;
+            }
+
+            if (!empty($updateData)) {
+                $user->update($updateData);
+            }
+
+            // Update role if provided
+            if ($request->filled('role')) {
+                $user->syncRoles([$request->role]);
+            }
+
+            // Log the update
+            activity()
+                ->performedOn($user)
+                ->causedBy(auth()->user())
+                ->withProperties([
+                    'old' => $oldData,
+                    'new' => $user->fresh()->toArray(),
+                ])
+                ->log('user_updated_by_admin');
+
+            return response()->json([
+                'success' => true,
+                'message' => 'User updated successfully',
+                'data' => $user->fresh()->load('roles'),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update user',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
      * Delete a user.
      */
     public function deleteUser(string $id): JsonResponse

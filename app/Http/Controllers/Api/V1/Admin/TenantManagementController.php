@@ -351,7 +351,347 @@ class TenantManagementController extends Controller
     }
 
     /**
-     * Delete a tenant (soft delete).
+     * Create a new tenant.
+     *
+     * @OA\Post(
+     *     path="/api/v1/admin/tenants",
+     *     summary="Create new tenant",
+     *     description="Create a new tenant with optional subscription",
+     *     operationId="adminCreateTenant",
+     *     tags={"Admin - Tenants"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"name", "email", "type"},
+     *             @OA\Property(property="name", type="string", example="Acme Corp"),
+     *             @OA\Property(property="email", type="string", example="admin@acme.com"),
+     *             @OA\Property(property="type", type="string", enum={"personal", "organization"}),
+     *             @OA\Property(property="subdomain_preference", type="string", example="acme"),
+     *             @OA\Property(property="plan_id", type="string", format="uuid"),
+     *             @OA\Property(property="billing_cycle", type="string", enum={"monthly", "annual"})
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Tenant created successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string"),
+     *             @OA\Property(property="data", type="object")
+     *         )
+     *     )
+     * )
+     */
+    public function store(Request $request): JsonResponse
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:tenants,email',
+            'type' => ['required', Rule::in(['personal', 'organization'])],
+            'subdomain_preference' => 'nullable|string|alpha_dash|max:63|unique:tenants,subdomain_preference',
+            'plan_id' => 'nullable|uuid|exists:subscription_plans,id',
+            'billing_cycle' => ['nullable', Rule::in(['monthly', 'annual'])],
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $tenant = Tenant::create([
+                'id' => Str::uuid(),
+                'name' => $request->name,
+                'email' => $request->email,
+                'type' => $request->type,
+                'subdomain_preference' => $request->subdomain_preference,
+                'status' => 'active',
+                'setup_completed_at' => now(),
+            ]);
+
+            // Create subscription if plan is provided
+            if ($request->plan_id) {
+                $plan = SubscriptionPlan::findOrFail($request->plan_id);
+
+                Subscription::create([
+                    'id' => Str::uuid(),
+                    'tenant_id' => $tenant->id,
+                    'plan_id' => $plan->id,
+                    'status' => $plan->trial_days > 0 ? 'trialing' : 'active',
+                    'billing_cycle' => $request->billing_cycle ?? 'monthly',
+                    'starts_at' => now(),
+                    'trial_ends_at' => $plan->trial_days > 0 ? now()->addDays($plan->trial_days) : null,
+                    'current_period_start' => now(),
+                    'current_period_end' => ($request->billing_cycle ?? 'monthly') === 'annual' ? now()->addYear() : now()->addMonth(),
+                    'metadata' => [
+                        'created_by_admin' => true,
+                        'admin_id' => auth()->id(),
+                    ],
+                ]);
+            }
+
+            // Log the creation
+            activity()
+                ->performedOn($tenant)
+                ->causedBy(auth()->user())
+                ->log('tenant_created_by_admin');
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Tenant created successfully',
+                'data' => $tenant->load('activeSubscription.plan'),
+            ], 201);
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to create tenant',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Update tenant information.
+     *
+     * @OA\Put(
+     *     path="/api/v1/admin/tenants/{id}",
+     *     summary="Update tenant",
+     *     description="Update tenant information",
+     *     operationId="adminUpdateTenant",
+     *     tags={"Admin - Tenants"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string", format="uuid")),
+     *     @OA\RequestBody(
+     *         @OA\JsonContent(
+     *             @OA\Property(property="name", type="string"),
+     *             @OA\Property(property="email", type="string"),
+     *             @OA\Property(property="type", type="string", enum={"personal", "organization"}),
+     *             @OA\Property(property="subdomain_preference", type="string")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Tenant updated successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string"),
+     *             @OA\Property(property="data", type="object")
+     *         )
+     *     )
+     * )
+     */
+    public function update(Request $request, string $id): JsonResponse
+    {
+        $request->validate([
+            'name' => 'nullable|string|max:255',
+            'email' => 'nullable|email|unique:tenants,email,' . $id,
+            'type' => ['nullable', Rule::in(['personal', 'organization'])],
+            'subdomain_preference' => 'nullable|string|alpha_dash|max:63|unique:tenants,subdomain_preference,' . $id,
+        ]);
+
+        $tenant = Tenant::findOrFail($id);
+
+        try {
+            $oldData = $tenant->toArray();
+
+            $tenant->update($request->only([
+                'name',
+                'email',
+                'type',
+                'subdomain_preference',
+            ]));
+
+            // Log the update
+            activity()
+                ->performedOn($tenant)
+                ->causedBy(auth()->user())
+                ->withProperties([
+                    'old' => $oldData,
+                    'new' => $tenant->fresh()->toArray(),
+                ])
+                ->log('tenant_updated_by_admin');
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Tenant updated successfully',
+                'data' => $tenant->fresh()->load('activeSubscription.plan'),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update tenant',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Deactivate a tenant (soft deactivation, not deletion).
+     *
+     * @OA\Post(
+     *     path="/api/v1/admin/tenants/{id}/deactivate",
+     *     summary="Deactivate tenant",
+     *     description="Deactivate a tenant and cancel their subscriptions",
+     *     operationId="adminDeactivateTenant",
+     *     tags={"Admin - Tenants"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string", format="uuid")),
+     *     @OA\RequestBody(
+     *         @OA\JsonContent(
+     *             @OA\Property(property="reason", type="string", example="Non-payment")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Tenant deactivated successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string"),
+     *             @OA\Property(property="data", type="object")
+     *         )
+     *     )
+     * )
+     */
+    public function deactivate(Request $request, string $id): JsonResponse
+    {
+        $request->validate([
+            'reason' => 'nullable|string|max:500',
+        ]);
+
+        $tenant = Tenant::findOrFail($id);
+
+        if ($tenant->status === 'inactive') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tenant is already deactivated',
+            ], 400);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            $oldStatus = $tenant->status;
+
+            // Set tenant to inactive status
+            $tenant->update([
+                'status' => 'inactive',
+            ]);
+
+            // Cancel active subscriptions
+            $tenant->subscriptions()
+                ->whereIn('status', ['trialing', 'active'])
+                ->update([
+                    'status' => 'canceled',
+                    'canceled_at' => now(),
+                ]);
+
+            // Log the deactivation
+            activity()
+                ->performedOn($tenant)
+                ->causedBy(auth()->user())
+                ->withProperties([
+                    'old_status' => $oldStatus,
+                    'new_status' => 'inactive',
+                    'reason' => $request->reason,
+                ])
+                ->log('tenant_deactivated_by_admin');
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Tenant deactivated successfully',
+                'data' => $tenant->fresh(),
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to deactivate tenant',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Reactivate a deactivated tenant.
+     *
+     * @OA\Post(
+     *     path="/api/v1/admin/tenants/{id}/reactivate",
+     *     summary="Reactivate tenant",
+     *     description="Reactivate a previously deactivated tenant",
+     *     operationId="adminReactivateTenant",
+     *     tags={"Admin - Tenants"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string", format="uuid")),
+     *     @OA\RequestBody(
+     *         @OA\JsonContent(
+     *             @OA\Property(property="reason", type="string", example="Payment received")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Tenant reactivated successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string"),
+     *             @OA\Property(property="data", type="object")
+     *         )
+     *     )
+     * )
+     */
+    public function reactivate(Request $request, string $id): JsonResponse
+    {
+        $request->validate([
+            'reason' => 'nullable|string|max:500',
+        ]);
+
+        $tenant = Tenant::findOrFail($id);
+
+        if ($tenant->status === 'active') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tenant is already active',
+            ], 400);
+        }
+
+        try {
+            $oldStatus = $tenant->status;
+
+            $tenant->update([
+                'status' => 'active',
+            ]);
+
+            // Log the reactivation
+            activity()
+                ->performedOn($tenant)
+                ->causedBy(auth()->user())
+                ->withProperties([
+                    'old_status' => $oldStatus,
+                    'new_status' => 'active',
+                    'reason' => $request->reason,
+                ])
+                ->log('tenant_reactivated_by_admin');
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Tenant reactivated successfully',
+                'data' => $tenant->fresh(),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to reactivate tenant',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Delete a tenant (hard delete - use with extreme caution).
      */
     public function destroy(string $id): JsonResponse
     {

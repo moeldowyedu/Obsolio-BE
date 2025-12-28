@@ -97,6 +97,14 @@ Public endpoints (auth, marketplace) do not require authentication.
  *     description="System admin: Global agent execution monitoring"
  * )
  * @OA\Tag(
+ *     name="Admin - Organizations",
+ *     description="System admin: Organization management"
+ * )
+ * @OA\Tag(
+ *     name="Admin - Subscriptions",
+ *     description="System admin: Subscription instance management"
+ * )
+ * @OA\Tag(
  *     name="Admin - Analytics",
  *     description="System admin: Analytics and reports"
  * )
