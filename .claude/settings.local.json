@@ -16,7 +16,13 @@
       "Bash(git commit:*)",
       "Bash(git push:*)",
       "Bash(git pull:*)",
-      "Bash(git stash:*)"
+      "Bash(git stash:*)",
+      "Bash(powershell -Command \"New-Item -ItemType Junction -Path ''C:\\Users\\Moeldowy\\.claude-worktrees\\OBSOLIO-BE\\elated-blackwell\\vendor'' -Target ''D:\\Antigravity\\OBSOLIO-BE\\vendor''\")",
+      "Bash(grep:*)",
+      "Bash(git checkout:*)",
+      "Bash(git reset:*)",
+      "Bash(gh pr create:*)",
+      "Bash(composer dump-autoload:*)"
     ]
   }
 }

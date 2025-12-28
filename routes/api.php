@@ -108,10 +108,13 @@ Route::prefix('v1/admin')->middleware(['jwt.auth', 'system_admin'])->group(funct
     // =========================================================================
     Route::prefix('tenants')->group(function () {
         Route::get('/', [TenantManagementController::class, 'index']);
+        Route::post('/', [TenantManagementController::class, 'store']);
         Route::get('/statistics', [TenantManagementController::class, 'statistics']);
         Route::get('/{id}', [TenantManagementController::class, 'show']);
         Route::put('/{id}', [TenantManagementController::class, 'update']);
         Route::delete('/{id}', [TenantManagementController::class, 'destroy']);
+        Route::post('/{id}/deactivate', [TenantManagementController::class, 'deactivate']);
+        Route::post('/{id}/reactivate', [TenantManagementController::class, 'reactivate']);
         Route::put('/{id}/status', [TenantManagementController::class, 'updateStatus']);
         Route::put('/{id}/subscription', [TenantManagementController::class, 'changeSubscription']);
         Route::get('/{id}/subscription-history', [TenantManagementController::class, 'subscriptionHistory']);
@@ -123,7 +126,9 @@ Route::prefix('v1/admin')->middleware(['jwt.auth', 'system_admin'])->group(funct
     // =========================================================================
     Route::prefix('users')->group(function () {
         Route::get('/', [AdminController::class, 'listUsers']);
+        Route::post('/', [AdminController::class, 'createUser']);
         Route::get('/{id}', [AdminController::class, 'getUser']);
+        Route::put('/{id}', [AdminController::class, 'updateUser']);
         Route::delete('/{id}', [AdminController::class, 'deleteUser']);
     });
 
@@ -167,6 +172,32 @@ Route::prefix('v1/admin')->middleware(['jwt.auth', 'system_admin'])->group(funct
     Route::prefix('agent-runs')->group(function () {
         Route::get('/', [\App\Http\Controllers\Api\V1\Admin\AdminAgentRunsController::class, 'index']);
         Route::get('/{id}', [\App\Http\Controllers\Api\V1\Admin\AdminAgentRunsController::class, 'show']);
+    });
+
+    // =========================================================================
+    // ORGANIZATION MANAGEMENT
+    // =========================================================================
+    Route::prefix('organizations')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Api\V1\Admin\AdminOrganizationController::class, 'index']);
+        Route::post('/', [\App\Http\Controllers\Api\V1\Admin\AdminOrganizationController::class, 'store']);
+        Route::get('/statistics', [\App\Http\Controllers\Api\V1\Admin\AdminOrganizationController::class, 'statistics']);
+        Route::get('/{id}', [\App\Http\Controllers\Api\V1\Admin\AdminOrganizationController::class, 'show']);
+        Route::put('/{id}', [\App\Http\Controllers\Api\V1\Admin\AdminOrganizationController::class, 'update']);
+        Route::post('/{id}/deactivate', [\App\Http\Controllers\Api\V1\Admin\AdminOrganizationController::class, 'deactivate']);
+        Route::post('/{id}/reactivate', [\App\Http\Controllers\Api\V1\Admin\AdminOrganizationController::class, 'reactivate']);
+    });
+
+    // =========================================================================
+    // SUBSCRIPTION INSTANCE MANAGEMENT
+    // =========================================================================
+    Route::prefix('subscriptions')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Api\V1\Admin\AdminSubscriptionController::class, 'index']);
+        Route::post('/', [\App\Http\Controllers\Api\V1\Admin\AdminSubscriptionController::class, 'store']);
+        Route::get('/statistics', [\App\Http\Controllers\Api\V1\Admin\AdminSubscriptionController::class, 'statistics']);
+        Route::get('/{id}', [\App\Http\Controllers\Api\V1\Admin\AdminSubscriptionController::class, 'show']);
+        Route::put('/{id}', [\App\Http\Controllers\Api\V1\Admin\AdminSubscriptionController::class, 'update']);
+        Route::post('/{id}/cancel', [\App\Http\Controllers\Api\V1\Admin\AdminSubscriptionController::class, 'cancel']);
+        Route::delete('/{id}', [\App\Http\Controllers\Api\V1\Admin\AdminSubscriptionController::class, 'destroy']);
     });
 
     // =========================================================================
