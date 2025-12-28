@@ -1,10 +1,10 @@
 {
     "openapi": "3.0.0",
     "info": {
-        "title": "Aasim API",
-        "description": "API documentation for Aasim platform",
+        "title": "OBSOLIO API Doc",
+        "description": "API documentation for OBSOLIO platform",
         "contact": {
-            "email": "support@aasim.com"
+            "email": "admin@obsolio.com"
         },
         "version": "1.0.0"
     },
@@ -15,153 +15,43 @@
         }
     ],
     "paths": {
-        "/api/v1/admin/users": {
-            "get": {
+        "/api/v1/admin/agents/bulk-activate": {
+            "post": {
                 "tags": [
-                    "Admin - Users"
+                    "Admin - Agents"
                 ],
-                "summary": "List all users",
-                "description": "Get a paginated list of all users with optional filters",
-                "operationId": "adminListUsers",
-                "parameters": [
-                    {
-                        "name": "search",
-                        "in": "query",
-                        "description": "Search by name or email",
-                        "required": false,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "role",
-                        "in": "query",
-                        "description": "Filter by role",
-                        "required": false,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "status",
-                        "in": "query",
-                        "description": "Filter by verification status",
-                        "required": false,
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "verified",
-                                "unverified"
-                            ]
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Users list retrieved successfully",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean",
-                                            "example": true
+                "summary": "Bulk activate agents",
+                "description": "Activate multiple agents at once",
+                "operationId": "adminBulkActivateAgents",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "agent_ids"
+                                ],
+                                "properties": {
+                                    "agent_ids": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "format": "uuid"
                                         },
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
+                                        "example": [
+                                            "uuid1",
+                                            "uuid2"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
                             }
                         }
-                    },
-                    "401": {
-                        "description": "Unauthorized"
-                    },
-                    "403": {
-                        "description": "Forbidden"
                     }
                 },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            }
-        },
-        "/api/v1/admin/users/{id}": {
-            "get": {
-                "tags": [
-                    "Admin - Users"
-                ],
-                "summary": "Get user details",
-                "description": "Get detailed information about a specific user",
-                "operationId": "adminGetUser",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "description": "User ID",
-                        "required": true,
-                        "schema": {
-                            "type": "string",
-                            "format": "uuid"
-                        }
-                    }
-                ],
                 "responses": {
                     "200": {
-                        "description": "User details retrieved successfully",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean",
-                                            "example": true
-                                        },
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "User not found"
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            },
-            "delete": {
-                "tags": [
-                    "Admin - Users"
-                ],
-                "summary": "Delete a user",
-                "description": "Soft delete a user (prevents deletion of system admins)",
-                "operationId": "adminDeleteUser",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "description": "User ID",
-                        "required": true,
-                        "schema": {
-                            "type": "string",
-                            "format": "uuid"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "User deleted successfully",
+                        "description": "Agents activated successfully",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -171,20 +61,16 @@
                                             "example": true
                                         },
                                         "message": {
-                                            "type": "string",
-                                            "example": "User deleted successfully"
+                                            "type": "string"
+                                        },
+                                        "activated_count": {
+                                            "type": "integer"
                                         }
                                     },
                                     "type": "object"
                                 }
                             }
                         }
-                    },
-                    "403": {
-                        "description": "Cannot delete system admin"
-                    },
-                    "404": {
-                        "description": "User not found"
                     }
                 },
                 "security": [
@@ -194,45 +80,82 @@
                 ]
             }
         },
-        "/api/v1/admin/plans": {
-            "get": {
+        "/api/v1/admin/agents/bulk-deactivate": {
+            "post": {
                 "tags": [
-                    "Admin - Subscription Plans"
+                    "Admin - Agents"
                 ],
-                "summary": "List all subscription plans",
-                "description": "Get all subscription plans with optional filters",
-                "operationId": "adminListPlans",
-                "parameters": [
-                    {
-                        "name": "type",
-                        "in": "query",
-                        "description": "Filter by plan type",
-                        "required": false,
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "personal",
-                                "organization"
-                            ]
-                        }
-                    },
-                    {
-                        "name": "active",
-                        "in": "query",
-                        "description": "Filter by active status",
-                        "required": false,
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "true",
-                                "false"
-                            ]
+                "summary": "Bulk deactivate agents",
+                "description": "Deactivate multiple agents at once",
+                "operationId": "adminBulkDeactivateAgents",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "agent_ids"
+                                ],
+                                "properties": {
+                                    "agent_ids": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "format": "uuid"
+                                        },
+                                        "example": [
+                                            "uuid1",
+                                            "uuid2"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
                         }
                     }
-                ],
+                },
                 "responses": {
                     "200": {
-                        "description": "Plans list retrieved successfully",
+                        "description": "Agents deactivated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "deactivated_count": {
+                                            "type": "integer"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/admin/agent-categories": {
+            "get": {
+                "tags": [
+                    "Admin - Agent Categories"
+                ],
+                "summary": "List all agent categories",
+                "description": "Get all agent categories ordered by display_order with agents count",
+                "operationId": "adminListAgentCategories",
+                "responses": {
+                    "200": {
+                        "description": "Agent categories list retrieved successfully",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -244,6 +167,38 @@
                                         "data": {
                                             "type": "array",
                                             "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "string",
+                                                        "format": "uuid"
+                                                    },
+                                                    "name": {
+                                                        "type": "string"
+                                                    },
+                                                    "slug": {
+                                                        "type": "string"
+                                                    },
+                                                    "description": {
+                                                        "type": "string"
+                                                    },
+                                                    "icon": {
+                                                        "type": "string"
+                                                    },
+                                                    "display_order": {
+                                                        "type": "integer"
+                                                    },
+                                                    "agents_count": {
+                                                        "type": "integer"
+                                                    },
+                                                    "created_at": {
+                                                        "type": "string",
+                                                        "format": "date-time"
+                                                    },
+                                                    "updated_at": {
+                                                        "type": "string",
+                                                        "format": "date-time"
+                                                    }
+                                                },
                                                 "type": "object"
                                             }
                                         }
@@ -262,11 +217,11 @@
             },
             "post": {
                 "tags": [
-                    "Admin - Subscription Plans"
+                    "Admin - Agent Categories"
                 ],
-                "summary": "Create a subscription plan",
-                "description": "Create a new subscription plan",
-                "operationId": "adminCreatePlan",
+                "summary": "Create agent category",
+                "description": "Create a new agent category",
+                "operationId": "adminCreateAgentCategory",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -274,75 +229,27 @@
                             "schema": {
                                 "required": [
                                     "name",
-                                    "type",
-                                    "tier",
-                                    "max_users",
-                                    "max_agents",
-                                    "storage_gb",
-                                    "trial_days"
+                                    "slug"
                                 ],
                                 "properties": {
                                     "name": {
                                         "type": "string",
-                                        "maxLength": 100,
-                                        "example": "Pro Plan"
+                                        "example": "Data Processing"
                                     },
-                                    "type": {
+                                    "slug": {
                                         "type": "string",
-                                        "enum": [
-                                            "personal",
-                                            "organization"
-                                        ],
-                                        "example": "personal"
-                                    },
-                                    "tier": {
-                                        "type": "string",
-                                        "enum": [
-                                            "free",
-                                            "pro",
-                                            "team",
-                                            "business",
-                                            "enterprise"
-                                        ],
-                                        "example": "pro"
-                                    },
-                                    "price_monthly": {
-                                        "type": "number",
-                                        "format": "float",
-                                        "example": 29.99
-                                    },
-                                    "price_annual": {
-                                        "type": "number",
-                                        "format": "float",
-                                        "example": 299.99
-                                    },
-                                    "max_users": {
-                                        "type": "integer",
-                                        "example": 5
-                                    },
-                                    "max_agents": {
-                                        "type": "integer",
-                                        "example": 10
-                                    },
-                                    "storage_gb": {
-                                        "type": "integer",
-                                        "example": 50
-                                    },
-                                    "trial_days": {
-                                        "type": "integer",
-                                        "example": 14
-                                    },
-                                    "features": {
-                                        "type": "array",
-                                        "items": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "limits": {
-                                        "type": "object"
+                                        "example": "data-processing"
                                     },
                                     "description": {
                                         "type": "string"
+                                    },
+                                    "icon": {
+                                        "type": "string",
+                                        "example": "database"
+                                    },
+                                    "display_order": {
+                                        "type": "integer",
+                                        "example": 1
                                     }
                                 },
                                 "type": "object"
@@ -352,7 +259,7 @@
                 },
                 "responses": {
                     "201": {
-                        "description": "Plan created successfully",
+                        "description": "Agent category created successfully",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -384,19 +291,18 @@
                 ]
             }
         },
-        "/api/v1/admin/plans/{id}": {
+        "/api/v1/admin/agent-categories/{id}": {
             "put": {
                 "tags": [
-                    "Admin - Subscription Plans"
+                    "Admin - Agent Categories"
                 ],
-                "summary": "Update a subscription plan",
-                "description": "Update an existing subscription plan",
-                "operationId": "adminUpdatePlan",
+                "summary": "Update agent category",
+                "description": "Update an existing agent category",
+                "operationId": "adminUpdateAgentCategory",
                 "parameters": [
                     {
                         "name": "id",
                         "in": "path",
-                        "description": "Plan ID",
                         "required": true,
                         "schema": {
                             "type": "string",
@@ -411,43 +317,19 @@
                             "schema": {
                                 "properties": {
                                     "name": {
-                                        "type": "string",
-                                        "maxLength": 100
+                                        "type": "string"
                                     },
-                                    "price_monthly": {
-                                        "type": "number",
-                                        "format": "float"
-                                    },
-                                    "price_annual": {
-                                        "type": "number",
-                                        "format": "float"
-                                    },
-                                    "max_users": {
-                                        "type": "integer"
-                                    },
-                                    "max_agents": {
-                                        "type": "integer"
-                                    },
-                                    "storage_gb": {
-                                        "type": "integer"
-                                    },
-                                    "trial_days": {
-                                        "type": "integer"
-                                    },
-                                    "features": {
-                                        "type": "array",
-                                        "items": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "limits": {
-                                        "type": "object"
+                                    "slug": {
+                                        "type": "string"
                                     },
                                     "description": {
                                         "type": "string"
                                     },
-                                    "is_active": {
-                                        "type": "boolean"
+                                    "icon": {
+                                        "type": "string"
+                                    },
+                                    "display_order": {
+                                        "type": "integer"
                                     }
                                 },
                                 "type": "object"
@@ -457,7 +339,7 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "Plan updated successfully",
+                        "description": "Agent category updated successfully",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -479,7 +361,7 @@
                         }
                     },
                     "404": {
-                        "description": "Plan not found"
+                        "description": "Agent category not found"
                     }
                 },
                 "security": [
@@ -490,16 +372,15 @@
             },
             "delete": {
                 "tags": [
-                    "Admin - Subscription Plans"
+                    "Admin - Agent Categories"
                 ],
-                "summary": "Delete a subscription plan",
-                "description": "Delete a subscription plan (only if no active subscriptions exist)",
-                "operationId": "adminDeletePlan",
+                "summary": "Delete agent category",
+                "description": "Delete an agent category (only if no agents exist in category)",
+                "operationId": "adminDeleteAgentCategory",
                 "parameters": [
                     {
                         "name": "id",
                         "in": "path",
-                        "description": "Plan ID",
                         "required": true,
                         "schema": {
                             "type": "string",
@@ -509,7 +390,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Plan deleted successfully",
+                        "description": "Agent category deleted successfully",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -528,10 +409,10 @@
                         }
                     },
                     "400": {
-                        "description": "Cannot delete plan with active subscriptions"
+                        "description": "Cannot delete category with agents"
                     },
                     "404": {
-                        "description": "Plan not found"
+                        "description": "Agent category not found"
                     }
                 },
                 "security": [
@@ -541,54 +422,51 @@
                 ]
             }
         },
-        "/api/v1/admin/agents": {
+        "/api/v1/admin/agent-endpoints": {
             "get": {
                 "tags": [
-                    "Admin - Agents"
+                    "Admin - Agent Endpoints"
                 ],
-                "summary": "List all agents",
-                "description": "Get a paginated list of all agents including deleted ones",
-                "operationId": "adminListAgents",
+                "summary": "List all agent endpoints",
+                "description": "Get all agent endpoints with filters",
+                "operationId": "adminListAgentEndpoints",
                 "parameters": [
                     {
-                        "name": "category",
+                        "name": "agent_id",
                         "in": "query",
-                        "description": "Filter by category",
+                        "description": "Filter by agent ID",
                         "required": false,
                         "schema": {
-                            "type": "string"
+                            "type": "string",
+                            "format": "uuid"
                         }
                     },
                     {
-                        "name": "active",
+                        "name": "type",
+                        "in": "query",
+                        "description": "Filter by endpoint type",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "trigger",
+                                "callback"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "is_active",
                         "in": "query",
                         "description": "Filter by active status",
                         "required": false,
                         "schema": {
-                            "type": "string",
-                            "enum": [
-                                "true",
-                                "false"
-                            ]
-                        }
-                    },
-                    {
-                        "name": "marketplace",
-                        "in": "query",
-                        "description": "Filter by marketplace status",
-                        "required": false,
-                        "schema": {
-                            "type": "string",
-                            "enum": [
-                                "true",
-                                "false"
-                            ]
+                            "type": "boolean"
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Agents list retrieved successfully",
+                        "description": "Agent endpoints retrieved successfully",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -598,7 +476,47 @@
                                             "example": true
                                         },
                                         "data": {
-                                            "type": "object"
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "string",
+                                                        "format": "uuid"
+                                                    },
+                                                    "agent_id": {
+                                                        "type": "string",
+                                                        "format": "uuid"
+                                                    },
+                                                    "agent_name": {
+                                                        "type": "string"
+                                                    },
+                                                    "type": {
+                                                        "type": "string",
+                                                        "enum": [
+                                                            "trigger",
+                                                            "callback"
+                                                        ]
+                                                    },
+                                                    "url": {
+                                                        "type": "string"
+                                                    },
+                                                    "secret": {
+                                                        "type": "string"
+                                                    },
+                                                    "is_active": {
+                                                        "type": "boolean"
+                                                    },
+                                                    "created_at": {
+                                                        "type": "string",
+                                                        "format": "date-time"
+                                                    },
+                                                    "updated_at": {
+                                                        "type": "string",
+                                                        "format": "date-time"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
                                         }
                                     },
                                     "type": "object"
@@ -615,89 +533,44 @@
             },
             "post": {
                 "tags": [
-                    "Admin - Agents"
+                    "Admin - Agent Endpoints"
                 ],
-                "summary": "Create a new agent",
-                "description": "Create a new agent in the system",
-                "operationId": "adminCreateAgent",
+                "summary": "Create agent endpoint",
+                "description": "Create a new agent endpoint (trigger or callback)",
+                "operationId": "adminCreateAgentEndpoint",
                 "requestBody": {
                     "required": true,
                     "content": {
                         "application/json": {
                             "schema": {
                                 "required": [
-                                    "name",
-                                    "slug",
-                                    "category",
-                                    "price_model"
+                                    "agent_id",
+                                    "type",
+                                    "url"
                                 ],
                                 "properties": {
-                                    "name": {
+                                    "agent_id": {
                                         "type": "string",
-                                        "maxLength": 255,
-                                        "example": "Data Analyst Agent"
+                                        "format": "uuid"
                                     },
-                                    "slug": {
-                                        "type": "string",
-                                        "example": "data-analyst"
-                                    },
-                                    "category": {
-                                        "type": "string",
-                                        "maxLength": 100,
-                                        "example": "analytics"
-                                    },
-                                    "description": {
-                                        "type": "string"
-                                    },
-                                    "long_description": {
-                                        "type": "string"
-                                    },
-                                    "icon_url": {
-                                        "type": "string",
-                                        "format": "url"
-                                    },
-                                    "banner_url": {
-                                        "type": "string",
-                                        "format": "url"
-                                    },
-                                    "capabilities": {
-                                        "type": "array",
-                                        "items": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "supported_languages": {
-                                        "type": "array",
-                                        "items": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "price_model": {
+                                    "type": {
                                         "type": "string",
                                         "enum": [
-                                            "free",
-                                            "one_time",
-                                            "subscription",
-                                            "usage_based"
+                                            "trigger",
+                                            "callback"
                                         ]
                                     },
-                                    "base_price": {
-                                        "type": "number",
-                                        "format": "float"
+                                    "url": {
+                                        "type": "string",
+                                        "format": "uri"
                                     },
-                                    "monthly_price": {
-                                        "type": "number",
-                                        "format": "float"
+                                    "secret": {
+                                        "description": "Optional, auto-generated if not provided",
+                                        "type": "string"
                                     },
-                                    "annual_price": {
-                                        "type": "number",
-                                        "format": "float"
-                                    },
-                                    "is_marketplace": {
-                                        "type": "boolean"
-                                    },
-                                    "is_featured": {
-                                        "type": "boolean"
+                                    "is_active": {
+                                        "type": "boolean",
+                                        "example": true
                                     }
                                 },
                                 "type": "object"
@@ -707,7 +580,7 @@
                 },
                 "responses": {
                     "201": {
-                        "description": "Agent created successfully",
+                        "description": "Agent endpoint created successfully",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -739,19 +612,66 @@
                 ]
             }
         },
-        "/api/v1/admin/agents/{id}": {
-            "put": {
+        "/api/v1/admin/agent-endpoints/{id}": {
+            "get": {
                 "tags": [
-                    "Admin - Agents"
+                    "Admin - Agent Endpoints"
                 ],
-                "summary": "Update an agent",
-                "description": "Update an existing agent",
-                "operationId": "adminUpdateAgent",
+                "summary": "Get agent endpoint details",
+                "description": "Get detailed information about a specific agent endpoint",
+                "operationId": "adminGetAgentEndpoint",
                 "parameters": [
                     {
                         "name": "id",
                         "in": "path",
-                        "description": "Agent ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Agent endpoint retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Agent endpoint not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Admin - Agent Endpoints"
+                ],
+                "summary": "Update agent endpoint",
+                "description": "Update an existing agent endpoint",
+                "operationId": "adminUpdateAgentEndpoint",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
                         "required": true,
                         "schema": {
                             "type": "string",
@@ -765,58 +685,14 @@
                         "application/json": {
                             "schema": {
                                 "properties": {
-                                    "name": {
+                                    "url": {
                                         "type": "string",
-                                        "maxLength": 255
+                                        "format": "uri"
                                     },
-                                    "description": {
+                                    "secret": {
                                         "type": "string"
-                                    },
-                                    "long_description": {
-                                        "type": "string"
-                                    },
-                                    "icon_url": {
-                                        "type": "string",
-                                        "format": "url"
-                                    },
-                                    "banner_url": {
-                                        "type": "string",
-                                        "format": "url"
-                                    },
-                                    "capabilities": {
-                                        "type": "array",
-                                        "items": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "price_model": {
-                                        "type": "string",
-                                        "enum": [
-                                            "free",
-                                            "one_time",
-                                            "subscription",
-                                            "usage_based"
-                                        ]
-                                    },
-                                    "base_price": {
-                                        "type": "number",
-                                        "format": "float"
-                                    },
-                                    "monthly_price": {
-                                        "type": "number",
-                                        "format": "float"
-                                    },
-                                    "annual_price": {
-                                        "type": "number",
-                                        "format": "float"
                                     },
                                     "is_active": {
-                                        "type": "boolean"
-                                    },
-                                    "is_featured": {
-                                        "type": "boolean"
-                                    },
-                                    "is_marketplace": {
                                         "type": "boolean"
                                     }
                                 },
@@ -827,7 +703,7 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "Agent updated successfully",
+                        "description": "Agent endpoint updated successfully",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -849,7 +725,7 @@
                         }
                     },
                     "404": {
-                        "description": "Agent not found"
+                        "description": "Agent endpoint not found"
                     }
                 },
                 "security": [
@@ -860,16 +736,15 @@
             },
             "delete": {
                 "tags": [
-                    "Admin - Agents"
+                    "Admin - Agent Endpoints"
                 ],
-                "summary": "Delete an agent",
-                "description": "Soft delete an agent",
-                "operationId": "adminDeleteAgent",
+                "summary": "Delete agent endpoint",
+                "description": "Delete an agent endpoint",
+                "operationId": "adminDeleteAgentEndpoint",
                 "parameters": [
                     {
                         "name": "id",
                         "in": "path",
-                        "description": "Agent ID",
                         "required": true,
                         "schema": {
                             "type": "string",
@@ -879,7 +754,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Agent deleted successfully",
+                        "description": "Agent endpoint deleted successfully",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -898,7 +773,7 @@
                         }
                     },
                     "404": {
-                        "description": "Agent not found"
+                        "description": "Agent endpoint not found"
                     }
                 },
                 "security": [
@@ -908,97 +783,78 @@
                 ]
             }
         },
-        "/api/v1/admin/analytics/overview": {
+        "/api/v1/admin/agent-runs": {
             "get": {
                 "tags": [
-                    "Admin - Analytics"
+                    "Admin - Agent Runs"
                 ],
-                "summary": "Get analytics overview",
-                "description": "Get high-level analytics overview",
-                "operationId": "adminAnalyticsOverview",
-                "responses": {
-                    "200": {
-                        "description": "Analytics overview retrieved successfully",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean",
-                                            "example": true
-                                        },
-                                        "data": {
-                                            "properties": {
-                                                "total_tenants": {
-                                                    "type": "integer"
-                                                },
-                                                "active_tenants": {
-                                                    "type": "integer"
-                                                },
-                                                "total_users": {
-                                                    "type": "integer"
-                                                },
-                                                "total_subscriptions": {
-                                                    "type": "integer"
-                                                },
-                                                "total_revenue_monthly": {
-                                                    "type": "number"
-                                                },
-                                                "total_agents": {
-                                                    "type": "integer"
-                                                },
-                                                "active_agents": {
-                                                    "type": "integer"
-                                                },
-                                                "featured_agents": {
-                                                    "type": "integer"
-                                                }
-                                            },
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            }
-        },
-        "/api/v1/admin/analytics/revenue": {
-            "get": {
-                "tags": [
-                    "Admin - Analytics"
-                ],
-                "summary": "Get revenue analytics",
-                "description": "Get revenue analytics for a specific period",
-                "operationId": "adminRevenueAnalytics",
+                "summary": "List all agent executions",
+                "description": "Get paginated list of all agent execution history with filters",
+                "operationId": "adminListAgentRuns",
                 "parameters": [
                     {
-                        "name": "period",
+                        "name": "page",
                         "in": "query",
-                        "description": "Time period for analytics",
+                        "description": "Page number",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Items per page (max 100)",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Search by agent name or run ID",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "state",
+                        "in": "query",
+                        "description": "Filter by state",
                         "required": false,
                         "schema": {
                             "type": "string",
-                            "default": "month",
                             "enum": [
-                                "day",
-                                "week",
-                                "month",
-                                "year"
+                                "pending",
+                                "accepted",
+                                "running",
+                                "completed",
+                                "failed",
+                                "cancelled",
+                                "timeout"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "sort",
+                        "in": "query",
+                        "description": "Sort order",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "started_at_desc",
+                                "started_at_asc",
+                                "duration_desc"
                             ]
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Revenue analytics retrieved successfully",
+                        "description": "Agent runs retrieved successfully",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -1009,14 +865,62 @@
                                         },
                                         "data": {
                                             "properties": {
-                                                "summary": {
-                                                    "type": "object"
-                                                },
-                                                "daily_breakdown": {
+                                                "data": {
                                                     "type": "array",
                                                     "items": {
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "string",
+                                                                "format": "uuid"
+                                                            },
+                                                            "agent_id": {
+                                                                "type": "string",
+                                                                "format": "uuid"
+                                                            },
+                                                            "agent_name": {
+                                                                "type": "string"
+                                                            },
+                                                            "status": {
+                                                                "type": "string"
+                                                            },
+                                                            "input": {
+                                                                "type": "object"
+                                                            },
+                                                            "output": {
+                                                                "type": "object"
+                                                            },
+                                                            "error": {
+                                                                "type": "string"
+                                                            },
+                                                            "started_at": {
+                                                                "type": "string",
+                                                                "format": "date-time"
+                                                            },
+                                                            "completed_at": {
+                                                                "type": "string",
+                                                                "format": "date-time"
+                                                            },
+                                                            "duration_ms": {
+                                                                "type": "integer"
+                                                            },
+                                                            "triggered_by": {
+                                                                "type": "object"
+                                                            }
+                                                        },
                                                         "type": "object"
                                                     }
+                                                },
+                                                "current_page": {
+                                                    "type": "integer"
+                                                },
+                                                "last_page": {
+                                                    "type": "integer"
+                                                },
+                                                "per_page": {
+                                                    "type": "integer"
+                                                },
+                                                "total": {
+                                                    "type": "integer"
                                                 }
                                             },
                                             "type": "object"
@@ -1035,88 +939,53 @@
                 ]
             }
         },
-        "/api/v1/admin/analytics/agents": {
-            "get": {
+        "/v1/agents/{id}/run": {
+            "post": {
                 "tags": [
-                    "Admin - Analytics"
+                    "Agent Execution"
                 ],
-                "summary": "Get agent analytics",
-                "description": "Get analytics about agents by category and top performing agents",
-                "operationId": "adminAgentAnalytics",
-                "responses": {
-                    "200": {
-                        "description": "Agent analytics retrieved successfully",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean",
-                                            "example": true
-                                        },
-                                        "data": {
-                                            "properties": {
-                                                "by_category": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "type": "object"
-                                                    }
-                                                },
-                                                "top_agents": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "type": "object"
-                                                    }
-                                                }
-                                            },
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            }
-        },
-        "/api/v1/admin/activity-logs": {
-            "get": {
-                "tags": [
-                    "Admin - Activity Logs"
-                ],
-                "summary": "Get activity logs",
-                "description": "Get paginated activity logs with optional filters",
-                "operationId": "adminActivityLogs",
+                "summary": "Execute an agent asynchronously",
+                "description": "Initiates asynchronous execution of an agent. The agent will process the request in the background and send results to the callback webhook.",
+                "operationId": "executeAgent",
                 "parameters": [
                     {
-                        "name": "user_id",
-                        "in": "query",
-                        "description": "Filter by user ID",
-                        "required": false,
+                        "name": "id",
+                        "in": "path",
+                        "description": "Agent UUID",
+                        "required": true,
                         "schema": {
                             "type": "string",
-                            "format": "uuid"
-                        }
-                    },
-                    {
-                        "name": "action",
-                        "in": "query",
-                        "description": "Filter by action type",
-                        "required": false,
-                        "schema": {
-                            "type": "string"
+                            "format": "uuid",
+                            "example": "550e8400-e29b-41d4-a716-446655440000"
                         }
                     }
                 ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "input"
+                                ],
+                                "properties": {
+                                    "input": {
+                                        "description": "Input parameters for the agent execution",
+                                        "type": "object",
+                                        "example": {
+                                            "query": "What is the weather today?",
+                                            "location": "Cairo"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
                 "responses": {
-                    "200": {
-                        "description": "Activity logs retrieved successfully",
+                    "202": {
+                        "description": "Agent execution initiated successfully",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -1125,8 +994,124 @@
                                             "type": "boolean",
                                             "example": true
                                         },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Agent execution initiated"
+                                        },
                                         "data": {
+                                            "properties": {
+                                                "run_id": {
+                                                    "type": "string",
+                                                    "format": "uuid",
+                                                    "example": "660e8400-e29b-41d4-a716-446655440001"
+                                                },
+                                                "status": {
+                                                    "type": "string",
+                                                    "example": "running"
+                                                },
+                                                "agent": {
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "string",
+                                                            "format": "uuid",
+                                                            "example": "550e8400-e29b-41d4-a716-446655440000"
+                                                        },
+                                                        "name": {
+                                                            "type": "string",
+                                                            "example": "Weather Agent"
+                                                        },
+                                                        "runtime_type": {
+                                                            "type": "string",
+                                                            "example": "n8n"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            },
                                             "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Agent is not active or no trigger endpoint configured",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Agent is not active"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Agent not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Agent not found"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation failed",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Validation failed"
+                                        },
+                                        "errors": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Agent failed to accept execution or internal error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Failed to connect to agent"
                                         }
                                     },
                                     "type": "object"
@@ -1142,17 +1127,30 @@
                 ]
             }
         },
-        "/api/v1/admin/impersonation-logs": {
+        "/v1/agent-runs/{run_id}": {
             "get": {
                 "tags": [
-                    "Admin - Activity Logs"
+                    "Agent Execution"
                 ],
-                "summary": "Get impersonation logs",
-                "description": "Get paginated impersonation logs",
-                "operationId": "adminImpersonationLogs",
+                "summary": "Get agent execution status",
+                "description": "Retrieve the status and results of an agent execution run",
+                "operationId": "getAgentRunStatus",
+                "parameters": [
+                    {
+                        "name": "run_id",
+                        "in": "path",
+                        "description": "Agent Run UUID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid",
+                            "example": "660e8400-e29b-41d4-a716-446655440001"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
-                        "description": "Impersonation logs retrieved successfully",
+                        "description": "Run status retrieved successfully",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -1162,7 +1160,111 @@
                                             "example": true
                                         },
                                         "data": {
+                                            "properties": {
+                                                "run_id": {
+                                                    "type": "string",
+                                                    "format": "uuid",
+                                                    "example": "660e8400-e29b-41d4-a716-446655440001"
+                                                },
+                                                "status": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "pending",
+                                                        "running",
+                                                        "completed",
+                                                        "failed"
+                                                    ],
+                                                    "example": "completed"
+                                                },
+                                                "input": {
+                                                    "type": "object",
+                                                    "example": {
+                                                        "query": "What is the weather today?",
+                                                        "location": "Cairo"
+                                                    }
+                                                },
+                                                "output": {
+                                                    "type": "object",
+                                                    "example": {
+                                                        "result": "The weather in Cairo is sunny, 28°C"
+                                                    },
+                                                    "nullable": true
+                                                },
+                                                "error": {
+                                                    "type": "string",
+                                                    "example": null,
+                                                    "nullable": true
+                                                },
+                                                "created_at": {
+                                                    "type": "string",
+                                                    "format": "date-time",
+                                                    "example": "2025-12-27T10:00:00.000000Z"
+                                                },
+                                                "updated_at": {
+                                                    "type": "string",
+                                                    "format": "date-time",
+                                                    "example": "2025-12-27T10:00:05.000000Z"
+                                                },
+                                                "agent": {
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "string",
+                                                            "format": "uuid",
+                                                            "example": "550e8400-e29b-41d4-a716-446655440000"
+                                                        },
+                                                        "name": {
+                                                            "type": "string",
+                                                            "example": "Weather Agent"
+                                                        },
+                                                        "runtime_type": {
+                                                            "type": "string",
+                                                            "example": "n8n"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            },
                                             "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Agent run not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Agent run not found"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Internal server error"
                                         }
                                     },
                                     "type": "object"
@@ -1176,6 +1278,201 @@
                         "bearerAuth": []
                     }
                 ]
+            }
+        },
+        "/v1/webhooks/agents/callback": {
+            "post": {
+                "tags": [
+                    "Agent Execution"
+                ],
+                "summary": "Agent execution callback webhook",
+                "description": "Webhook endpoint for agents to send execution results. This endpoint does not require JWT authentication but validates a secret token instead.",
+                "operationId": "agentExecutionCallback",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "run_id",
+                                    "status",
+                                    "secret"
+                                ],
+                                "properties": {
+                                    "run_id": {
+                                        "type": "string",
+                                        "format": "uuid",
+                                        "example": "660e8400-e29b-41d4-a716-446655440001"
+                                    },
+                                    "status": {
+                                        "type": "string",
+                                        "enum": [
+                                            "completed",
+                                            "failed"
+                                        ],
+                                        "example": "completed"
+                                    },
+                                    "output": {
+                                        "type": "object",
+                                        "example": {
+                                            "result": "The weather in Cairo is sunny, 28°C"
+                                        },
+                                        "nullable": true
+                                    },
+                                    "error": {
+                                        "type": "string",
+                                        "example": null,
+                                        "nullable": true
+                                    },
+                                    "secret": {
+                                        "type": "string",
+                                        "example": "your-callback-secret-token"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Callback received and processed successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Callback received and processed"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "run_id": {
+                                                    "type": "string",
+                                                    "format": "uuid",
+                                                    "example": "660e8400-e29b-41d4-a716-446655440001"
+                                                },
+                                                "status": {
+                                                    "type": "string",
+                                                    "example": "completed"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "No active callback endpoint configured",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "No active callback endpoint configured for this agent"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Invalid secret token",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Invalid secret"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Agent run not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Agent run not found"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation failed",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Validation failed"
+                                        },
+                                        "errors": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Internal server error"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
             }
         },
         "/auth/register": {
@@ -3994,24 +4291,24 @@
     },
     "tags": [
         {
-            "name": "Admin - Users",
-            "description": "Admin endpoints for user management"
+            "name": "Admin - Agent Categories",
+            "description": "Admin endpoints for agent category management"
         },
         {
-            "name": "Admin - Subscription Plans",
-            "description": "Admin endpoints for subscription plan management"
+            "name": "Admin - Agent Endpoints",
+            "description": "Admin endpoints for managing agent webhook endpoints"
+        },
+        {
+            "name": "Admin - Agent Runs",
+            "description": "Admin endpoints for agent execution history"
         },
         {
             "name": "Admin - Agents",
-            "description": "Admin endpoints for agent management"
+            "description": "Admin - Agents"
         },
         {
-            "name": "Admin - Analytics",
-            "description": "Admin endpoints for analytics and reports"
-        },
-        {
-            "name": "Admin - Activity Logs",
-            "description": "Admin endpoints for activity and impersonation logs"
+            "name": "Agent Execution",
+            "description": "Agent Execution"
         },
         {
             "name": "Authentication",

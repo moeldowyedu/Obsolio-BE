@@ -22,19 +22,22 @@ use App\Http\Controllers\Api\V1\PaymentController;
 
 /*
 |--------------------------------------------------------------------------
-| API Routes - Multi-Tenancy Structure
+| API Routes - Reorganized Structure
+|--------------------------------------------------------------------------
+| Structure:
+| - /api/v1/auth/*           - Public authentication
+| - /api/v1/marketplace/*    - Public marketplace
+| - /api/v1/admin/*          - System admin console
+| - /api/v1/tenant/*         - Tenant dashboard
+| - /api/v1/webhooks/*       - External callbacks
+| - /api/v1/payments/*       - Payment processing
 |--------------------------------------------------------------------------
 */
 
 // =============================================================================
-// CENTRAL DOMAIN ROUTES (obsolio.com, localhost)
+// API WELCOME
 // =============================================================================
-
 Route::prefix('v1')->group(function () {
-
-    // =========================================================================
-    // API WELCOME (No Auth)
-    // =========================================================================
     Route::get('/', function () {
         return response()->json([
             'message' => 'Welcome to OBSOLIO API v1',
@@ -42,103 +45,330 @@ Route::prefix('v1')->group(function () {
             'documentation' => url('/api/documentation'),
         ]);
     });
-
-    // =========================================================================
-    // EMAIL VERIFICATION (Public - No Auth Required)
-    // =========================================================================
-    Route::get('verify-email/{id}/{hash}', [VerificationController::class, 'verify'])
-        ->name('verification.verify');
-    Route::post('verify-email/{id}/{hash}', [VerificationController::class, 'verify']);
-    Route::post('resend-verification', [VerificationController::class, 'resend']);
-
-    // =========================================================================
-    // PUBLIC AUTHENTICATION (Central Domain Only)
-    // =========================================================================
-    Route::post('/auth/register', [AuthController::class, 'register']);
-    Route::post('/auth/login', [AuthController::class, 'login']);
-    Route::post('/auth/forgot-password', [AuthController::class, 'forgotPassword']);
-    Route::post('/auth/reset-password', [AuthController::class, 'resetPassword']);
-    Route::post('/auth/check-subdomain', [AuthController::class, 'checkSubdomain']);
-    Route::post('/auth/lookup-tenant', [AuthController::class, 'lookupTenant'])
-        ->withoutMiddleware(['tenancy.domain', 'tenancy.prevent_central', 'tenancy.header']);
-    Route::post('/auth/logout', [AuthController::class, 'logout'])->middleware('jwt.auth');
-    Route::get('/tenants', [TenantController::class, 'index'])->middleware('jwt.auth'); // List my tenants
-    Route::get('/tenants/check-availability/{subdomain}', [AuthController::class, 'checkAvailability']);
-
-    // =========================================================================
-    // TENANT VERIFICATION HELPERS (Public)
-    // =========================================================================
-    Route::get('/tenants/find-by-subdomain/{subdomain}', [TenantController::class, 'findBySubdomain']);
-    Route::post('/tenants/resend-verification/{subdomain}', [TenantController::class, 'resendVerification']);
-
-    // =========================================================================
-    // SUBSCRIPTION PLANS (Public - for Pricing Page)
-    // =========================================================================
-    Route::get('/subscription-plans', [SubscriptionPlanController::class, 'index']);
-    Route::get('/subscription-plans/{id}', [SubscriptionPlanController::class, 'show']);
-
-    // =========================================================================
-    // MARKETPLACE (Public - Browse Agents)
-    // =========================================================================
-    Route::get('/marketplace', [MarketplaceController::class, 'index']);
-    Route::get('/marketplace/featured', [MarketplaceController::class, 'featured']);
-    Route::get('/marketplace/categories', [MarketplaceController::class, 'categories']);
-    Route::get('/marketplace/category/{category}', [MarketplaceController::class, 'byCategory']);
-    Route::get('/marketplace/stats', [MarketplaceController::class, 'stats']);
 });
 
 // =============================================================================
-// TENANT ROUTES (subdomain.obsolio.com)
+// PUBLIC AUTHENTICATION ENDPOINTS
 // =============================================================================
+Route::prefix('v1/auth')->group(function () {
 
+    // Registration & Login
+    Route::post('/register', [AuthController::class, 'register']);
+    Route::post('/login', [AuthController::class, 'login']);
+
+    // Password Management
+    Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+    Route::post('/reset-password', [AuthController::class, 'resetPassword']);
+
+    // Tenant Lookup & Subdomain
+    Route::post('/lookup-tenant', [AuthController::class, 'lookupTenant']);
+    Route::post('/check-subdomain', [AuthController::class, 'checkSubdomain']);
+    Route::get('/tenants/check-availability/{subdomain}', [AuthController::class, 'checkAvailability']);
+
+    // Email Verification
+    Route::get('/verify-email/{id}/{hash}', [VerificationController::class, 'verify'])
+        ->name('verification.verify');
+    Route::post('/verify-email/{id}/{hash}', [VerificationController::class, 'verify']);
+    Route::post('/resend-verification', [VerificationController::class, 'resend']);
+});
+
+// =============================================================================
+// PUBLIC MARKETPLACE ENDPOINTS
+// =============================================================================
+Route::prefix('v1/marketplace')->group(function () {
+
+    // Browse Agents
+    Route::get('/agents', [MarketplaceController::class, 'index']);
+    Route::get('/agents/featured', [MarketplaceController::class, 'featured']);
+    Route::get('/agents/{id}', [MarketplaceController::class, 'show']);
+
+    // Categories
+    Route::get('/categories', [MarketplaceController::class, 'categories']);
+    Route::get('/categories/{category}/agents', [MarketplaceController::class, 'byCategory']);
+
+    // Statistics
+    Route::get('/stats', [MarketplaceController::class, 'stats']);
+});
+
+// =============================================================================
+// PUBLIC SUBSCRIPTION PLANS (Pricing Page)
+// =============================================================================
+Route::prefix('v1')->group(function () {
+    Route::get('/subscription-plans', [SubscriptionPlanController::class, 'index']);
+    Route::get('/subscription-plans/{id}', [SubscriptionPlanController::class, 'show']);
+});
+
+// =============================================================================
+// ADMIN ENDPOINTS (System Console)
+// =============================================================================
+Route::prefix('v1/admin')->middleware(['jwt.auth', 'system_admin'])->group(function () {
+
+    // =========================================================================
+    // TENANT MANAGEMENT
+    // =========================================================================
+    Route::prefix('tenants')->group(function () {
+        Route::get('/', [TenantManagementController::class, 'index']);
+        Route::get('/statistics', [TenantManagementController::class, 'statistics']);
+        Route::get('/{id}', [TenantManagementController::class, 'show']);
+        Route::put('/{id}', [TenantManagementController::class, 'update']);
+        Route::delete('/{id}', [TenantManagementController::class, 'destroy']);
+        Route::put('/{id}/status', [TenantManagementController::class, 'updateStatus']);
+        Route::put('/{id}/subscription', [TenantManagementController::class, 'changeSubscription']);
+        Route::get('/{id}/subscription-history', [TenantManagementController::class, 'subscriptionHistory']);
+        Route::post('/{id}/extend-trial', [TenantManagementController::class, 'extendTrial']);
+    });
+
+    // =========================================================================
+    // USER MANAGEMENT
+    // =========================================================================
+    Route::prefix('users')->group(function () {
+        Route::get('/', [AdminController::class, 'listUsers']);
+        Route::get('/{id}', [AdminController::class, 'getUser']);
+        Route::delete('/{id}', [AdminController::class, 'deleteUser']);
+    });
+
+    // =========================================================================
+    // AGENT CATEGORIES
+    // =========================================================================
+    Route::prefix('agent-categories')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Api\V1\Admin\AdminAgentCategoryController::class, 'index']);
+        Route::post('/', [\App\Http\Controllers\Api\V1\Admin\AdminAgentCategoryController::class, 'store']);
+        Route::put('/{id}', [\App\Http\Controllers\Api\V1\Admin\AdminAgentCategoryController::class, 'update']);
+        Route::delete('/{id}', [\App\Http\Controllers\Api\V1\Admin\AdminAgentCategoryController::class, 'destroy']);
+    });
+
+    // =========================================================================
+    // AGENTS (Global Management)
+    // =========================================================================
+    Route::prefix('agents')->group(function () {
+        Route::get('/', [AdminController::class, 'listAgents']);
+        Route::post('/', [AdminController::class, 'createAgent']);
+        Route::get('/{id}', [AdminController::class, 'getAgent']);
+        Route::put('/{id}', [AdminController::class, 'updateAgent']);
+        Route::delete('/{id}', [AdminController::class, 'deleteAgent']);
+        Route::post('/bulk-activate', [AdminController::class, 'bulkActivateAgents']);
+        Route::post('/bulk-deactivate', [AdminController::class, 'bulkDeactivateAgents']);
+    });
+
+    // =========================================================================
+    // AGENT ENDPOINTS (Webhooks Configuration)
+    // =========================================================================
+    Route::prefix('agent-endpoints')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Api\V1\Admin\AdminAgentEndpointsController::class, 'index']);
+        Route::post('/', [\App\Http\Controllers\Api\V1\Admin\AdminAgentEndpointsController::class, 'store']);
+        Route::get('/{id}', [\App\Http\Controllers\Api\V1\Admin\AdminAgentEndpointsController::class, 'show']);
+        Route::put('/{id}', [\App\Http\Controllers\Api\V1\Admin\AdminAgentEndpointsController::class, 'update']);
+        Route::delete('/{id}', [\App\Http\Controllers\Api\V1\Admin\AdminAgentEndpointsController::class, 'destroy']);
+    });
+
+    // =========================================================================
+    // AGENT RUNS (Global Monitoring)
+    // =========================================================================
+    Route::prefix('agent-runs')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Api\V1\Admin\AdminAgentRunsController::class, 'index']);
+        Route::get('/{id}', [\App\Http\Controllers\Api\V1\Admin\AdminAgentRunsController::class, 'show']);
+    });
+
+    // =========================================================================
+    // SUBSCRIPTION PLANS MANAGEMENT
+    // =========================================================================
+    Route::prefix('subscription-plans')->group(function () {
+        Route::get('/', [AdminController::class, 'listPlans']);
+        Route::post('/', [AdminController::class, 'createPlan']);
+        Route::put('/{id}', [AdminController::class, 'updatePlan']);
+        Route::delete('/{id}', [AdminController::class, 'deletePlan']);
+    });
+
+    // =========================================================================
+    // ANALYTICS & REPORTS
+    // =========================================================================
+    Route::prefix('analytics')->group(function () {
+        Route::get('/overview', [AdminController::class, 'analyticsOverview']);
+        Route::get('/revenue', [AdminController::class, 'revenueAnalytics']);
+        Route::get('/agents', [AdminController::class, 'agentAnalytics']);
+    });
+
+    // =========================================================================
+    // ACTIVITY & AUDIT LOGS
+    // =========================================================================
+    Route::get('/activity-logs', [AdminController::class, 'activityLogs']);
+    Route::get('/impersonation-logs', [AdminController::class, 'impersonationLogs']);
+});
+
+// =============================================================================
+// TENANT ENDPOINTS (Tenant Dashboard)
+// =============================================================================
 Route::middleware([
     InitializeTenancyByDomain::class,
     PreventAccessFromCentralDomains::class,
-])->prefix('v1')->group(function () {
+    'jwt.auth',
+    'tenant.status'
+])->prefix('v1/tenant')->group(function () {
 
     // =========================================================================
-    // TENANT AUTHENTICATION (Requires JWT + Tenant Context)
+    // PROFILE & AUTHENTICATION
     // =========================================================================
+    Route::get('/profile', [AuthController::class, 'me']);
+    Route::put('/profile', [AuthController::class, 'updateProfile']);
+    Route::post('/change-password', [AuthController::class, 'changePassword']);
+    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::post('/refresh-token', [AuthController::class, 'refresh']);
+
+    // =========================================================================
+    // TENANT SETTINGS
+    // =========================================================================
+    Route::get('/settings', [TenantController::class, 'show']);
+    Route::put('/settings', [TenantController::class, 'update']);
+
+    // Tenant Setup (Post-Registration)
+    Route::prefix('setup')->group(function () {
+        Route::get('/status', [TenantSetupController::class, 'checkSetupStatus']);
+        Route::post('/organization', [TenantSetupController::class, 'setupOrganization']);
+        Route::post('/personal', [TenantSetupController::class, 'setupPersonal']);
+    });
+
+    // =========================================================================
+    // DASHBOARD & STATISTICS
+    // =========================================================================
+    Route::prefix('dashboard')->group(function () {
+        Route::get('/stats', [DashboardController::class, 'dashboardStats']);
+        Route::get('/overview', [DashboardController::class, 'dashboardStats']);
+    });
+
+    // =========================================================================
+    // ORGANIZATIONS
+    // =========================================================================
+    Route::prefix('organizations')->group(function () {
+        Route::get('/', [OrganizationController::class, 'index']);
+        Route::post('/', [OrganizationController::class, 'store']);
+        Route::get('/{id}', [OrganizationController::class, 'show']);
+        Route::put('/{id}', [OrganizationController::class, 'update']);
+        Route::delete('/{id}', [OrganizationController::class, 'destroy']);
+        Route::get('/{id}/dashboard', [OrganizationController::class, 'dashboard']);
+    });
+
+    // =========================================================================
+    // AGENTS (Tenant's Installed Agents)
+    // =========================================================================
+    Route::prefix('agents')->group(function () {
+        Route::get('/', [AgentController::class, 'index']);
+        Route::get('/{id}', [AgentController::class, 'show']);
+        Route::post('/{id}/install', [AgentController::class, 'install']);
+        Route::delete('/{id}/uninstall', [AgentController::class, 'uninstall']);
+        Route::post('/{id}/toggle-status', [AgentController::class, 'toggleStatus']);
+        Route::post('/{id}/run', [AgentExecutionController::class, 'run']);
+        Route::post('/{id}/record-usage', [AgentController::class, 'recordUsage']);
+    });
+
+    // =========================================================================
+    // AGENT RUNS (Tenant's Execution History)
+    // =========================================================================
+    Route::prefix('agent-runs')->group(function () {
+        Route::get('/', [AgentExecutionController::class, 'index']);
+        Route::get('/{run_id}', [AgentExecutionController::class, 'getRunStatus']);
+        Route::get('/{run_id}/status', [AgentExecutionController::class, 'getRunStatus']);
+    });
+
+    // =========================================================================
+    // SUBSCRIPTIONS
+    // =========================================================================
+    Route::prefix('subscription')->group(function () {
+        Route::get('/current', [SubscriptionController::class, 'current']);
+        Route::post('/subscribe', [SubscriptionController::class, 'store']);
+        Route::put('/change-plan', [SubscriptionController::class, 'changePlan']);
+        Route::post('/cancel', [SubscriptionController::class, 'cancel']);
+        Route::post('/resume', [SubscriptionController::class, 'resume']);
+        Route::get('/history', [SubscriptionController::class, 'history']);
+        Route::get('/recommendations', [SubscriptionPlanController::class, 'recommendations']);
+    });
+
+    // =========================================================================
+    // BILLING & INVOICES
+    // =========================================================================
+    Route::prefix('billing')->group(function () {
+
+        // Invoices
+        Route::get('/invoices', [BillingController::class, 'invoices']);
+        Route::get('/invoices/{id}', [BillingController::class, 'showInvoice']);
+
+        // Payment Methods
+        Route::get('/payment-methods', [BillingController::class, 'paymentMethods']);
+        Route::post('/payment-methods', [BillingController::class, 'addPaymentMethod']);
+        Route::post('/payment-methods/{id}/set-default', [BillingController::class, 'setDefaultPaymentMethod']);
+        Route::delete('/payment-methods/{id}', [BillingController::class, 'deletePaymentMethod']);
+    });
+
+    // =========================================================================
+    // ACTIVITIES & SESSIONS
+    // =========================================================================
+    Route::prefix('activities')->group(function () {
+        Route::get('/', [UserActivityController::class, 'index']);
+        Route::get('/{id}', [UserActivityController::class, 'show']);
+        Route::get('/user/{userId}', [UserActivityController::class, 'byUser']);
+    });
+
+    Route::prefix('sessions')->group(function () {
+        Route::get('/', [UserActivityController::class, 'sessions']);
+        Route::get('/active', [UserActivityController::class, 'activeSessions']);
+        Route::post('/{id}/terminate', [UserActivityController::class, 'terminateSession']);
+    });
+});
+
+// =============================================================================
+// WEBHOOK ENDPOINTS (External Callbacks)
+// =============================================================================
+Route::prefix('v1/webhooks')->group(function () {
+
+    // Agent Execution Callbacks
+    Route::post('/agents/callback', [AgentExecutionController::class, 'callback']);
+
+});
+
+// =============================================================================
+// PAYMENT ENDPOINTS
+// =============================================================================
+Route::prefix('v1/payments')->middleware(['jwt.auth', 'smart_tenancy'])->group(function () {
+    Route::post('/subscription', [PaymentController::class, 'createSubscriptionPayment']);
+    Route::post('/refund/{invoice_id}', [PaymentController::class, 'refundPayment']);
+    Route::get('/response', [PaymentController::class, 'paymentResponse']);
+});
+
+// =============================================================================
+// INCLUDE SEPARATE ROUTE FILES
+// =============================================================================
+require __DIR__ . '/paymob_routes.php';
+
+// =============================================================================
+// BACKWARD COMPATIBILITY ROUTES (DEPRECATED - Will be removed in v2)
+// =============================================================================
+// These routes maintain backward compatibility with existing integrations
+// They will be removed in API v2.0
+Route::prefix('v1')->middleware([
+    InitializeTenancyByDomain::class,
+    PreventAccessFromCentralDomains::class,
+])->group(function () {
+
+    // Legacy tenant routes
+    Route::get('/tenants', [TenantController::class, 'index'])->middleware('jwt.auth');
+    Route::get('/tenants/find-by-subdomain/{subdomain}', [TenantController::class, 'findBySubdomain']);
+    Route::post('/tenants/resend-verification/{subdomain}', [TenantController::class, 'resendVerification']);
+
+    // Legacy auth routes (redirect to new structure)
     Route::middleware(['jwt.auth', 'tenant.status'])->group(function () {
-
-        // =====================================================================
-        // AUTH MANAGEMENT
-        // =====================================================================
         Route::post('/auth/logout', [AuthController::class, 'logout']);
         Route::post('/auth/refresh', [AuthController::class, 'refresh']);
         Route::get('/auth/me', [AuthController::class, 'me']);
         Route::put('/auth/profile', [AuthController::class, 'updateProfile']);
         Route::post('/auth/change-password', [AuthController::class, 'changePassword']);
 
-        // =====================================================================
-        // TENANT SETUP (Post-Registration)
-        // =====================================================================
-        Route::get('/tenant-setup/status', [TenantSetupController::class, 'checkSetupStatus']);
-        Route::post('/tenant-setup/organization', [TenantSetupController::class, 'setupOrganization']);
-        Route::post('/tenant-setup/personal', [TenantSetupController::class, 'setupPersonal']);
-
-        // =====================================================================
-        // TENANT MANAGEMENT
-        // =====================================================================
-        Route::get('/tenant', [TenantController::class, 'show']);
-        Route::put('/tenant', [TenantController::class, 'update']);
-        Route::get('/tenants/{tenant}', [TenantController::class, 'show']);
-        Route::put('/tenants/{tenant}', [TenantController::class, 'update']);
-
-        // =====================================================================
-        // DASHBOARD & ANALYTICS
-        // =====================================================================
+        // Legacy dashboard
         Route::get('/dashboard/stats', [DashboardController::class, 'dashboardStats']);
 
-        // =====================================================================
-        // ORGANIZATIONS & HIERARCHY
-        // =====================================================================
+        // Legacy organizations
         Route::apiResource('organizations', OrganizationController::class);
         Route::get('/organizations/{id}/dashboard', [OrganizationController::class, 'dashboard']);
 
-        // =====================================================================
-        // ACTIVITIES & MONITORING
-        // =====================================================================
+        // Legacy activities
         Route::get('/activities', [UserActivityController::class, 'index']);
         Route::get('/activities/{id}', [UserActivityController::class, 'show']);
         Route::get('/activities/user/{userId}', [UserActivityController::class, 'byUser']);
@@ -146,9 +376,7 @@ Route::middleware([
         Route::get('/sessions/active', [UserActivityController::class, 'activeSessions']);
         Route::post('/sessions/{id}/terminate', [UserActivityController::class, 'terminateSession']);
 
-        // =====================================================================
-        // SUBSCRIPTION MANAGEMENT
-        // =====================================================================
+        // Legacy subscriptions
         Route::prefix('subscriptions')->group(function () {
             Route::get('/current', [SubscriptionController::class, 'current']);
             Route::post('/', [SubscriptionController::class, 'store']);
@@ -158,25 +386,16 @@ Route::middleware([
             Route::get('/history', [SubscriptionController::class, 'history']);
         });
 
-        // Subscription Plan Recommendations (Tenant Context)
         Route::get('/subscription-plans/recommendations', [SubscriptionPlanController::class, 'recommendations']);
 
-        // =====================================================================
-        // AGENT MANAGEMENT
-        // =====================================================================
+        // Legacy agents
         Route::prefix('agents')->group(function () {
-            Route::get('/', [AgentController::class, 'index']); // My installed agents
+            Route::get('/', [AgentController::class, 'index']);
             Route::get('/{id}', [AgentController::class, 'show']);
             Route::post('/{id}/install', [AgentController::class, 'install']);
             Route::delete('/{id}/uninstall', [AgentController::class, 'uninstall']);
             Route::post('/{id}/toggle-status', [AgentController::class, 'toggleStatus']);
             Route::post('/{id}/record-usage', [AgentController::class, 'recordUsage']);
-        });
-
-        // =====================================================================
-        // AGENT EXECUTION (Async)
-        // =====================================================================
-        Route::prefix('agents')->group(function () {
             Route::post('/{id}/run', [AgentExecutionController::class, 'run']);
         });
 
@@ -184,109 +403,37 @@ Route::middleware([
             Route::get('/{run_id}', [AgentExecutionController::class, 'getRunStatus']);
         });
 
-        // =====================================================================
-        // WEBHOOK CALLBACKS (Agents send results here)
-        // =====================================================================
+        // Legacy webhooks
         Route::post('/webhooks/agents/callback', [AgentExecutionController::class, 'callback'])
-            ->withoutMiddleware(['jwt.auth', 'tenant.status']); // Webhooks don't require JWT
+            ->withoutMiddleware(['jwt.auth', 'tenant.status']);
 
-
-        // =====================================================================
-        // BILLING
-        // =====================================================================
+        // Legacy billing
         Route::prefix('billing')->group(function () {
-            // Invoices
             Route::get('/invoices', [BillingController::class, 'invoices']);
             Route::get('/invoices/{id}', [BillingController::class, 'showInvoice']);
-
-            // Payment Methods
             Route::post('/payment-methods', [BillingController::class, 'addPaymentMethod']);
             Route::post('/payment-methods/{id}/set-default', [BillingController::class, 'setDefaultPaymentMethod']);
             Route::delete('/payment-methods/{id}', [BillingController::class, 'deletePaymentMethod']);
         });
+
+        // Legacy tenant
+        Route::get('/tenant', [TenantController::class, 'show']);
+        Route::put('/tenant', [TenantController::class, 'update']);
+        Route::get('/tenants/{tenant}', [TenantController::class, 'show']);
+        Route::put('/tenants/{tenant}', [TenantController::class, 'update']);
+
+        // Legacy tenant setup
+        Route::get('/tenant-setup/status', [TenantSetupController::class, 'checkSetupStatus']);
+        Route::post('/tenant-setup/organization', [TenantSetupController::class, 'setupOrganization']);
+        Route::post('/tenant-setup/personal', [TenantSetupController::class, 'setupPersonal']);
     });
 });
 
-// =============================================================================
-// INCLUDE SEPARATE ROUTE FILES
-// =============================================================================
-require __DIR__ . '/paymob_routes.php';
-
-// =============================================================================
-// SYSTEM ADMIN ROUTES (console.obsolio.com)
-// =============================================================================
-
-Route::prefix('v1/admin')->middleware(['jwt.auth', 'system_admin'])->group(function () {
-
-    // =========================================================================
-    // TENANT MANAGEMENT
-    // =========================================================================
-    Route::get('/tenants', [TenantManagementController::class, 'index']);
-    Route::get('/tenants/statistics', [TenantManagementController::class, 'statistics']);
-    Route::get('/tenants/{id}', [TenantManagementController::class, 'show']);
-    Route::put('/tenants/{id}/status', [TenantManagementController::class, 'updateStatus']);
-    Route::put('/tenants/{id}/subscription', [TenantManagementController::class, 'changeSubscription']);
-    Route::get('/tenants/{id}/subscriptions', [TenantManagementController::class, 'subscriptionHistory']);
-    Route::post('/tenants/{id}/extend-trial', [TenantManagementController::class, 'extendTrial']);
-    Route::delete('/tenants/{id}', [TenantManagementController::class, 'destroy']);
-
-    // =========================================================================
-    // USER MANAGEMENT
-    // =========================================================================
-    Route::get('/users', [AdminController::class, 'listUsers']);
-    Route::get('/users/{id}', [AdminController::class, 'getUser']);
-    Route::delete('/users/{id}', [AdminController::class, 'deleteUser']);
-
-    // =========================================================================
-    // SUBSCRIPTION PLANS MANAGEMENT
-    // =========================================================================
-    Route::get('/subscription-plans', [AdminController::class, 'listPlans']);
-    Route::post('/subscription-plans', [AdminController::class, 'createPlan']);
-    Route::put('/subscription-plans/{id}', [AdminController::class, 'updatePlan']);
-    Route::delete('/subscription-plans/{id}', [AdminController::class, 'deletePlan']);
-
-    // =========================================================================
-    // AGENT CATEGORIES MANAGEMENT
-    // =========================================================================
-    Route::get('/agent-categories', [\App\Http\Controllers\Api\V1\Admin\AdminAgentCategoryController::class, 'index']);
-    Route::post('/agent-categories', [\App\Http\Controllers\Api\V1\Admin\AdminAgentCategoryController::class, 'store']);
-    Route::put('/agent-categories/{id}', [\App\Http\Controllers\Api\V1\Admin\AdminAgentCategoryController::class, 'update']);
-    Route::delete('/agent-categories/{id}', [\App\Http\Controllers\Api\V1\Admin\AdminAgentCategoryController::class, 'destroy']);
-
-    // =========================================================================
-    // AGENTS MANAGEMENT
-    // =========================================================================
-    Route::get('/agents', [AdminController::class, 'listAgents']);
-    Route::post('/agents', [AdminController::class, 'createAgent']);
-    Route::put('/agents/{id}', [AdminController::class, 'updateAgent']);
-    Route::delete('/agents/{id}', [AdminController::class, 'deleteAgent']);
-    Route::post('/agents/bulk-activate', [AdminController::class, 'bulkActivateAgents']);
-    Route::post('/agents/bulk-deactivate', [AdminController::class, 'bulkDeactivateAgents']);
-
-    // =========================================================================
-    // AGENT RUNS
-    // =========================================================================
-    Route::get('/agent-runs', [\App\Http\Controllers\Api\V1\Admin\AdminAgentRunsController::class, 'index']);
-
-    // =========================================================================
-    // AGENT ENDPOINTS
-    // =========================================================================
-    Route::get('/agent-endpoints', [\App\Http\Controllers\Api\V1\Admin\AdminAgentEndpointsController::class, 'index']);
-    Route::post('/agent-endpoints', [\App\Http\Controllers\Api\V1\Admin\AdminAgentEndpointsController::class, 'store']);
-    Route::get('/agent-endpoints/{id}', [\App\Http\Controllers\Api\V1\Admin\AdminAgentEndpointsController::class, 'show']);
-    Route::put('/agent-endpoints/{id}', [\App\Http\Controllers\Api\V1\Admin\AdminAgentEndpointsController::class, 'update']);
-    Route::delete('/agent-endpoints/{id}', [\App\Http\Controllers\Api\V1\Admin\AdminAgentEndpointsController::class, 'destroy']);
-
-    // =========================================================================
-    // ANALYTICS & REPORTS
-    // =========================================================================
-    Route::get('/analytics/overview', [AdminController::class, 'analyticsOverview']);
-    Route::get('/analytics/revenue', [AdminController::class, 'revenueAnalytics']);
-    Route::get('/analytics/agents', [AdminController::class, 'agentAnalytics']);
-
-    // =========================================================================
-    // ACTIVITY LOGS
-    // =========================================================================
-    Route::get('/activity-logs', [AdminController::class, 'activityLogs']);
-    Route::get('/impersonation-logs', [AdminController::class, 'impersonationLogs']);
+// Legacy marketplace (already public, just moved)
+Route::prefix('v1')->group(function () {
+    Route::get('/marketplace', [MarketplaceController::class, 'index']);
+    Route::get('/marketplace/featured', [MarketplaceController::class, 'featured']);
+    Route::get('/marketplace/categories', [MarketplaceController::class, 'categories']);
+    Route::get('/marketplace/category/{category}', [MarketplaceController::class, 'byCategory']);
+    Route::get('/marketplace/stats', [MarketplaceController::class, 'stats']);
 });

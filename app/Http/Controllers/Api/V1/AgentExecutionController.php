@@ -15,14 +15,59 @@ use Illuminate\Support\Str;
 class AgentExecutionController extends Controller
 {
     /**
+     * Get list of agent runs for the current tenant.
+     *
+     * @OA\Get(
+     *     path="/v1/tenant/agent-runs",
+     *     summary="Get list of agent execution runs",
+     *     description="Get paginated list of agent execution history for the current tenant with optional filters",
+     *     operationId="getTenantAgentRuns",
+     *     tags={"Tenant - Agent Runs"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="agent_id", in="query", required=false, @OA\Schema(type="string", format="uuid"), description="Filter by agent ID"),
+     *     @OA\Parameter(name="status", in="query", required=false, @OA\Schema(type="string", enum={"pending", "running", "completed", "failed"}), description="Filter by status"),
+     *     @OA\Parameter(name="page", in="query", required=false, @OA\Schema(type="integer"), description="Page number"),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Agent runs retrieved successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="object")
+     *         )
+     *     )
+     * )
+     */
+    public function index(Request $request): JsonResponse
+    {
+        $agentId = $request->query('agent_id');
+        $status = $request->query('status');
+
+        $runs = AgentRun::query()
+            ->when($agentId, function ($query, $agentId) {
+                return $query->where('agent_id', $agentId);
+            })
+            ->when($status, function ($query, $status) {
+                return $query->where('status', $status);
+            })
+            ->with('agent:id,name,slug')
+            ->orderBy('created_at', 'desc')
+            ->paginate(20);
+
+        return response()->json([
+            'success' => true,
+            'data' => $runs,
+        ]);
+    }
+
+    /**
      * Execute an agent asynchronously.
      *
      * @OA\Post(
-     *     path="/v1/agents/{id}/run",
+     *     path="/v1/tenant/agents/{id}/run",
      *     summary="Execute an agent asynchronously",
      *     description="Initiates asynchronous execution of an agent. The agent will process the request in the background and send results to the callback webhook.",
      *     operationId="executeAgent",
-     *     tags={"Agent Execution"},
+     *     tags={"Tenant - Agents"},
      *     security={{"bearerAuth":{}}},
      *     @OA\Parameter(
      *         name="id",
@@ -228,11 +273,11 @@ class AgentExecutionController extends Controller
      * Get agent run status.
      *
      * @OA\Get(
-     *     path="/v1/agent-runs/{run_id}",
+     *     path="/v1/tenant/agent-runs/{run_id}",
      *     summary="Get agent execution status",
      *     description="Retrieve the status and results of an agent execution run",
      *     operationId="getAgentRunStatus",
-     *     tags={"Agent Execution"},
+     *     tags={"Tenant - Agent Runs"},
      *     security={{"bearerAuth":{}}},
      *     @OA\Parameter(
      *         name="run_id",
@@ -344,7 +389,7 @@ class AgentExecutionController extends Controller
      *     summary="Agent execution callback webhook",
      *     description="Webhook endpoint for agents to send execution results. This endpoint does not require JWT authentication but validates a secret token instead.",
      *     operationId="agentExecutionCallback",
-     *     tags={"Agent Execution"},
+     *     tags={"Webhooks"},
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(

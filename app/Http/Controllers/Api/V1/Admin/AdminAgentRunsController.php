@@ -125,4 +125,52 @@ class AdminAgentRunsController extends Controller
             'data' => $runs,
         ]);
     }
+
+    /**
+     * Get specific agent run details.
+     *
+     * @OA\Get(
+     *     path="/v1/admin/agent-runs/{id}",
+     *     summary="Get specific agent run details",
+     *     description="Get detailed information about a specific agent execution run",
+     *     operationId="adminGetAgentRun",
+     *     tags={"Admin - Agent Runs"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string", format="uuid"), description="Agent Run ID"),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Agent run details retrieved successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(response=404, description="Agent run not found")
+     * )
+     */
+    public function show(string $id): JsonResponse
+    {
+        $run = AgentRun::with(['agent:id,name,slug,icon_url'])
+            ->findOrFail($id);
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'id' => $run->id,
+                'agent_id' => $run->agent_id,
+                'agent' => $run->agent,
+                'state' => $run->state,
+                'input' => $run->input,
+                'output' => $run->output,
+                'error' => $run->error,
+                'started_at' => $run->started_at?->toISOString(),
+                'finished_at' => $run->finished_at?->toISOString(),
+                'duration_ms' => $run->finished_at && $run->started_at
+                    ? (int) ($run->finished_at->timestamp - $run->started_at->timestamp) * 1000
+                    : null,
+                'created_at' => $run->created_at?->toISOString(),
+                'updated_at' => $run->updated_at?->toISOString(),
+            ],
+        ]);
+    }
 }

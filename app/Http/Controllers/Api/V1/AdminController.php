@@ -301,6 +301,40 @@ class AdminController extends Controller
     }
 
     /**
+     * Get specific agent details.
+     *
+     * @OA\Get(
+     *     path="/v1/admin/agents/{id}",
+     *     summary="Get agent details",
+     *     description="Get detailed information about a specific agent (admin view)",
+     *     operationId="adminGetAgent",
+     *     tags={"Admin - Agents"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string", format="uuid"), description="Agent ID"),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Agent details retrieved successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(response=404, description="Agent not found")
+     * )
+     */
+    public function getAgent(string $id): JsonResponse
+    {
+        $agent = Agent::withTrashed()
+            ->with(['category', 'endpoints'])
+            ->findOrFail($id);
+
+        return response()->json([
+            'success' => true,
+            'data' => $agent,
+        ]);
+    }
+
+    /**
      * Create a new agent.
      */
     public function createAgent(Request $request): JsonResponse

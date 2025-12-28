@@ -59,6 +59,40 @@ class MarketplaceController extends Controller
     }
 
     /**
+     * Get specific agent details from marketplace.
+     *
+     * @OA\Get(
+     *     path="/v1/marketplace/agents/{id}",
+     *     summary="Get marketplace agent details",
+     *     description="Get detailed information about a specific agent in the marketplace",
+     *     operationId="getMarketplaceAgent",
+     *     tags={"Marketplace"},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string", format="uuid"), description="Agent ID"),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Agent details retrieved successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(response=404, description="Agent not found")
+     * )
+     */
+    public function show(string $id): JsonResponse
+    {
+        $agent = Agent::marketplace()
+            ->active()
+            ->with('category')
+            ->findOrFail($id);
+
+        return response()->json([
+            'success' => true,
+            'data' => $agent,
+        ]);
+    }
+
+    /**
      * Get agents by category.
      */
     public function byCategory(string $category): JsonResponse
