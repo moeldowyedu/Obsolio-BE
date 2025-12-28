@@ -136,6 +136,113 @@ Public endpoints (auth, marketplace) do not require authentication.
  *     name="Webhooks",
  *     description="External callback endpoints"
  * )
+ * @OA\Tag(
+ *     name="Admin - Agent Categories",
+ *     description="System admin: Agent category management"
+ * )
+ * @OA\Tag(
+ *     name="Admin - Agent Endpoints",
+ *     description="System admin: Agent webhook endpoint configuration"
+ * )
+ * @OA\Tag(
+ *     name="Admin - Subscription Plans",
+ *     description="System admin: Subscription plan management"
+ * )
+ * @OA\Tag(
+ *     name="Admin - Activity Logs",
+ *     description="System admin: Activity and audit logs"
+ * )
+ * @OA\Tag(
+ *     name="Tenant - Users",
+ *     description="Tenant dashboard: User management within tenant"
+ * )
+ * @OA\Tag(
+ *     name="Tenant - Roles",
+ *     description="Tenant dashboard: Role management"
+ * )
+ * @OA\Tag(
+ *     name="Tenant - Permissions",
+ *     description="Tenant dashboard: Permission management"
+ * )
+ * @OA\Tag(
+ *     name="Tenant - Sessions",
+ *     description="Tenant dashboard: Active session management"
+ * )
+ *
+ * @OA\Schema(
+ *     schema="SuccessResponse",
+ *     type="object",
+ *     @OA\Property(property="success", type="boolean", example=true),
+ *     @OA\Property(property="message", type="string", example="Operation completed successfully"),
+ *     @OA\Property(property="data", type="object")
+ * )
+ *
+ * @OA\Schema(
+ *     schema="ErrorResponse",
+ *     type="object",
+ *     @OA\Property(property="success", type="boolean", example=false),
+ *     @OA\Property(property="message", type="string", example="An error occurred"),
+ *     @OA\Property(property="error", type="string", example="Error details")
+ * )
+ *
+ * @OA\Schema(
+ *     schema="ValidationErrorResponse",
+ *     type="object",
+ *     @OA\Property(property="success", type="boolean", example=false),
+ *     @OA\Property(property="message", type="string", example="The given data was invalid"),
+ *     @OA\Property(
+ *         property="errors",
+ *         type="object",
+ *         example={"email": {"The email field is required"}}
+ *     )
+ * )
+ *
+ * @OA\Schema(
+ *     schema="PaginatedResponse",
+ *     type="object",
+ *     @OA\Property(property="success", type="boolean", example=true),
+ *     @OA\Property(
+ *         property="data",
+ *         type="object",
+ *         @OA\Property(property="data", type="array", @OA\Items(type="object")),
+ *         @OA\Property(property="current_page", type="integer", example=1),
+ *         @OA\Property(property="last_page", type="integer", example=10),
+ *         @OA\Property(property="per_page", type="integer", example=20),
+ *         @OA\Property(property="total", type="integer", example=200),
+ *         @OA\Property(property="from", type="integer", example=1),
+ *         @OA\Property(property="to", type="integer", example=20)
+ *     )
+ * )
+ *
+ * @OA\Response(
+ *     response="Unauthorized",
+ *     description="Unauthenticated - Invalid or missing JWT token",
+ *     @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+ * )
+ *
+ * @OA\Response(
+ *     response="Forbidden",
+ *     description="Forbidden - Insufficient permissions",
+ *     @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+ * )
+ *
+ * @OA\Response(
+ *     response="NotFound",
+ *     description="Resource not found",
+ *     @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+ * )
+ *
+ * @OA\Response(
+ *     response="ValidationError",
+ *     description="Validation error - Invalid input data",
+ *     @OA\JsonContent(ref="#/components/schemas/ValidationErrorResponse")
+ * )
+ *
+ * @OA\Response(
+ *     response="ServerError",
+ *     description="Internal server error",
+ *     @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+ * )
  */
 abstract class Controller
 {

@@ -1,20 +1,76 @@
 {
     "openapi": "3.0.0",
     "info": {
-        "title": "OBSOLIO API Doc",
-        "description": "API documentation for OBSOLIO platform",
+        "title": "OBSOLIO API Documentation",
+        "description": "\n# OBSOLIO API - Organized Endpoint Structure\n\nThis API provides a clear separation between different user contexts:\n\n## Endpoint Organization\n\n### Public Endpoints\n- `/auth/*` - Authentication and registration\n- `/marketplace/*` - Public marketplace for browsing agents\n- `/subscription-plans` - Pricing information\n\n### Admin Endpoints (System Console)\n- `/admin/*` - System administration operations\n  - Tenant management\n  - User management\n  - Agent management (global)\n  - Analytics and reports\n  - Audit logs\n\n### Tenant Endpoints (Dashboard)\n- `/tenant/*` - Tenant-specific operations\n  - Profile and settings\n  - Dashboard and statistics\n  - Organizations\n  - Agents (installed)\n  - Subscriptions and billing\n  - Activities and sessions\n\n### Webhooks\n- `/webhooks/*` - External callback endpoints\n\n## Authentication\n\nMost endpoints require JWT Bearer token authentication. Include the token in the Authorization header:\n\n```\nAuthorization: Bearer <your-jwt-token>\n```\n\nPublic endpoints (auth, marketplace) do not require authentication.\n",
         "contact": {
+            "name": "OBSOLIO Support",
             "email": "admin@obsolio.com"
+        },
+        "license": {
+            "name": "Proprietary",
+            "url": "https://obsolio.com/terms"
         },
         "version": "1.0.0"
     },
     "servers": [
         {
             "url": "/api/v1",
-            "description": "API Server"
+            "description": "OBSOLIO API v1"
         }
     ],
     "paths": {
+        "/v1/admin/agents/{id}": {
+            "get": {
+                "tags": [
+                    "Admin - Agents"
+                ],
+                "summary": "Get agent details",
+                "description": "Get detailed information about a specific agent (admin view)",
+                "operationId": "adminGetAgent",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Agent ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Agent details retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Agent not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/v1/admin/agents/bulk-activate": {
             "post": {
                 "tags": [
@@ -939,10 +995,133 @@
                 ]
             }
         },
-        "/v1/agents/{id}/run": {
+        "/v1/admin/agent-runs/{id}": {
+            "get": {
+                "tags": [
+                    "Admin - Agent Runs"
+                ],
+                "summary": "Get specific agent run details",
+                "description": "Get detailed information about a specific agent execution run",
+                "operationId": "adminGetAgentRun",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Agent Run ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Agent run details retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Agent run not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/tenant/agent-runs": {
+            "get": {
+                "tags": [
+                    "Tenant - Agent Runs"
+                ],
+                "summary": "Get list of agent execution runs",
+                "description": "Get paginated list of agent execution history for the current tenant with optional filters",
+                "operationId": "getTenantAgentRuns",
+                "parameters": [
+                    {
+                        "name": "agent_id",
+                        "in": "query",
+                        "description": "Filter by agent ID",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Filter by status",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "pending",
+                                "running",
+                                "completed",
+                                "failed"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Page number",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Agent runs retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/v1/tenant/agents/{id}/run": {
             "post": {
                 "tags": [
-                    "Agent Execution"
+                    "Tenant - Agents"
                 ],
                 "summary": "Execute an agent asynchronously",
                 "description": "Initiates asynchronous execution of an agent. The agent will process the request in the background and send results to the callback webhook.",
@@ -1127,10 +1306,10 @@
                 ]
             }
         },
-        "/v1/agent-runs/{run_id}": {
+        "/v1/tenant/agent-runs/{run_id}": {
             "get": {
                 "tags": [
-                    "Agent Execution"
+                    "Tenant - Agent Runs"
                 ],
                 "summary": "Get agent execution status",
                 "description": "Retrieve the status and results of an agent execution run",
@@ -1283,7 +1462,7 @@
         "/v1/webhooks/agents/callback": {
             "post": {
                 "tags": [
-                    "Agent Execution"
+                    "Webhooks"
                 ],
                 "summary": "Agent execution callback webhook",
                 "description": "Webhook endpoint for agents to send execution results. This endpoint does not require JWT authentication but validates a secret token instead.",
@@ -2444,6 +2623,52 @@
                         "bearerAuth": []
                     }
                 ]
+            }
+        },
+        "/v1/marketplace/agents/{id}": {
+            "get": {
+                "tags": [
+                    "Marketplace"
+                ],
+                "summary": "Get marketplace agent details",
+                "description": "Get detailed information about a specific agent in the marketplace",
+                "operationId": "getMarketplaceAgent",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Agent ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Agent details retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Agent not found"
+                    }
+                }
             }
         },
         "/organizations": {
@@ -4170,6 +4395,104 @@
     },
     "components": {
         "schemas": {
+            "SuccessResponse": {
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "message": {
+                        "type": "string",
+                        "example": "Operation completed successfully"
+                    },
+                    "data": {
+                        "type": "object"
+                    }
+                },
+                "type": "object"
+            },
+            "ErrorResponse": {
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "example": false
+                    },
+                    "message": {
+                        "type": "string",
+                        "example": "An error occurred"
+                    },
+                    "error": {
+                        "type": "string",
+                        "example": "Error details"
+                    }
+                },
+                "type": "object"
+            },
+            "ValidationErrorResponse": {
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "example": false
+                    },
+                    "message": {
+                        "type": "string",
+                        "example": "The given data was invalid"
+                    },
+                    "errors": {
+                        "type": "object",
+                        "example": {
+                            "email": [
+                                "The email field is required"
+                            ]
+                        }
+                    }
+                },
+                "type": "object"
+            },
+            "PaginatedResponse": {
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "data": {
+                        "properties": {
+                            "data": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object"
+                                }
+                            },
+                            "current_page": {
+                                "type": "integer",
+                                "example": 1
+                            },
+                            "last_page": {
+                                "type": "integer",
+                                "example": 10
+                            },
+                            "per_page": {
+                                "type": "integer",
+                                "example": 20
+                            },
+                            "total": {
+                                "type": "integer",
+                                "example": 200
+                            },
+                            "from": {
+                                "type": "integer",
+                                "example": 1
+                            },
+                            "to": {
+                                "type": "integer",
+                                "example": 20
+                            }
+                        },
+                        "type": "object"
+                    }
+                },
+                "type": "object"
+            },
             "OrganizationResponse": {
                 "title": "Organization Response",
                 "properties": {
@@ -4281,9 +4604,62 @@
                 "type": "object"
             }
         },
+        "responses": {
+            "Unauthorized": {
+                "description": "Unauthenticated - Invalid or missing JWT token",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "Forbidden": {
+                "description": "Forbidden - Insufficient permissions",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "NotFound": {
+                "description": "Resource not found",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "ValidationError": {
+                "description": "Validation error - Invalid input data",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/ValidationErrorResponse"
+                        }
+                    }
+                }
+            },
+            "ServerError": {
+                "description": "Internal server error",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "securitySchemes": {
             "bearerAuth": {
                 "type": "http",
+                "description": "Enter your JWT token in the format: Bearer {token}",
                 "bearerFormat": "JWT",
                 "scheme": "bearer"
             }
@@ -4292,27 +4668,39 @@
     "tags": [
         {
             "name": "Admin - Agent Categories",
-            "description": "Admin endpoints for agent category management"
+            "description": "System admin: Agent category management"
         },
         {
             "name": "Admin - Agent Endpoints",
-            "description": "Admin endpoints for managing agent webhook endpoints"
+            "description": "System admin: Agent webhook endpoint configuration"
         },
         {
             "name": "Admin - Agent Runs",
-            "description": "Admin endpoints for agent execution history"
-        },
-        {
-            "name": "Admin - Agents",
-            "description": "Admin - Agents"
-        },
-        {
-            "name": "Agent Execution",
-            "description": "Agent Execution"
+            "description": "System admin: Global agent execution monitoring"
         },
         {
             "name": "Authentication",
-            "description": "Authentication"
+            "description": "Public authentication endpoints"
+        },
+        {
+            "name": "Marketplace",
+            "description": "Public marketplace endpoints for browsing agents"
+        },
+        {
+            "name": "Admin - Agents",
+            "description": "System admin: Global agent management"
+        },
+        {
+            "name": "Tenant - Agents",
+            "description": "Tenant dashboard: Installed agent management"
+        },
+        {
+            "name": "Tenant - Agent Runs",
+            "description": "Tenant dashboard: Agent execution history"
+        },
+        {
+            "name": "Webhooks",
+            "description": "External callback endpoints"
         },
         {
             "name": "Dashboard",
