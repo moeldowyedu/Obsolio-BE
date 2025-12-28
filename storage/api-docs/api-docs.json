@@ -5770,6 +5770,104 @@
     },
     "components": {
         "schemas": {
+            "SuccessResponse": {
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "message": {
+                        "type": "string",
+                        "example": "Operation completed successfully"
+                    },
+                    "data": {
+                        "type": "object"
+                    }
+                },
+                "type": "object"
+            },
+            "ErrorResponse": {
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "example": false
+                    },
+                    "message": {
+                        "type": "string",
+                        "example": "An error occurred"
+                    },
+                    "error": {
+                        "type": "string",
+                        "example": "Error details"
+                    }
+                },
+                "type": "object"
+            },
+            "ValidationErrorResponse": {
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "example": false
+                    },
+                    "message": {
+                        "type": "string",
+                        "example": "The given data was invalid"
+                    },
+                    "errors": {
+                        "type": "object",
+                        "example": {
+                            "email": [
+                                "The email field is required"
+                            ]
+                        }
+                    }
+                },
+                "type": "object"
+            },
+            "PaginatedResponse": {
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "data": {
+                        "properties": {
+                            "data": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object"
+                                }
+                            },
+                            "current_page": {
+                                "type": "integer",
+                                "example": 1
+                            },
+                            "last_page": {
+                                "type": "integer",
+                                "example": 10
+                            },
+                            "per_page": {
+                                "type": "integer",
+                                "example": 20
+                            },
+                            "total": {
+                                "type": "integer",
+                                "example": 200
+                            },
+                            "from": {
+                                "type": "integer",
+                                "example": 1
+                            },
+                            "to": {
+                                "type": "integer",
+                                "example": 20
+                            }
+                        },
+                        "type": "object"
+                    }
+                },
+                "type": "object"
+            },
             "OrganizationResponse": {
                 "title": "Organization Response",
                 "properties": {
@@ -5881,6 +5979,58 @@
                 "type": "object"
             }
         },
+        "responses": {
+            "Unauthorized": {
+                "description": "Unauthenticated - Invalid or missing JWT token",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "Forbidden": {
+                "description": "Forbidden - Insufficient permissions",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "NotFound": {
+                "description": "Resource not found",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "ValidationError": {
+                "description": "Validation error - Invalid input data",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/ValidationErrorResponse"
+                        }
+                    }
+                }
+            },
+            "ServerError": {
+                "description": "Internal server error",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "securitySchemes": {
             "bearerAuth": {
                 "type": "http",
@@ -5893,11 +6043,11 @@
     "tags": [
         {
             "name": "Admin - Agent Categories",
-            "description": "Admin endpoints for agent category management"
+            "description": "System admin: Agent category management"
         },
         {
             "name": "Admin - Agent Endpoints",
-            "description": "Admin endpoints for managing agent webhook endpoints"
+            "description": "System admin: Agent webhook endpoint configuration"
         },
         {
             "name": "Admin - Agent Runs",
