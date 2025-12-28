@@ -4,11 +4,11 @@ namespace App\Http\Controllers;
 
 /**
  * @OA\Info(
- *     title="Aasim API",
+ *     title="OBSOLIO API Doc",
  *     version="1.0.0",
- *     description="API documentation for Aasim platform",
+ *     description="API documentation for OBSOLIO platform",
  *     @OA\Contact(
- *         email="support@aasim.com"
+ *         email="admin@obsolio.com"
  *     )
  * )
  * @OA\Server(
