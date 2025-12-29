@@ -24,6 +24,45 @@ class AdminController extends Controller
 
     /**
      * List all users with pagination and filters.
+     *
+     * @OA\Get(
+     *     path="/api/v1/admin/users",
+     *     summary="List all users",
+     *     description="Get a paginated list of all users with filters",
+     *     tags={"Admin - Users"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="search",
+     *         in="query",
+     *         description="Search by name or email",
+     *         required=false,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Parameter(
+     *         name="role",
+     *         in="query",
+     *         description="Filter by role",
+     *         required=false,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Parameter(
+     *         name="status",
+     *         in="query",
+     *         description="Filter by verification status",
+     *         required=false,
+     *         @OA\Schema(type="string", enum={"verified", "unverified"})
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Users retrieved successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", ref="#/components/schemas/PaginatedResponse")
+     *         )
+     *     ),
+     *     @OA\Response(response=401, ref="#/components/responses/Unauthorized"),
+     *     @OA\Response(response=403, ref="#/components/responses/Forbidden")
+     * )
      */
     public function listUsers(Request $request): JsonResponse
     {
@@ -58,6 +97,30 @@ class AdminController extends Controller
 
     /**
      * Get specific user details.
+     *
+     * @OA\Get(
+     *     path="/api/v1/admin/users/{id}",
+     *     summary="Get user details",
+     *     description="Get detailed information about a specific user",
+     *     tags={"Admin - Users"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="User ID",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="User details retrieved successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(response=404, description="User not found")
+     * )
      */
     public function getUser(string $id): JsonResponse
     {
@@ -243,6 +306,31 @@ class AdminController extends Controller
 
     /**
      * Delete a user.
+     *
+     * @OA\Delete(
+     *     path="/api/v1/admin/users/{id}",
+     *     summary="Delete user",
+     *     description="Delete a user (system admins cannot be deleted)",
+     *     tags={"Admin - Users"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="User ID",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="User deleted successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string")
+     *         )
+     *     ),
+     *     @OA\Response(response=403, description="Cannot delete system admin"),
+     *     @OA\Response(response=404, description="User not found")
+     * )
      */
     public function deleteUser(string $id): JsonResponse
     {
@@ -278,6 +366,36 @@ class AdminController extends Controller
 
     /**
      * List all subscription plans.
+     *
+     * @OA\Get(
+     *     path="/api/v1/admin/subscription-plans",
+     *     summary="List subscription plans",
+     *     description="Get all subscription plans with optional filters",
+     *     tags={"Admin - Subscription Plans"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="type",
+     *         in="query",
+     *         description="Filter by plan type",
+     *         required=false,
+     *         @OA\Schema(type="string", enum={"personal", "organization"})
+     *     ),
+     *     @OA\Parameter(
+     *         name="active",
+     *         in="query",
+     *         description="Filter by active status",
+     *         required=false,
+     *         @OA\Schema(type="string", enum={"true", "false"})
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Plans retrieved successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="array", @OA\Items(type="object"))
+     *         )
+     *     )
+     * )
      */
     public function listPlans(Request $request): JsonResponse
     {
@@ -303,6 +421,41 @@ class AdminController extends Controller
 
     /**
      * Create a new subscription plan.
+     *
+     * @OA\Post(
+     *     path="/api/v1/admin/subscription-plans",
+     *     summary="Create subscription plan",
+     *     description="Create a new subscription plan",
+     *     tags={"Admin - Subscription Plans"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"name", "type", "tier", "max_users", "max_agents", "storage_gb", "trial_days"},
+     *             @OA\Property(property="name", type="string", example="Pro Plan"),
+     *             @OA\Property(property="type", type="string", enum={"personal", "organization"}),
+     *             @OA\Property(property="tier", type="string", enum={"free", "pro", "team", "business", "enterprise"}),
+     *             @OA\Property(property="price_monthly", type="number", format="float", example=29.99),
+     *             @OA\Property(property="price_annual", type="number", format="float", example=299.99),
+     *             @OA\Property(property="max_users", type="integer", example=5),
+     *             @OA\Property(property="max_agents", type="integer", example=10),
+     *             @OA\Property(property="storage_gb", type="integer", example=100),
+     *             @OA\Property(property="trial_days", type="integer", example=14),
+     *             @OA\Property(property="features", type="array", @OA\Items(type="string")),
+     *             @OA\Property(property="limits", type="object"),
+     *             @OA\Property(property="description", type="string")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Plan created successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string"),
+     *             @OA\Property(property="data", type="object")
+     *         )
+     *     )
+     * )
      */
     public function createPlan(Request $request): JsonResponse
     {
@@ -355,6 +508,46 @@ class AdminController extends Controller
 
     /**
      * Update a subscription plan.
+     *
+     * @OA\Put(
+     *     path="/api/v1/admin/subscription-plans/{id}",
+     *     summary="Update subscription plan",
+     *     description="Update an existing subscription plan",
+     *     tags={"Admin - Subscription Plans"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="Plan ID",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\RequestBody(
+     *         @OA\JsonContent(
+     *             @OA\Property(property="name", type="string"),
+     *             @OA\Property(property="price_monthly", type="number", format="float"),
+     *             @OA\Property(property="price_annual", type="number", format="float"),
+     *             @OA\Property(property="max_users", type="integer"),
+     *             @OA\Property(property="max_agents", type="integer"),
+     *             @OA\Property(property="storage_gb", type="integer"),
+     *             @OA\Property(property="trial_days", type="integer"),
+     *             @OA\Property(property="features", type="array", @OA\Items(type="string")),
+     *             @OA\Property(property="limits", type="object"),
+     *             @OA\Property(property="description", type="string"),
+     *             @OA\Property(property="is_active", type="boolean")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Plan updated successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string"),
+     *             @OA\Property(property="data", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(response=404, description="Plan not found")
+     * )
      */
     public function updatePlan(Request $request, string $id): JsonResponse
     {
@@ -405,6 +598,31 @@ class AdminController extends Controller
 
     /**
      * Delete a subscription plan.
+     *
+     * @OA\Delete(
+     *     path="/api/v1/admin/subscription-plans/{id}",
+     *     summary="Delete subscription plan",
+     *     description="Delete a subscription plan (only if no active subscriptions)",
+     *     tags={"Admin - Subscription Plans"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="Plan ID",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Plan deleted successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string")
+     *         )
+     *     ),
+     *     @OA\Response(response=400, description="Plan has active subscriptions"),
+     *     @OA\Response(response=404, description="Plan not found")
+     * )
      */
     public function deletePlan(string $id): JsonResponse
     {
@@ -444,6 +662,43 @@ class AdminController extends Controller
 
     /**
      * List all agents.
+     *
+     * @OA\Get(
+     *     path="/api/v1/admin/agents",
+     *     summary="List all agents",
+     *     description="Get a paginated list of all agents with filters",
+     *     tags={"Admin - Agents"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="category",
+     *         in="query",
+     *         description="Filter by category",
+     *         required=false,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Parameter(
+     *         name="active",
+     *         in="query",
+     *         description="Filter by active status",
+     *         required=false,
+     *         @OA\Schema(type="string", enum={"true", "false"})
+     *     ),
+     *     @OA\Parameter(
+     *         name="marketplace",
+     *         in="query",
+     *         description="Filter by marketplace status",
+     *         required=false,
+     *         @OA\Schema(type="string", enum={"true", "false"})
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Agents retrieved successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", ref="#/components/schemas/PaginatedResponse")
+     *         )
+     *     )
+     * )
      */
     public function listAgents(Request $request): JsonResponse
     {
@@ -507,6 +762,44 @@ class AdminController extends Controller
 
     /**
      * Create a new agent.
+     *
+     * @OA\Post(
+     *     path="/api/v1/admin/agents",
+     *     summary="Create new agent",
+     *     description="Create a new agent in the system",
+     *     tags={"Admin - Agents"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"name", "slug", "category", "price_model"},
+     *             @OA\Property(property="name", type="string", example="Data Analyzer"),
+     *             @OA\Property(property="slug", type="string", example="data-analyzer"),
+     *             @OA\Property(property="category", type="string", example="analytics"),
+     *             @OA\Property(property="description", type="string"),
+     *             @OA\Property(property="long_description", type="string"),
+     *             @OA\Property(property="icon_url", type="string", format="url"),
+     *             @OA\Property(property="banner_url", type="string", format="url"),
+     *             @OA\Property(property="capabilities", type="array", @OA\Items(type="string")),
+     *             @OA\Property(property="supported_languages", type="array", @OA\Items(type="string")),
+     *             @OA\Property(property="price_model", type="string", enum={"free", "one_time", "subscription", "usage_based"}),
+     *             @OA\Property(property="base_price", type="number"),
+     *             @OA\Property(property="monthly_price", type="number"),
+     *             @OA\Property(property="annual_price", type="number"),
+     *             @OA\Property(property="is_marketplace", type="boolean"),
+     *             @OA\Property(property="is_featured", type="boolean")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Agent created successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string"),
+     *             @OA\Property(property="data", type="object")
+     *         )
+     *     )
+     * )
      */
     public function createAgent(Request $request): JsonResponse
     {
@@ -567,6 +860,48 @@ class AdminController extends Controller
 
     /**
      * Update an agent.
+     *
+     * @OA\Put(
+     *     path="/api/v1/admin/agents/{id}",
+     *     summary="Update agent",
+     *     description="Update an existing agent",
+     *     tags={"Admin - Agents"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="Agent ID",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\RequestBody(
+     *         @OA\JsonContent(
+     *             @OA\Property(property="name", type="string"),
+     *             @OA\Property(property="description", type="string"),
+     *             @OA\Property(property="long_description", type="string"),
+     *             @OA\Property(property="icon_url", type="string", format="url"),
+     *             @OA\Property(property="banner_url", type="string", format="url"),
+     *             @OA\Property(property="capabilities", type="array", @OA\Items(type="string")),
+     *             @OA\Property(property="price_model", type="string", enum={"free", "one_time", "subscription", "usage_based"}),
+     *             @OA\Property(property="base_price", type="number"),
+     *             @OA\Property(property="monthly_price", type="number"),
+     *             @OA\Property(property="annual_price", type="number"),
+     *             @OA\Property(property="is_active", type="boolean"),
+     *             @OA\Property(property="is_featured", type="boolean"),
+     *             @OA\Property(property="is_marketplace", type="boolean")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Agent updated successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string"),
+     *             @OA\Property(property="data", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(response=404, description="Agent not found")
+     * )
      */
     public function updateAgent(Request $request, string $id): JsonResponse
     {
@@ -621,6 +956,30 @@ class AdminController extends Controller
 
     /**
      * Delete (soft delete) an agent.
+     *
+     * @OA\Delete(
+     *     path="/api/v1/admin/agents/{id}",
+     *     summary="Delete agent",
+     *     description="Soft delete an agent",
+     *     tags={"Admin - Agents"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="Agent ID",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Agent deleted successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string")
+     *         )
+     *     ),
+     *     @OA\Response(response=404, description="Agent not found")
+     * )
      */
     public function deleteAgent(string $id): JsonResponse
     {
@@ -754,6 +1113,33 @@ class AdminController extends Controller
 
     /**
      * Get analytics overview.
+     *
+     * @OA\Get(
+     *     path="/api/v1/admin/analytics/overview",
+     *     summary="Get analytics overview",
+     *     description="Get overall platform statistics and metrics",
+     *     tags={"Admin - Analytics"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Analytics retrieved successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(property="total_tenants", type="integer"),
+     *                 @OA\Property(property="active_tenants", type="integer"),
+     *                 @OA\Property(property="total_users", type="integer"),
+     *                 @OA\Property(property="total_subscriptions", type="integer"),
+     *                 @OA\Property(property="total_revenue_monthly", type="number"),
+     *                 @OA\Property(property="total_agents", type="integer"),
+     *                 @OA\Property(property="active_agents", type="integer"),
+     *                 @OA\Property(property="featured_agents", type="integer")
+     *             )
+     *         )
+     *     )
+     * )
      */
     public function analyticsOverview(): JsonResponse
     {
@@ -778,6 +1164,41 @@ class AdminController extends Controller
 
     /**
      * Get revenue analytics.
+     *
+     * @OA\Get(
+     *     path="/api/v1/admin/analytics/revenue",
+     *     summary="Get revenue analytics",
+     *     description="Get revenue breakdown by period",
+     *     tags={"Admin - Analytics"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="period",
+     *         in="query",
+     *         description="Time period for analytics",
+     *         required=false,
+     *         @OA\Schema(type="string", enum={"day", "week", "month", "year"}, default="month")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Revenue analytics retrieved successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(
+     *                     property="summary",
+     *                     type="object",
+     *                     @OA\Property(property="total_revenue", type="number"),
+     *                     @OA\Property(property="total_invoices", type="integer"),
+     *                     @OA\Property(property="average_invoice", type="number"),
+     *                     @OA\Property(property="period", type="string")
+     *                 ),
+     *                 @OA\Property(property="daily_breakdown", type="array", @OA\Items(type="object"))
+     *             )
+     *         )
+     *     )
+     * )
      */
     public function revenueAnalytics(Request $request): JsonResponse
     {
@@ -816,6 +1237,27 @@ class AdminController extends Controller
 
     /**
      * Get agent analytics.
+     *
+     * @OA\Get(
+     *     path="/api/v1/admin/analytics/agents",
+     *     summary="Get agent analytics",
+     *     description="Get agent statistics by category and top agents",
+     *     tags={"Admin - Analytics"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Agent analytics retrieved successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(property="by_category", type="array", @OA\Items(type="object")),
+     *                 @OA\Property(property="top_agents", type="array", @OA\Items(type="object"))
+     *             )
+     *         )
+     *     )
+     * )
      */
     public function agentAnalytics(): JsonResponse
     {
@@ -845,6 +1287,36 @@ class AdminController extends Controller
 
     /**
      * Get activity logs.
+     *
+     * @OA\Get(
+     *     path="/api/v1/admin/activity-logs",
+     *     summary="Get activity logs",
+     *     description="Get paginated list of platform activity logs",
+     *     tags={"Admin - Audit Logs"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="user_id",
+     *         in="query",
+     *         description="Filter by user ID",
+     *         required=false,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Parameter(
+     *         name="action",
+     *         in="query",
+     *         description="Filter by action type",
+     *         required=false,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Activity logs retrieved successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", ref="#/components/schemas/PaginatedResponse")
+     *         )
+     *     )
+     * )
      */
     public function activityLogs(Request $request): JsonResponse
     {
@@ -870,6 +1342,22 @@ class AdminController extends Controller
 
     /**
      * Get impersonation logs.
+     *
+     * @OA\Get(
+     *     path="/api/v1/admin/impersonation-logs",
+     *     summary="Get impersonation logs",
+     *     description="Get paginated list of impersonation activity",
+     *     tags={"Admin - Audit Logs"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Impersonation logs retrieved successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", ref="#/components/schemas/PaginatedResponse")
+     *         )
+     *     )
+     * )
      */
     public function impersonationLogs(Request $request): JsonResponse
     {

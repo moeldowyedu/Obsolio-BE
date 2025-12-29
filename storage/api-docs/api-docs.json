@@ -25,6 +25,79 @@
     ],
     "paths": {
         "/api/v1/admin/users": {
+            "get": {
+                "tags": [
+                    "Admin - Users"
+                ],
+                "summary": "List all users",
+                "description": "Get a paginated list of all users with filters",
+                "operationId": "5ee84f194f9da05a22f8c0492f157142",
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Search by name or email",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "role",
+                        "in": "query",
+                        "description": "Filter by role",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Filter by verification status",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "verified",
+                                "unverified"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Users retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/PaginatedResponse"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
             "post": {
                 "tags": [
                     "Admin - Users"
@@ -109,6 +182,55 @@
             }
         },
         "/api/v1/admin/users/{id}": {
+            "get": {
+                "tags": [
+                    "Admin - Users"
+                ],
+                "summary": "Get user details",
+                "description": "Get detailed information about a specific user",
+                "operationId": "105b03815a3f690d23519af000c2a681",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "User ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User details retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "User not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
             "put": {
                 "tags": [
                     "Admin - Users"
@@ -187,6 +309,587 @@
                         "bearerAuth": []
                     }
                 ]
+            },
+            "delete": {
+                "tags": [
+                    "Admin - Users"
+                ],
+                "summary": "Delete user",
+                "description": "Delete a user (system admins cannot be deleted)",
+                "operationId": "7fcb8e59936db2ebb2092a8067d53edf",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "User ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User deleted successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Cannot delete system admin"
+                    },
+                    "404": {
+                        "description": "User not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/admin/subscription-plans": {
+            "get": {
+                "tags": [
+                    "Admin - Subscription Plans"
+                ],
+                "summary": "List subscription plans",
+                "description": "Get all subscription plans with optional filters",
+                "operationId": "186ead8daa2f65e2be1be128d32dbd1c",
+                "parameters": [
+                    {
+                        "name": "type",
+                        "in": "query",
+                        "description": "Filter by plan type",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "personal",
+                                "organization"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "active",
+                        "in": "query",
+                        "description": "Filter by active status",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "true",
+                                "false"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Plans retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Admin - Subscription Plans"
+                ],
+                "summary": "Create subscription plan",
+                "description": "Create a new subscription plan",
+                "operationId": "1878857af6f405f0856386bc18037555",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "type",
+                                    "tier",
+                                    "max_users",
+                                    "max_agents",
+                                    "storage_gb",
+                                    "trial_days"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Pro Plan"
+                                    },
+                                    "type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "personal",
+                                            "organization"
+                                        ]
+                                    },
+                                    "tier": {
+                                        "type": "string",
+                                        "enum": [
+                                            "free",
+                                            "pro",
+                                            "team",
+                                            "business",
+                                            "enterprise"
+                                        ]
+                                    },
+                                    "price_monthly": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 29.99
+                                    },
+                                    "price_annual": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 299.99
+                                    },
+                                    "max_users": {
+                                        "type": "integer",
+                                        "example": 5
+                                    },
+                                    "max_agents": {
+                                        "type": "integer",
+                                        "example": 10
+                                    },
+                                    "storage_gb": {
+                                        "type": "integer",
+                                        "example": 100
+                                    },
+                                    "trial_days": {
+                                        "type": "integer",
+                                        "example": 14
+                                    },
+                                    "features": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "limits": {
+                                        "type": "object"
+                                    },
+                                    "description": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Plan created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/admin/subscription-plans/{id}": {
+            "put": {
+                "tags": [
+                    "Admin - Subscription Plans"
+                ],
+                "summary": "Update subscription plan",
+                "description": "Update an existing subscription plan",
+                "operationId": "027105320b18398fdbcea15795e5739c",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Plan ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "price_monthly": {
+                                        "type": "number",
+                                        "format": "float"
+                                    },
+                                    "price_annual": {
+                                        "type": "number",
+                                        "format": "float"
+                                    },
+                                    "max_users": {
+                                        "type": "integer"
+                                    },
+                                    "max_agents": {
+                                        "type": "integer"
+                                    },
+                                    "storage_gb": {
+                                        "type": "integer"
+                                    },
+                                    "trial_days": {
+                                        "type": "integer"
+                                    },
+                                    "features": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "limits": {
+                                        "type": "object"
+                                    },
+                                    "description": {
+                                        "type": "string"
+                                    },
+                                    "is_active": {
+                                        "type": "boolean"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Plan updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Plan not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Admin - Subscription Plans"
+                ],
+                "summary": "Delete subscription plan",
+                "description": "Delete a subscription plan (only if no active subscriptions)",
+                "operationId": "8110edb176c5985bc8cdbc07a0074002",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Plan ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Plan deleted successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Plan has active subscriptions"
+                    },
+                    "404": {
+                        "description": "Plan not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/admin/agents": {
+            "get": {
+                "tags": [
+                    "Admin - Agents"
+                ],
+                "summary": "List all agents",
+                "description": "Get a paginated list of all agents with filters",
+                "operationId": "90c9fb8adf67ddd76160438469499807",
+                "parameters": [
+                    {
+                        "name": "category",
+                        "in": "query",
+                        "description": "Filter by category",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "active",
+                        "in": "query",
+                        "description": "Filter by active status",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "true",
+                                "false"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "marketplace",
+                        "in": "query",
+                        "description": "Filter by marketplace status",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "true",
+                                "false"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Agents retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/PaginatedResponse"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Admin - Agents"
+                ],
+                "summary": "Create new agent",
+                "description": "Create a new agent in the system",
+                "operationId": "0a27d1009fb46a1afc722646c49c312b",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "slug",
+                                    "category",
+                                    "price_model"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Data Analyzer"
+                                    },
+                                    "slug": {
+                                        "type": "string",
+                                        "example": "data-analyzer"
+                                    },
+                                    "category": {
+                                        "type": "string",
+                                        "example": "analytics"
+                                    },
+                                    "description": {
+                                        "type": "string"
+                                    },
+                                    "long_description": {
+                                        "type": "string"
+                                    },
+                                    "icon_url": {
+                                        "type": "string",
+                                        "format": "url"
+                                    },
+                                    "banner_url": {
+                                        "type": "string",
+                                        "format": "url"
+                                    },
+                                    "capabilities": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "supported_languages": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "price_model": {
+                                        "type": "string",
+                                        "enum": [
+                                            "free",
+                                            "one_time",
+                                            "subscription",
+                                            "usage_based"
+                                        ]
+                                    },
+                                    "base_price": {
+                                        "type": "number"
+                                    },
+                                    "monthly_price": {
+                                        "type": "number"
+                                    },
+                                    "annual_price": {
+                                        "type": "number"
+                                    },
+                                    "is_marketplace": {
+                                        "type": "boolean"
+                                    },
+                                    "is_featured": {
+                                        "type": "boolean"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Agent created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
             }
         },
         "/api/v1/admin/agents/{id}": {
@@ -222,6 +925,168 @@
                                         },
                                         "data": {
                                             "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Agent not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Admin - Agents"
+                ],
+                "summary": "Update agent",
+                "description": "Update an existing agent",
+                "operationId": "c4098cd8a09dc917112b0a7861b28c10",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Agent ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "description": {
+                                        "type": "string"
+                                    },
+                                    "long_description": {
+                                        "type": "string"
+                                    },
+                                    "icon_url": {
+                                        "type": "string",
+                                        "format": "url"
+                                    },
+                                    "banner_url": {
+                                        "type": "string",
+                                        "format": "url"
+                                    },
+                                    "capabilities": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "price_model": {
+                                        "type": "string",
+                                        "enum": [
+                                            "free",
+                                            "one_time",
+                                            "subscription",
+                                            "usage_based"
+                                        ]
+                                    },
+                                    "base_price": {
+                                        "type": "number"
+                                    },
+                                    "monthly_price": {
+                                        "type": "number"
+                                    },
+                                    "annual_price": {
+                                        "type": "number"
+                                    },
+                                    "is_active": {
+                                        "type": "boolean"
+                                    },
+                                    "is_featured": {
+                                        "type": "boolean"
+                                    },
+                                    "is_marketplace": {
+                                        "type": "boolean"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Agent updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Agent not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Admin - Agents"
+                ],
+                "summary": "Delete agent",
+                "description": "Soft delete an agent",
+                "operationId": "36a52acb30c0af72c96f8304853722ea",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Agent ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Agent deleted successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string"
                                         }
                                     },
                                     "type": "object"
@@ -361,6 +1226,328 @@
                                 }
                             }
                         }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/admin/analytics/overview": {
+            "get": {
+                "tags": [
+                    "Admin - Analytics"
+                ],
+                "summary": "Get analytics overview",
+                "description": "Get overall platform statistics and metrics",
+                "operationId": "eeacb8b3a7dd2c232e6ec941ee6a2c2e",
+                "responses": {
+                    "200": {
+                        "description": "Analytics retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "total_tenants": {
+                                                    "type": "integer"
+                                                },
+                                                "active_tenants": {
+                                                    "type": "integer"
+                                                },
+                                                "total_users": {
+                                                    "type": "integer"
+                                                },
+                                                "total_subscriptions": {
+                                                    "type": "integer"
+                                                },
+                                                "total_revenue_monthly": {
+                                                    "type": "number"
+                                                },
+                                                "total_agents": {
+                                                    "type": "integer"
+                                                },
+                                                "active_agents": {
+                                                    "type": "integer"
+                                                },
+                                                "featured_agents": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/admin/analytics/revenue": {
+            "get": {
+                "tags": [
+                    "Admin - Analytics"
+                ],
+                "summary": "Get revenue analytics",
+                "description": "Get revenue breakdown by period",
+                "operationId": "a491c935dc9b4ee5764b0ab709f8ddbe",
+                "parameters": [
+                    {
+                        "name": "period",
+                        "in": "query",
+                        "description": "Time period for analytics",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "default": "month",
+                            "enum": [
+                                "day",
+                                "week",
+                                "month",
+                                "year"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Revenue analytics retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "summary": {
+                                                    "properties": {
+                                                        "total_revenue": {
+                                                            "type": "number"
+                                                        },
+                                                        "total_invoices": {
+                                                            "type": "integer"
+                                                        },
+                                                        "average_invoice": {
+                                                            "type": "number"
+                                                        },
+                                                        "period": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                },
+                                                "daily_breakdown": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/admin/analytics/agents": {
+            "get": {
+                "tags": [
+                    "Admin - Analytics"
+                ],
+                "summary": "Get agent analytics",
+                "description": "Get agent statistics by category and top agents",
+                "operationId": "4367c4f6e8d998d98e05b77e669901a4",
+                "responses": {
+                    "200": {
+                        "description": "Agent analytics retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "by_category": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "top_agents": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/admin/activity-logs": {
+            "get": {
+                "tags": [
+                    "Admin - Audit Logs"
+                ],
+                "summary": "Get activity logs",
+                "description": "Get paginated list of platform activity logs",
+                "operationId": "41cfa46dbbb2111e24af9e9306ad17ed",
+                "parameters": [
+                    {
+                        "name": "user_id",
+                        "in": "query",
+                        "description": "Filter by user ID",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "action",
+                        "in": "query",
+                        "description": "Filter by action type",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Activity logs retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/PaginatedResponse"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/admin/impersonation-logs": {
+            "get": {
+                "tags": [
+                    "Admin - Audit Logs"
+                ],
+                "summary": "Get impersonation logs",
+                "description": "Get paginated list of impersonation activity",
+                "operationId": "1b69b6a458643148402018b373c06083",
+                "responses": {
+                    "200": {
+                        "description": "Impersonation logs retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/PaginatedResponse"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/admin/permissions": {
+            "get": {
+                "tags": [
+                    "Admin - Permissions & Roles"
+                ],
+                "summary": "List all console permissions",
+                "operationId": "91b46e2c50298cc9c4d01900a2837b96",
+                "responses": {
+                    "200": {
+                        "description": "List of console permissions"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/admin/roles": {
+            "get": {
+                "tags": [
+                    "Admin - Permissions & Roles"
+                ],
+                "summary": "List all console roles",
+                "operationId": "fc47e3620ff85aed2e19661d74402c6a",
+                "responses": {
+                    "200": {
+                        "description": "List of console roles"
                     }
                 },
                 "security": [
@@ -1206,6 +2393,187 @@
                     },
                     "404": {
                         "description": "Agent run not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/admin/tenants/{tenantId}/impersonations/start": {
+            "post": {
+                "tags": [
+                    "Admin - Impersonation"
+                ],
+                "summary": "Start impersonating a tenant",
+                "operationId": "be6feec261f5373ff2d4216c3edff95e",
+                "parameters": [
+                    {
+                        "name": "tenantId",
+                        "in": "path",
+                        "description": "Tenant ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "reason": {
+                                        "type": "string",
+                                        "example": "Support ticket #12345"
+                                    },
+                                    "ttl_minutes": {
+                                        "type": "integer",
+                                        "example": 30
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Impersonation started successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Impersonation started successfully"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "impersonation_id": {
+                                                    "type": "integer"
+                                                },
+                                                "token": {
+                                                    "type": "string"
+                                                },
+                                                "expires_at": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/admin/impersonations/{id}/end": {
+            "post": {
+                "tags": [
+                    "Admin - Impersonation"
+                ],
+                "summary": "End an active impersonation session",
+                "operationId": "d66f5eab2aa8902a1518f1cc33219fe0",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Impersonation Log ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Impersonation ended successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/admin/impersonations": {
+            "get": {
+                "tags": [
+                    "Admin - Impersonation"
+                ],
+                "summary": "List impersonation sessions",
+                "operationId": "ff16915a47915a4f1d2046924f38bdf6",
+                "parameters": [
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Filter by status: active, ended, expired",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "tenant_id",
+                        "in": "query",
+                        "description": "Filter by tenant ID",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of impersonation sessions"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/admin/impersonations/{id}": {
+            "get": {
+                "tags": [
+                    "Admin - Impersonation"
+                ],
+                "summary": "Get impersonation session details",
+                "operationId": "b07c326b379a6957a51780637f9d99e2",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Impersonation Log ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Impersonation session details"
                     }
                 },
                 "security": [
@@ -2129,13 +3497,159 @@
             }
         },
         "/api/v1/admin/tenants": {
+            "get": {
+                "tags": [
+                    "Admin - Tenants"
+                ],
+                "summary": "List all tenants with filtering and pagination",
+                "description": "Get a paginated list of all tenants with advanced filtering options",
+                "operationId": "1b118a4d7021f8cc1e6ac7fb59cc6a05",
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Search by name, email, or subdomain",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Filter by status",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "active",
+                                "inactive",
+                                "pending_verification",
+                                "suspended"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "type",
+                        "in": "query",
+                        "description": "Filter by type",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "organization",
+                                "personal"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "plan_id",
+                        "in": "query",
+                        "description": "Filter by subscription plan ID",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "has_subscription",
+                        "in": "query",
+                        "description": "Filter by subscription status",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "true",
+                                "false"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "sort_by",
+                        "in": "query",
+                        "description": "Sort by field",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "default": "created_at",
+                            "enum": [
+                                "created_at",
+                                "name",
+                                "email",
+                                "type",
+                                "status"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "sort_order",
+                        "in": "query",
+                        "description": "Sort order",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "default": "desc",
+                            "enum": [
+                                "asc",
+                                "desc"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Items per page",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 20,
+                            "maximum": 100,
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Page number",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 1,
+                            "minimum": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Tenants retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PaginatedResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
             "post": {
                 "tags": [
                     "Admin - Tenants"
                 ],
-                "summary": "Create new tenant",
-                "description": "Create a new tenant with optional subscription",
-                "operationId": "adminCreateTenant",
+                "summary": "Create a new tenant",
+                "operationId": "293491f4c1fe235568df91210aa72a8f",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -2143,39 +3657,76 @@
                             "schema": {
                                 "required": [
                                     "name",
-                                    "email",
+                                    "subdomain_preference",
                                     "type"
                                 ],
                                 "properties": {
                                     "name": {
                                         "type": "string",
-                                        "example": "Acme Corp"
+                                        "example": "Acme Corporation"
                                     },
-                                    "email": {
+                                    "short_name": {
                                         "type": "string",
-                                        "example": "admin@acme.com"
-                                    },
-                                    "type": {
-                                        "type": "string",
-                                        "enum": [
-                                            "personal",
-                                            "organization"
-                                        ]
+                                        "example": "Acme"
                                     },
                                     "subdomain_preference": {
                                         "type": "string",
                                         "example": "acme"
                                     },
-                                    "plan_id": {
+                                    "domain": {
                                         "type": "string",
-                                        "format": "uuid"
+                                        "example": "acme.com",
+                                        "nullable": true
                                     },
-                                    "billing_cycle": {
+                                    "type": {
                                         "type": "string",
                                         "enum": [
-                                            "monthly",
-                                            "annual"
+                                            "organization",
+                                            "personal"
+                                        ],
+                                        "example": "organization"
+                                    },
+                                    "status": {
+                                        "type": "string",
+                                        "default": "active",
+                                        "enum": [
+                                            "active",
+                                            "pending_verification"
                                         ]
+                                    },
+                                    "plan_id": {
+                                        "type": "string",
+                                        "format": "uuid",
+                                        "nullable": true
+                                    },
+                                    "trial_ends_at": {
+                                        "type": "string",
+                                        "format": "date-time",
+                                        "nullable": true
+                                    },
+                                    "organization_id": {
+                                        "type": "string",
+                                        "format": "uuid",
+                                        "nullable": true
+                                    },
+                                    "data": {
+                                        "properties": {
+                                            "owner_email": {
+                                                "type": "string",
+                                                "format": "email"
+                                            },
+                                            "owner_name": {
+                                                "type": "string"
+                                            },
+                                            "phone": {
+                                                "type": "string"
+                                            },
+                                            "industry": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "type": "object",
+                                        "nullable": true
                                     }
                                 },
                                 "type": "object"
@@ -2189,22 +3740,19 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean",
-                                            "example": true
-                                        },
-                                        "message": {
-                                            "type": "string"
-                                        },
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
+                                    "$ref": "#/components/schemas/SuccessResponse"
                                 }
                             }
                         }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Forbidden"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationError"
                     }
                 },
                 "security": [
@@ -2215,17 +3763,62 @@
             }
         },
         "/api/v1/admin/tenants/{id}": {
-            "put": {
+            "get": {
                 "tags": [
                     "Admin - Tenants"
                 ],
-                "summary": "Update tenant",
-                "description": "Update tenant information",
-                "operationId": "adminUpdateTenant",
+                "summary": "Get detailed information about a specific tenant",
+                "operationId": "ec27f6e4898a7884d641753468719ee2",
                 "parameters": [
                     {
                         "name": "id",
                         "in": "path",
+                        "description": "Tenant ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Tenant details retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Forbidden"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Admin - Tenants"
+                ],
+                "summary": "Update tenant information",
+                "operationId": "71747f6d694e055d84162ba7c6654daa",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Tenant ID",
                         "required": true,
                         "schema": {
                             "type": "string",
@@ -2234,6 +3827,7 @@
                     }
                 ],
                 "requestBody": {
+                    "required": true,
                     "content": {
                         "application/json": {
                             "schema": {
@@ -2241,18 +3835,31 @@
                                     "name": {
                                         "type": "string"
                                     },
-                                    "email": {
+                                    "short_name": {
                                         "type": "string"
+                                    },
+                                    "subdomain_preference": {
+                                        "type": "string"
+                                    },
+                                    "domain": {
+                                        "type": "string",
+                                        "nullable": true
                                     },
                                     "type": {
                                         "type": "string",
                                         "enum": [
-                                            "personal",
-                                            "organization"
+                                            "organization",
+                                            "personal"
                                         ]
                                     },
-                                    "subdomain_preference": {
-                                        "type": "string"
+                                    "organization_id": {
+                                        "type": "string",
+                                        "format": "uuid",
+                                        "nullable": true
+                                    },
+                                    "data": {
+                                        "type": "object",
+                                        "nullable": true
                                     }
                                 },
                                 "type": "object"
@@ -2266,6 +3873,394 @@
                         "content": {
                             "application/json": {
                                 "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Forbidden"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationError"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Admin - Tenants"
+                ],
+                "summary": "Delete a tenant",
+                "operationId": "251b23c690305b0bae30e5e5b0b18569",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Tenant ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "force",
+                        "in": "query",
+                        "description": "Force permanent deletion",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "default": false
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Tenant deleted successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Forbidden"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/admin/tenants/{id}/status": {
+            "put": {
+                "tags": [
+                    "Admin - Tenants"
+                ],
+                "summary": "Update tenant status",
+                "operationId": "dc61dbae8cb27a15c506837dcc52f2fc",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Tenant ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "status"
+                                ],
+                                "properties": {
+                                    "status": {
+                                        "type": "string",
+                                        "enum": [
+                                            "active",
+                                            "inactive",
+                                            "suspended",
+                                            "pending_verification"
+                                        ]
+                                    },
+                                    "reason": {
+                                        "description": "Reason for status change",
+                                        "type": "string",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Status updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Forbidden"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationError"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/admin/tenants/{id}/subscription": {
+            "put": {
+                "tags": [
+                    "Admin - Tenants"
+                ],
+                "summary": "Change tenant subscription plan",
+                "operationId": "98d3e2b025f896f74e7101ecad1f8ee6",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Tenant ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "plan_id"
+                                ],
+                                "properties": {
+                                    "plan_id": {
+                                        "type": "string",
+                                        "format": "uuid"
+                                    },
+                                    "effective_date": {
+                                        "type": "string",
+                                        "format": "date-time",
+                                        "nullable": true
+                                    },
+                                    "prorate": {
+                                        "type": "boolean",
+                                        "default": true
+                                    },
+                                    "trial_ends_at": {
+                                        "type": "string",
+                                        "format": "date-time",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Subscription changed successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Forbidden"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationError"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/admin/tenants/{id}/subscription-history": {
+            "get": {
+                "tags": [
+                    "Admin - Tenants"
+                ],
+                "summary": "Get tenant subscription history",
+                "operationId": "6494047c07f834d5250729a88e691e21",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Tenant ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Subscription history retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "string",
+                                                        "format": "uuid"
+                                                    },
+                                                    "tenant_id": {
+                                                        "type": "string",
+                                                        "format": "uuid"
+                                                    },
+                                                    "plan_id": {
+                                                        "type": "string",
+                                                        "format": "uuid"
+                                                    },
+                                                    "status": {
+                                                        "type": "string",
+                                                        "enum": [
+                                                            "active",
+                                                            "cancelled",
+                                                            "expired"
+                                                        ]
+                                                    },
+                                                    "started_at": {
+                                                        "type": "string",
+                                                        "format": "date-time"
+                                                    },
+                                                    "ended_at": {
+                                                        "type": "string",
+                                                        "format": "date-time",
+                                                        "nullable": true
+                                                    },
+                                                    "cancelled_at": {
+                                                        "type": "string",
+                                                        "format": "date-time",
+                                                        "nullable": true
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Forbidden"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/admin/tenants/{id}/extend-trial": {
+            "post": {
+                "tags": [
+                    "Admin - Tenants"
+                ],
+                "summary": "Extend tenant trial period",
+                "operationId": "943a1cb020039cca202b5c0eac2daa43",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Tenant ID",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "days"
+                                ],
+                                "properties": {
+                                    "days": {
+                                        "description": "Number of days to extend",
+                                        "type": "integer",
+                                        "minimum": 1,
+                                        "example": 14
+                                    },
+                                    "reason": {
+                                        "description": "Reason for extension",
+                                        "type": "string",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Trial extended successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
                                     "properties": {
                                         "success": {
                                             "type": "boolean",
@@ -2275,6 +4270,16 @@
                                             "type": "string"
                                         },
                                         "data": {
+                                            "properties": {
+                                                "old_trial_end": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                },
+                                                "new_trial_end": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                }
+                                            },
                                             "type": "object"
                                         }
                                     },
@@ -2282,6 +4287,95 @@
                                 }
                             }
                         }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationError"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/admin/tenants/statistics": {
+            "get": {
+                "tags": [
+                    "Admin - Tenants"
+                ],
+                "summary": "Get tenant statistics and metrics",
+                "description": "Retrieve comprehensive tenant statistics including counts by status, type, and plan",
+                "operationId": "f9c5aa20a6a252f418398fcb7f6cd33b",
+                "responses": {
+                    "200": {
+                        "description": "Statistics retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "total_tenants": {
+                                                    "type": "integer",
+                                                    "example": 1234
+                                                },
+                                                "by_type": {
+                                                    "properties": {
+                                                        "personal": {
+                                                            "type": "integer",
+                                                            "example": 456
+                                                        },
+                                                        "organization": {
+                                                            "type": "integer",
+                                                            "example": 778
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                },
+                                                "by_status": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "properties": {
+                                                            "status": {
+                                                                "type": "string",
+                                                                "example": "active"
+                                                            },
+                                                            "count": {
+                                                                "type": "integer",
+                                                                "example": 1156
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Forbidden"
                     }
                 },
                 "security": [
@@ -2296,13 +4390,13 @@
                 "tags": [
                     "Admin - Tenants"
                 ],
-                "summary": "Deactivate tenant",
-                "description": "Deactivate a tenant and cancel their subscriptions",
-                "operationId": "adminDeactivateTenant",
+                "summary": "Deactivate a tenant",
+                "operationId": "e61c6de401c47ffb3b065ecf3b7246f0",
                 "parameters": [
                     {
                         "name": "id",
                         "in": "path",
+                        "description": "Tenant ID",
                         "required": true,
                         "schema": {
                             "type": "string",
@@ -2317,7 +4411,7 @@
                                 "properties": {
                                     "reason": {
                                         "type": "string",
-                                        "example": "Non-payment"
+                                        "nullable": true
                                     }
                                 },
                                 "type": "object"
@@ -2331,22 +4425,19 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean",
-                                            "example": true
-                                        },
-                                        "message": {
-                                            "type": "string"
-                                        },
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
+                                    "$ref": "#/components/schemas/SuccessResponse"
                                 }
                             }
                         }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Forbidden"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
                     }
                 },
                 "security": [
@@ -2361,13 +4452,13 @@
                 "tags": [
                     "Admin - Tenants"
                 ],
-                "summary": "Reactivate tenant",
-                "description": "Reactivate a previously deactivated tenant",
-                "operationId": "adminReactivateTenant",
+                "summary": "Reactivate a deactivated tenant",
+                "operationId": "9e3fed12297d55c42910a6a62f03da9a",
                 "parameters": [
                     {
                         "name": "id",
                         "in": "path",
+                        "description": "Tenant ID",
                         "required": true,
                         "schema": {
                             "type": "string",
@@ -2375,43 +4466,25 @@
                         }
                     }
                 ],
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "properties": {
-                                    "reason": {
-                                        "type": "string",
-                                        "example": "Payment received"
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
                 "responses": {
                     "200": {
                         "description": "Tenant reactivated successfully",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean",
-                                            "example": true
-                                        },
-                                        "message": {
-                                            "type": "string"
-                                        },
-                                        "data": {
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
+                                    "$ref": "#/components/schemas/SuccessResponse"
                                 }
                             }
                         }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Forbidden"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
                     }
                 },
                 "security": [
@@ -5440,6 +7513,478 @@
                 ]
             }
         },
+        "/api/v1/tenant/memberships": {
+            "get": {
+                "tags": [
+                    "Tenant - Memberships"
+                ],
+                "summary": "List all members of current tenant",
+                "operationId": "3acef479409c60ed26376f8cadade522",
+                "parameters": [
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Filter by status (active, invited, suspended, left)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "active",
+                                "invited",
+                                "suspended",
+                                "left"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of members"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/tenant/memberships/invite": {
+            "post": {
+                "tags": [
+                    "Tenant - Memberships"
+                ],
+                "summary": "Invite a user to join the tenant",
+                "operationId": "8cc1ae65140ca3cd662d5d15f872c066",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "user@example.com"
+                                    },
+                                    "name": {
+                                        "type": "string",
+                                        "example": "John Doe"
+                                    },
+                                    "phone": {
+                                        "type": "string",
+                                        "example": "+1234567890"
+                                    },
+                                    "metadata": {
+                                        "type": "object",
+                                        "example": {
+                                            "department": "Engineering"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "User invited successfully"
+                    },
+                    "400": {
+                        "description": "Validation error or user already member"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/tenant/memberships/{userId}/activate": {
+            "post": {
+                "tags": [
+                    "Tenant - Memberships"
+                ],
+                "summary": "Activate an invited user",
+                "operationId": "caa3d9c2a919133803cdf6f1d333499e",
+                "parameters": [
+                    {
+                        "name": "userId",
+                        "in": "path",
+                        "description": "User ID to activate",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User activated successfully"
+                    },
+                    "400": {
+                        "description": "User not found or not in invited status"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/tenant/memberships/{userId}/suspend": {
+            "post": {
+                "tags": [
+                    "Tenant - Memberships"
+                ],
+                "summary": "Suspend a member",
+                "operationId": "2c181d09b4efde61d169d12f4cc73060",
+                "parameters": [
+                    {
+                        "name": "userId",
+                        "in": "path",
+                        "description": "User ID to suspend",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "reason": {
+                                        "type": "string",
+                                        "example": "Violation of terms"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "User suspended successfully"
+                    },
+                    "404": {
+                        "description": "Membership not found"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/tenant/memberships/{userId}/reactivate": {
+            "post": {
+                "tags": [
+                    "Tenant - Memberships"
+                ],
+                "summary": "Reactivate a suspended member",
+                "operationId": "50b3ada5f8024598cb164d95a8bc3d73",
+                "parameters": [
+                    {
+                        "name": "userId",
+                        "in": "path",
+                        "description": "User ID to reactivate",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User reactivated successfully"
+                    },
+                    "404": {
+                        "description": "Membership not found"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/tenant/memberships/{userId}": {
+            "delete": {
+                "tags": [
+                    "Tenant - Memberships"
+                ],
+                "summary": "Remove a member from tenant",
+                "operationId": "743769ec6823978fa440c39ca9b723b2",
+                "parameters": [
+                    {
+                        "name": "userId",
+                        "in": "path",
+                        "description": "User ID to remove",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User removed successfully"
+                    },
+                    "404": {
+                        "description": "Membership not found"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/tenant/roles": {
+            "get": {
+                "tags": [
+                    "Tenant - Roles"
+                ],
+                "summary": "List all roles for current tenant",
+                "operationId": "7b278c7bd6a83cfbbe38adde071c36b9",
+                "responses": {
+                    "200": {
+                        "description": "List of tenant roles"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Tenant - Roles"
+                ],
+                "summary": "Create a new role for current tenant",
+                "operationId": "83bd6e2421c39a793270d28c1fba72aa",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "permissions"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Project Manager"
+                                    },
+                                    "permissions": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        },
+                                        "example": [
+                                            "tenant.projects.view",
+                                            "tenant.projects.create"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Role created successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/tenant/roles/{id}": {
+            "get": {
+                "tags": [
+                    "Tenant - Roles"
+                ],
+                "summary": "Get role details",
+                "operationId": "e228e616324f2281adc7e67cc6f5f41a",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Role ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Role details"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Tenant - Roles"
+                ],
+                "summary": "Update role",
+                "operationId": "a7496c6f57d874c1253e30d70cb03bbb",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Role ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Senior Project Manager"
+                                    },
+                                    "permissions": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Role updated successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Tenant - Roles"
+                ],
+                "summary": "Delete role",
+                "operationId": "a972a9847ba67aca97fac28b48836929",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Role ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Role deleted successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/tenant/permissions": {
+            "get": {
+                "tags": [
+                    "Tenant - Roles"
+                ],
+                "summary": "List available permissions for tenant",
+                "operationId": "2f397c655df3320e49b6b3cbf0aefbd7",
+                "responses": {
+                    "200": {
+                        "description": "List of available permissions"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/v1/activities": {
             "get": {
                 "tags": [
@@ -6062,6 +8607,10 @@
             "description": "System admin: Subscription instance management"
         },
         {
+            "name": "Tenant - Memberships",
+            "description": "Tenant user membership management (invite, activate, suspend, remove)"
+        },
+        {
             "name": "Authentication",
             "description": "Public authentication endpoints"
         },
@@ -6082,6 +8631,10 @@
             "description": "System admin: Global agent management"
         },
         {
+            "name": "Admin - Analytics",
+            "description": "System admin: Analytics and reports"
+        },
+        {
             "name": "Tenant - Agents",
             "description": "Tenant dashboard: Installed agent management"
         },
@@ -6092,6 +8645,26 @@
         {
             "name": "Webhooks",
             "description": "External callback endpoints"
+        },
+        {
+            "name": "Admin - Subscription Plans",
+            "description": "System admin: Subscription plan management"
+        },
+        {
+            "name": "Tenant - Roles",
+            "description": "Tenant dashboard: Role management"
+        },
+        {
+            "name": "Admin - Audit Logs",
+            "description": "Admin - Audit Logs"
+        },
+        {
+            "name": "Admin - Permissions & Roles",
+            "description": "Admin - Permissions & Roles"
+        },
+        {
+            "name": "Admin - Impersonation",
+            "description": "Admin - Impersonation"
         },
         {
             "name": "Dashboard",

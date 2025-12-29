@@ -172,7 +172,27 @@ class TenantManagementController extends Controller
     }
 
     /**
-     * Get detailed information about a specific tenant.
+     * @OA\Get(
+     *     path="/api/v1/admin/tenants/{id}",
+     *     summary="Get detailed information about a specific tenant",
+     *     tags={"Admin - Tenants"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="Tenant ID",
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Tenant details retrieved successfully",
+     *         @OA\JsonContent(ref="#/components/schemas/SuccessResponse")
+     *     ),
+     *     @OA\Response(response=401, ref="#/components/responses/Unauthorized"),
+     *     @OA\Response(response=403, ref="#/components/responses/Forbidden"),
+     *     @OA\Response(response=404, ref="#/components/responses/NotFound")
+     * )
      */
     public function show(string $id): JsonResponse
     {
@@ -203,7 +223,40 @@ class TenantManagementController extends Controller
     }
 
     /**
-     * Update tenant status.
+     * @OA\Put(
+     *     path="/api/v1/admin/tenants/{id}/status",
+     *     summary="Update tenant status",
+     *     tags={"Admin - Tenants"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="Tenant ID",
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"status"},
+     *             @OA\Property(
+     *                 property="status",
+     *                 type="string",
+     *                 enum={"active", "inactive", "suspended", "pending_verification"}
+     *             ),
+     *             @OA\Property(property="reason", type="string", nullable=true, description="Reason for status change")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Status updated successfully",
+     *         @OA\JsonContent(ref="#/components/schemas/SuccessResponse")
+     *     ),
+     *     @OA\Response(response=401, ref="#/components/responses/Unauthorized"),
+     *     @OA\Response(response=403, ref="#/components/responses/Forbidden"),
+     *     @OA\Response(response=404, ref="#/components/responses/NotFound"),
+     *     @OA\Response(response=422, ref="#/components/responses/ValidationError")
+     * )
      */
     public function updateStatus(Request $request, string $id): JsonResponse
     {
@@ -238,7 +291,38 @@ class TenantManagementController extends Controller
     }
 
     /**
-     * Change tenant's subscription plan.
+     * @OA\Put(
+     *     path="/api/v1/admin/tenants/{id}/subscription",
+     *     summary="Change tenant subscription plan",
+     *     tags={"Admin - Tenants"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="Tenant ID",
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"plan_id"},
+     *             @OA\Property(property="plan_id", type="string", format="uuid"),
+     *             @OA\Property(property="effective_date", type="string", format="date-time", nullable=true),
+     *             @OA\Property(property="prorate", type="boolean", default=true),
+     *             @OA\Property(property="trial_ends_at", type="string", format="date-time", nullable=true)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Subscription changed successfully",
+     *         @OA\JsonContent(ref="#/components/schemas/SuccessResponse")
+     *     ),
+     *     @OA\Response(response=401, ref="#/components/responses/Unauthorized"),
+     *     @OA\Response(response=403, ref="#/components/responses/Forbidden"),
+     *     @OA\Response(response=404, ref="#/components/responses/NotFound"),
+     *     @OA\Response(response=422, ref="#/components/responses/ValidationError")
+     * )
      */
     public function changeSubscription(Request $request, string $id): JsonResponse
     {
@@ -317,7 +401,42 @@ class TenantManagementController extends Controller
     }
 
     /**
-     * Get subscription history for a tenant.
+     * @OA\Get(
+     *     path="/api/v1/admin/tenants/{id}/subscription-history",
+     *     summary="Get tenant subscription history",
+     *     tags={"Admin - Tenants"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="Tenant ID",
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Subscription history retrieved successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="array",
+     *                 @OA\Items(
+     *                     @OA\Property(property="id", type="string", format="uuid"),
+     *                     @OA\Property(property="tenant_id", type="string", format="uuid"),
+     *                     @OA\Property(property="plan_id", type="string", format="uuid"),
+     *                     @OA\Property(property="status", type="string", enum={"active", "cancelled", "expired"}),
+     *                     @OA\Property(property="started_at", type="string", format="date-time"),
+     *                     @OA\Property(property="ended_at", type="string", format="date-time", nullable=true),
+     *                     @OA\Property(property="cancelled_at", type="string", format="date-time", nullable=true)
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=401, ref="#/components/responses/Unauthorized"),
+     *     @OA\Response(response=403, ref="#/components/responses/Forbidden"),
+     *     @OA\Response(response=404, ref="#/components/responses/NotFound")
+     * )
      */
     public function subscriptionHistory(string $id): JsonResponse
     {
@@ -338,7 +457,45 @@ class TenantManagementController extends Controller
     }
 
     /**
-     * Extend tenant's trial period.
+     * @OA\Post(
+     *     path="/api/v1/admin/tenants/{id}/extend-trial",
+     *     summary="Extend tenant trial period",
+     *     tags={"Admin - Tenants"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="Tenant ID",
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"days"},
+     *             @OA\Property(property="days", type="integer", minimum=1, example=14, description="Number of days to extend"),
+     *             @OA\Property(property="reason", type="string", nullable=true, description="Reason for extension")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Trial extended successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string"),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(property="old_trial_end", type="string", format="date-time"),
+     *                 @OA\Property(property="new_trial_end", type="string", format="date-time")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=401, ref="#/components/responses/Unauthorized"),
+     *     @OA\Response(response=403, ref="#/components/responses/Unauthorized"),
+     *     @OA\Response(response=404, ref="#/components/responses/NotFound"),
+     *     @OA\Response(response=422, ref="#/components/responses/ValidationError")
+     * )
      */
     public function extendTrial(Request $request, string $id): JsonResponse
     {
@@ -465,36 +622,43 @@ class TenantManagementController extends Controller
     }
 
     /**
-     * Create a new tenant.
-     *
      * @OA\Post(
      *     path="/api/v1/admin/tenants",
-     *     summary="Create new tenant",
-     *     description="Create a new tenant with optional subscription",
-     *     operationId="adminCreateTenant",
+     *     summary="Create a new tenant",
      *     tags={"Admin - Tenants"},
      *     security={{"bearerAuth":{}}},
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
-     *             required={"name", "email", "type"},
-     *             @OA\Property(property="name", type="string", example="Acme Corp"),
-     *             @OA\Property(property="email", type="string", example="admin@acme.com"),
-     *             @OA\Property(property="type", type="string", enum={"personal", "organization"}),
+     *             required={"name", "subdomain_preference", "type"},
+     *             @OA\Property(property="name", type="string", example="Acme Corporation"),
+     *             @OA\Property(property="short_name", type="string", example="Acme"),
      *             @OA\Property(property="subdomain_preference", type="string", example="acme"),
-     *             @OA\Property(property="plan_id", type="string", format="uuid"),
-     *             @OA\Property(property="billing_cycle", type="string", enum={"monthly", "annual"})
+     *             @OA\Property(property="domain", type="string", nullable=true, example="acme.com"),
+     *             @OA\Property(property="type", type="string", enum={"organization", "personal"}, example="organization"),
+     *             @OA\Property(property="status", type="string", enum={"active", "pending_verification"}, default="active"),
+     *             @OA\Property(property="plan_id", type="string", format="uuid", nullable=true),
+     *             @OA\Property(property="trial_ends_at", type="string", format="date-time", nullable=true),
+     *             @OA\Property(property="organization_id", type="string", format="uuid", nullable=true),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 nullable=true,
+     *                 @OA\Property(property="owner_email", type="string", format="email"),
+     *                 @OA\Property(property="owner_name", type="string"),
+     *                 @OA\Property(property="phone", type="string"),
+     *                 @OA\Property(property="industry", type="string")
+     *             )
      *         )
      *     ),
      *     @OA\Response(
      *         response=201,
      *         description="Tenant created successfully",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(property="message", type="string"),
-     *             @OA\Property(property="data", type="object")
-     *         )
-     *     )
+     *         @OA\JsonContent(ref="#/components/schemas/SuccessResponse")
+     *     ),
+     *     @OA\Response(response=401, ref="#/components/responses/Unauthorized"),
+     *     @OA\Response(response=403, ref="#/components/responses/Forbidden"),
+     *     @OA\Response(response=422, ref="#/components/responses/ValidationError")
      * )
      */
     public function store(Request $request): JsonResponse
@@ -567,33 +731,39 @@ class TenantManagementController extends Controller
     }
 
     /**
-     * Update tenant information.
-     *
      * @OA\Put(
      *     path="/api/v1/admin/tenants/{id}",
-     *     summary="Update tenant",
-     *     description="Update tenant information",
-     *     operationId="adminUpdateTenant",
+     *     summary="Update tenant information",
      *     tags={"Admin - Tenants"},
      *     security={{"bearerAuth":{}}},
-     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string", format="uuid")),
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="Tenant ID",
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
      *     @OA\RequestBody(
+     *         required=true,
      *         @OA\JsonContent(
      *             @OA\Property(property="name", type="string"),
-     *             @OA\Property(property="email", type="string"),
-     *             @OA\Property(property="type", type="string", enum={"personal", "organization"}),
-     *             @OA\Property(property="subdomain_preference", type="string")
+     *             @OA\Property(property="short_name", type="string"),
+     *             @OA\Property(property="subdomain_preference", type="string"),
+     *             @OA\Property(property="domain", type="string", nullable=true),
+     *             @OA\Property(property="type", type="string", enum={"organization", "personal"}),
+     *             @OA\Property(property="organization_id", type="string", format="uuid", nullable=true),
+     *             @OA\Property(property="data", type="object", nullable=true)
      *         )
      *     ),
      *     @OA\Response(
      *         response=200,
      *         description="Tenant updated successfully",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(property="message", type="string"),
-     *             @OA\Property(property="data", type="object")
-     *         )
-     *     )
+     *         @OA\JsonContent(ref="#/components/schemas/SuccessResponse")
+     *     ),
+     *     @OA\Response(response=401, ref="#/components/responses/Unauthorized"),
+     *     @OA\Response(response=403, ref="#/components/responses/Forbidden"),
+     *     @OA\Response(response=404, ref="#/components/responses/NotFound"),
+     *     @OA\Response(response=422, ref="#/components/responses/ValidationError")
      * )
      */
     public function update(Request $request, string $id): JsonResponse
@@ -642,30 +812,31 @@ class TenantManagementController extends Controller
     }
 
     /**
-     * Deactivate a tenant (soft deactivation, not deletion).
-     *
      * @OA\Post(
      *     path="/api/v1/admin/tenants/{id}/deactivate",
-     *     summary="Deactivate tenant",
-     *     description="Deactivate a tenant and cancel their subscriptions",
-     *     operationId="adminDeactivateTenant",
+     *     summary="Deactivate a tenant",
      *     tags={"Admin - Tenants"},
      *     security={{"bearerAuth":{}}},
-     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string", format="uuid")),
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="Tenant ID",
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
      *     @OA\RequestBody(
      *         @OA\JsonContent(
-     *             @OA\Property(property="reason", type="string", example="Non-payment")
+     *             @OA\Property(property="reason", type="string", nullable=true)
      *         )
      *     ),
      *     @OA\Response(
      *         response=200,
      *         description="Tenant deactivated successfully",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(property="message", type="string"),
-     *             @OA\Property(property="data", type="object")
-     *         )
-     *     )
+     *         @OA\JsonContent(ref="#/components/schemas/SuccessResponse")
+     *     ),
+     *     @OA\Response(response=401, ref="#/components/responses/Unauthorized"),
+     *     @OA\Response(response=403, ref="#/components/responses/Forbidden"),
+     *     @OA\Response(response=404, ref="#/components/responses/NotFound")
      * )
      */
     public function deactivate(Request $request, string $id): JsonResponse
@@ -731,30 +902,26 @@ class TenantManagementController extends Controller
     }
 
     /**
-     * Reactivate a deactivated tenant.
-     *
      * @OA\Post(
      *     path="/api/v1/admin/tenants/{id}/reactivate",
-     *     summary="Reactivate tenant",
-     *     description="Reactivate a previously deactivated tenant",
-     *     operationId="adminReactivateTenant",
+     *     summary="Reactivate a deactivated tenant",
      *     tags={"Admin - Tenants"},
      *     security={{"bearerAuth":{}}},
-     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string", format="uuid")),
-     *     @OA\RequestBody(
-     *         @OA\JsonContent(
-     *             @OA\Property(property="reason", type="string", example="Payment received")
-     *         )
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="Tenant ID",
+     *         @OA\Schema(type="string", format="uuid")
      *     ),
      *     @OA\Response(
      *         response=200,
      *         description="Tenant reactivated successfully",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(property="message", type="string"),
-     *             @OA\Property(property="data", type="object")
-     *         )
-     *     )
+     *         @OA\JsonContent(ref="#/components/schemas/SuccessResponse")
+     *     ),
+     *     @OA\Response(response=401, ref="#/components/responses/Unauthorized"),
+     *     @OA\Response(response=403, ref="#/components/responses/Forbidden"),
+     *     @OA\Response(response=404, ref="#/components/responses/NotFound")
      * )
      */
     public function reactivate(Request $request, string $id): JsonResponse
@@ -805,9 +972,36 @@ class TenantManagementController extends Controller
     }
 
     /**
-     * Delete a tenant (hard delete - use with extreme caution).
+     * @OA\Delete(
+     *     path="/api/v1/admin/tenants/{id}",
+     *     summary="Delete a tenant",
+     *     tags={"Admin - Tenants"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="Tenant ID",
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Parameter(
+     *         name="force",
+     *         in="query",
+     *         description="Force permanent deletion",
+     *         required=false,
+     *         @OA\Schema(type="boolean", default=false)
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Tenant deleted successfully",
+     *         @OA\JsonContent(ref="#/components/schemas/SuccessResponse")
+     *     ),
+     *     @OA\Response(response=401, ref="#/components/responses/Unauthorized"),
+     *     @OA\Response(response=403, ref="#/components/responses/Forbidden"),
+     *     @OA\Response(response=404, ref="#/components/responses/NotFound")
+     * )
      */
-    public function destroy(string $id): JsonResponse
+    public function destroy(Request $request, string $id): JsonResponse
     {
         $tenant = Tenant::findOrFail($id);
 
