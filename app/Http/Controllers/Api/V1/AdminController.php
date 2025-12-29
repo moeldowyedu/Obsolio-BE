@@ -718,6 +718,7 @@ class AdminController extends Controller
             ->when($marketplace !== null, function ($query) use ($marketplace) {
                 return $query->where('is_marketplace', $marketplace === 'true');
             })
+            ->with('categories')
             ->withTrashed()
             ->orderBy('created_at', 'desc')
             ->paginate(20);
@@ -991,15 +992,22 @@ class AdminController extends Controller
      */
     public function deleteAgent(string $id): JsonResponse
     {
-        $agent = Agent::findOrFail($id);
+        $agent = Agent::withTrashed()->findOrFail($id);
 
         try {
-            $agent->delete();
+            if ($agent->trashed()) {
+                $agent->forceDelete();
+                $message = 'Agent permanently deleted';
+            } else {
+                $agent->delete();
+                $message = 'Agent soft deleted successfully';
+            }
 
             return response()->json([
                 'success' => true,
-                'message' => 'Agent deleted successfully',
+                'message' => $message,
             ]);
+
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -1467,5 +1475,201 @@ class AdminController extends Controller
                 'error' => $e->getMessage(),
             ], 500);
         }
+    }
+
+    // =========================================================================
+    // AGENT CATEGORY RELATIONSHIP MANAGEMENT
+    // =========================================================================
+
+    /**
+     * Get agent categories.
+     *
+     * @OA\Get(
+     *     path="/api/v1/admin/agents/{id}/categories",
+     *     summary="Get agent categories",
+     *     description="Get all categories assigned to an agent",
+     *     tags={"Admin - Agents"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string", format="uuid")),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Categories retrieved successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="data", type="array", @OA\Items(type="object"))
+     *         )
+     *     )
+     * )
+     */
+    public function getAgentCategories(string $id): JsonResponse
+    {
+        $agent = Agent::withTrashed()->findOrFail($id);
+
+        return response()->json([
+            'success' => true,
+            'data' => $agent->categories,
+        ]);
+    }
+
+    /**
+     * Add categories to agent (Attach).
+     *
+     * @OA\Post(
+     *     path="/api/v1/admin/agents/{id}/categories",
+     *     summary="Add categories to agent",
+     *     description="Attach one or more categories to an agent (preserves existing)",
+     *     tags={"Admin - Agents"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string", format="uuid")),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"categories"},
+     *             @OA\Property(property="categories", type="array", @OA\Items(type="string", format="uuid"))
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Categories added successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string"),
+     *             @OA\Property(property="data", type="array", @OA\Items(type="object"))
+     *         )
+     *     )
+     * )
+     */
+    public function addAgentCategories(Request $request, string $id): JsonResponse
+    {
+        $agent = Agent::withTrashed()->findOrFail($id);
+
+        $request->validate([
+            'categories' => 'required|array',
+            'categories.*' => 'uuid|exists:agent_categories,id',
+        ]);
+
+        $agent->categories()->syncWithoutDetaching($request->categories);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Categories added successfully',
+            'data' => $agent->refresh()->categories,
+        ]);
+    }
+
+    /**
+     * Sync agent categories (Replace).
+     *
+     * @OA\Put(
+     *     path="/api/v1/admin/agents/{id}/categories",
+     *     summary="Sync agent categories",
+     *     description="Replace all categories for an agent",
+     *     tags={"Admin - Agents"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string", format="uuid")),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"categories"},
+     *             @OA\Property(property="categories", type="array", @OA\Items(type="string", format="uuid"))
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Categories synced successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string"),
+     *             @OA\Property(property="data", type="array", @OA\Items(type="object"))
+     *         )
+     *     )
+     * )
+     * @OA\Patch(
+     *     path="/api/v1/admin/agents/{id}/categories",
+     *     summary="Sync agent categories (Alias)",
+     *     description="Alias for PUT - Replace all categories",
+     *     tags={"Admin - Agents"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string", format="uuid")),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"categories"},
+     *             @OA\Property(property="categories", type="array", @OA\Items(type="string", format="uuid"))
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Categories synced successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string"),
+     *             @OA\Property(property="data", type="array", @OA\Items(type="object"))
+     *         )
+     *     )
+     * )
+     */
+    public function syncAgentCategories(Request $request, string $id): JsonResponse
+    {
+        $agent = Agent::withTrashed()->findOrFail($id);
+
+        $request->validate([
+            'categories' => 'required|array',
+            'categories.*' => 'uuid|exists:agent_categories,id',
+        ]);
+
+        $agent->categories()->sync($request->categories);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Categories synced successfully',
+            'data' => $agent->refresh()->categories,
+        ]);
+    }
+
+    /**
+     * Remove categories from agent (Detach).
+     *
+     * @OA\Delete(
+     *     path="/api/v1/admin/agents/{id}/categories",
+     *     summary="Remove categories from agent",
+     *     description="Detach one or more categories from an agent",
+     *     tags={"Admin - Agents"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="string", format="uuid")),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"categories"},
+     *             @OA\Property(property="categories", type="array", @OA\Items(type="string", format="uuid"))
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Categories removed successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string"),
+     *             @OA\Property(property="data", type="array", @OA\Items(type="object"))
+     *         )
+     *     )
+     * )
+     */
+    public function removeAgentCategories(Request $request, string $id): JsonResponse
+    {
+        $agent = Agent::withTrashed()->findOrFail($id);
+
+        $request->validate([
+            'categories' => 'required|array',
+            'categories.*' => 'uuid|exists:agent_categories,id',
+        ]);
+
+        $agent->categories()->detach($request->categories);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Categories removed successfully',
+            'data' => $agent->refresh()->categories,
+        ]);
     }
 }

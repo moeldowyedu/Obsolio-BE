@@ -154,6 +154,13 @@ Route::prefix('v1/admin')->middleware(['jwt.auth', 'system_admin'])->group(funct
         Route::delete('/{id}', [AdminController::class, 'deleteAgent']);
         Route::post('/bulk-activate', [AdminController::class, 'bulkActivateAgents']);
         Route::post('/bulk-deactivate', [AdminController::class, 'bulkDeactivateAgents']);
+
+        // Agent Categories Management (Pivot)
+        Route::get('/{id}/categories', [AdminController::class, 'getAgentCategories']);
+        Route::post('/{id}/categories', [AdminController::class, 'addAgentCategories']);
+        Route::put('/{id}/categories', [AdminController::class, 'syncAgentCategories']);
+        Route::patch('/{id}/categories', [AdminController::class, 'syncAgentCategories']);
+        Route::delete('/{id}/categories', [AdminController::class, 'removeAgentCategories']);
     });
 
     // =========================================================================
