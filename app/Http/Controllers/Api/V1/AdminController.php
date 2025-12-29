@@ -856,6 +856,8 @@ class AdminController extends Controller
                 'data' => $agent,
             ], 201);
         } catch (\Exception $e) {
+            \Log::error('Create Agent Error: ' . $e->getMessage());
+            \Log::error($e->getTraceAsString());
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to create agent',
