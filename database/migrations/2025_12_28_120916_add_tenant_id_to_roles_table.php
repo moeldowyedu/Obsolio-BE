@@ -28,7 +28,14 @@ return new class extends Migration
             $table->index('tenant_id');
         });
 
-        // Step 3: Add new composite unique constraints using partial indexes
+        // Step 3: Update existing roles to console scope FIRST (before constraints)
+        DB::statement("
+            UPDATE roles
+            SET guard_name = 'console'
+            WHERE guard_name NOT IN ('console', 'tenant')
+        ");
+
+        // Step 4: Add new composite unique constraints using partial indexes
         // For tenant roles: unique(tenant_id, name, guard_name) WHERE tenant_id IS NOT NULL
         DB::statement("
             CREATE UNIQUE INDEX roles_tenant_name_guard_unique
@@ -43,7 +50,7 @@ return new class extends Migration
             WHERE tenant_id IS NULL
         ");
 
-        // Step 4: Add check constraint
+        // Step 5: Add check constraint (AFTER data is fixed)
         DB::statement("
             ALTER TABLE roles
             ADD CONSTRAINT roles_guard_tenant_check
@@ -51,13 +58,6 @@ return new class extends Migration
                 (guard_name = 'console' AND tenant_id IS NULL) OR
                 (guard_name = 'tenant' AND tenant_id IS NOT NULL)
             )
-        ");
-
-        // Step 5: Update existing roles to console scope (default)
-        DB::statement("
-            UPDATE roles
-            SET guard_name = 'console'
-            WHERE guard_name = 'api' OR guard_name = 'web'
         ");
     }
 
