@@ -25,7 +25,7 @@ class Agent extends Model
         'description',
         'long_description',
         'icon_url',
-        'banner_url',
+
         'capabilities',
         'supported_languages',
         'price_model',

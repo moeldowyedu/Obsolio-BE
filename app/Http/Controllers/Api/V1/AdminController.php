@@ -708,7 +708,9 @@ class AdminController extends Controller
 
         $agents = Agent::query()
             ->when($category, function ($query, $category) {
-                return $query->where('category', $category);
+                return $query->whereHas('categories', function ($q) use ($category) {
+                    $q->where('slug', $category)->orWhere('id', $category);
+                });
             })
             ->when($active !== null, function ($query) use ($active) {
                 return $query->where('is_active', $active === 'true');
@@ -751,7 +753,7 @@ class AdminController extends Controller
     public function getAgent(string $id): JsonResponse
     {
         $agent = Agent::withTrashed()
-            ->with(['category', 'endpoints'])
+            ->with(['categories', 'endpoints'])
             ->findOrFail($id);
 
         return response()->json([
@@ -775,11 +777,11 @@ class AdminController extends Controller
      *             required={"name", "slug", "category", "price_model"},
      *             @OA\Property(property="name", type="string", example="Data Analyzer"),
      *             @OA\Property(property="slug", type="string", example="data-analyzer"),
-     *             @OA\Property(property="category", type="string", example="analytics"),
+     *             @OA\Property(property="categories", type="array", @OA\Items(type="string", format="uuid")),
      *             @OA\Property(property="description", type="string"),
      *             @OA\Property(property="long_description", type="string"),
      *             @OA\Property(property="icon_url", type="string", format="url"),
-     *             @OA\Property(property="banner_url", type="string", format="url"),
+
      *             @OA\Property(property="capabilities", type="array", @OA\Items(type="string")),
      *             @OA\Property(property="supported_languages", type="array", @OA\Items(type="string")),
      *             @OA\Property(property="price_model", type="string", enum={"free", "one_time", "subscription", "usage_based"}),
@@ -806,11 +808,11 @@ class AdminController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'slug' => 'required|string|unique:agents,slug',
-            'category' => 'required|string|max:100',
+            'categories' => 'required|array|min:1',
+            'categories.*' => 'uuid|exists:agent_categories,id',
             'description' => 'nullable|string',
             'long_description' => 'nullable|string',
             'icon_url' => 'nullable|url',
-            'banner_url' => 'nullable|url',
             'capabilities' => 'nullable|array',
             'supported_languages' => 'nullable|array',
             'price_model' => 'required|in:free,one_time,subscription,usage_based',
@@ -826,11 +828,9 @@ class AdminController extends Controller
                 'id' => Str::uuid(),
                 'name' => $request->name,
                 'slug' => $request->slug,
-                'category' => $request->category,
                 'description' => $request->description,
                 'long_description' => $request->long_description,
                 'icon_url' => $request->icon_url,
-                'banner_url' => $request->banner_url,
                 'capabilities' => $request->capabilities ?? [],
                 'supported_languages' => $request->supported_languages ?? ['en'],
                 'price_model' => $request->price_model,
@@ -843,6 +843,11 @@ class AdminController extends Controller
                 'version' => '1.0.0',
                 'created_by_user_id' => auth()->id(),
             ]);
+
+            // Sync categories
+            if ($request->has('categories')) {
+                $agent->categories()->sync($request->categories);
+            }
 
             return response()->json([
                 'success' => true,
@@ -929,7 +934,6 @@ class AdminController extends Controller
                 'description',
                 'long_description',
                 'icon_url',
-                'banner_url',
                 'capabilities',
                 'price_model',
                 'base_price',
@@ -939,6 +943,10 @@ class AdminController extends Controller
                 'is_featured',
                 'is_marketplace',
             ]));
+
+            if ($request->has('categories')) {
+                $agent->categories()->sync($request->categories);
+            }
 
             return response()->json([
                 'success' => true,

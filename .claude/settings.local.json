@@ -23,7 +23,9 @@
       "Bash(git reset:*)",
       "Bash(gh pr create:*)",
       "Bash(composer dump-autoload:*)",
-      "Bash(powershell -Command \"Get-Content ''C:\\Users\\Moeldowy\\.claude-worktrees\\OBSOLIO-BE\\elated-blackwell\\app\\Http\\Controllers\\Api\\V1\\AdminController.php'' | Measure-Object -Line\")"
+      "Bash(powershell -Command \"Get-Content ''C:\\Users\\Moeldowy\\.claude-worktrees\\OBSOLIO-BE\\elated-blackwell\\app\\Http\\Controllers\\Api\\V1\\AdminController.php'' | Measure-Object -Line\")",
+      "Bash(php -l:*)",
+      "Bash(php -r:*)"
     ]
   }
 }
