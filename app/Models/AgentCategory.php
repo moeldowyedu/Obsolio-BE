@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 use Illuminate\Database\Eloquent\Model;
 
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
  
 
@@ -69,17 +69,11 @@ class AgentCategory extends Model
  
 
     /**
-
      * Get agents in this category.
-
      */
-
-    public function agents(): HasMany
-
+    public function agents()
     {
-
-        return $this->hasMany(Agent::class, 'category_id');
-
+        return $this->belongsToMany(Agent::class, 'agent_category_map', 'category_id', 'agent_id');
     }
 
 }
