@@ -19,6 +19,7 @@ use App\Http\Controllers\Api\V1\AgentExecutionController;
 use App\Http\Controllers\Api\V1\MarketplaceController;
 use App\Http\Controllers\Api\V1\BillingController;
 use App\Http\Controllers\Api\V1\PaymentController;
+use App\Http\Controllers\Api\V1\Tenant\TenantMembershipController;
 
 /*
 |--------------------------------------------------------------------------
@@ -366,6 +367,18 @@ Route::middleware([
         Route::get('/', [UserActivityController::class, 'sessions']);
         Route::get('/active', [UserActivityController::class, 'activeSessions']);
         Route::post('/{id}/terminate', [UserActivityController::class, 'terminateSession']);
+    });
+
+    // =========================================================================
+    // MEMBERSHIPS (Tenant User Management)
+    // =========================================================================
+    Route::prefix('memberships')->group(function () {
+        Route::get('/', [TenantMembershipController::class, 'index']);
+        Route::post('/invite', [TenantMembershipController::class, 'invite']);
+        Route::post('/{userId}/activate', [TenantMembershipController::class, 'activate']);
+        Route::post('/{userId}/suspend', [TenantMembershipController::class, 'suspend']);
+        Route::post('/{userId}/reactivate', [TenantMembershipController::class, 'reactivate']);
+        Route::delete('/{userId}', [TenantMembershipController::class, 'destroy']);
     });
 
     // =========================================================================
