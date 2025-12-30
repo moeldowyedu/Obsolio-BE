@@ -65,6 +65,7 @@ Route::prefix('v1/auth')->group(function () {
     Route::post('/lookup-tenant', [AuthController::class, 'lookupTenant']);
     Route::post('/check-subdomain', [AuthController::class, 'checkSubdomain']);
     Route::get('/tenants/check-availability/{subdomain}', [AuthController::class, 'checkAvailability']);
+    Route::get('/tenants/find-by-subdomain/{subdomain}', [TenantController::class, 'findBySubdomain']);
 
     // Email Verification
     Route::get('/verify-email/{id}/{hash}', [VerificationController::class, 'verify'])
