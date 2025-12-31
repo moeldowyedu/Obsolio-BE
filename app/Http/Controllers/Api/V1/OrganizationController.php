@@ -17,8 +17,6 @@ class OrganizationController extends Controller
 {
     /**
      * Display a listing of organizations.
-     /**
-     * Display a listing of organizations.
      * (Deprecated/Internal Use Only)
      */
     public function index(): AnonymousResourceCollection
@@ -29,14 +27,9 @@ class OrganizationController extends Controller
         return OrganizationResource::collection($organizations);
     }
 
-    /**
-     * Store a newly created organization.
-     */
 
 
-    /**
-     * Display the specified organization.
-     */
+
     /**
      * Display the specified organization.
      * (Deprecated/Internal Use Only)
@@ -50,9 +43,6 @@ class OrganizationController extends Controller
         return new OrganizationResource($organization);
     }
 
-    /**
-     * Update the specified organization.
-     */
     /**
      * Update the specified organization.
      * (Deprecated/Internal Use Only)
@@ -80,9 +70,6 @@ class OrganizationController extends Controller
 
     /**
      * Remove the specified organization.
-     */
-    /**
-     * Remove the specified organization.
      * (Deprecated/Internal Use Only)
      */
     public function destroy(Organization $organization): JsonResponse
@@ -99,83 +86,7 @@ class OrganizationController extends Controller
         return response()->json(null, 204);
     }
 
-    /**
-     * Switch the current organization context.
-     */
-    /**
-     * Switch the current organization context.
-     * (Deprecated/Internal Use Only)
-     */
-    /**
-     * Create the organization for the current tenant.
-     * 
-     * @OA\Post(
-     *     path="/api/v1/tenant/organization",
-     *     summary="Create organization",
-     *     description="Create an organization for the current tenant if one does not already exist.",
-     *     operationId="createCurrentOrganization",
-     *     tags={"Organizations"},
-     *     security={{"bearerAuth":{}}},
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(
-     *             required={"name"},
-     *             @OA\Property(property="name", type="string", example="Acme Corp"),
-     *             @OA\Property(property="short_name", type="string", example="ACME"),
-     *             @OA\Property(property="phone", type="string", example="+1234567890"),
-     *             @OA\Property(property="industry", type="string"),
-     *             @OA\Property(property="company_size", type="string"),
-     *             @OA\Property(property="country", type="string"),
-     *             @OA\Property(property="timezone", type="string"),
-     *             @OA\Property(property="description", type="string"),
-     *             @OA\Property(property="logo_url", type="string", format="uri")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=201,
-     *         description="Organization created successfully",
-     *         @OA\JsonContent(
-     *             type="object",
-     *             @OA\Property(
-     *                 property="data",
-     *                 type="object",
-     *                 @OA\Property(property="id", type="string", format="uuid"),
-     *                 @OA\Property(property="name", type="string"),
-     *                 @OA\Property(property="short_name", type="string"),
-     *                 @OA\Property(property="logo_url", type="string")
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=409,
-     *         description="Organization already exists for this tenant"
-     *     ),
-     *     @OA\Response(response=422, description="Validation error")
-     * )
-     */
-    public function storeCurrent(StoreOrganizationRequest $request): JsonResponse
-    {
-        if (tenant()->organization) {
-            return response()->json([
-                'message' => 'Organization already exists for this tenant.',
-                'code' => 'ORGANIZATION_EXISTS'
-            ], 409);
-        }
 
-        $organization = Organization::create([
-            'tenant_id' => tenant('id'),
-            ...$request->validated(),
-        ]);
-
-        activity()
-            ->performedOn($organization)
-            ->causedBy(auth()->user())
-            ->log('Organization created');
-
-        return (new OrganizationResource($organization))
-            ->response()
-            ->setStatusCode(201);
-    }
 
     /**
      * Get the current tenant's organization details.
