@@ -315,7 +315,6 @@ Route::middleware([
     // =========================================================================
     Route::prefix('organization')->group(function () {
         Route::get('/', [OrganizationController::class, 'showCurrent']);
-        Route::post('/', [OrganizationController::class, 'storeCurrent']);
         Route::put('/', [OrganizationController::class, 'updateCurrent']);
     });
 
