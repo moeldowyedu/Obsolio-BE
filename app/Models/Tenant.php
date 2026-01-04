@@ -195,4 +195,118 @@ class Tenant extends BaseTenant implements TenantWithDatabase
     {
         return $this->type === 'organization';
     }
+
+    // ========================================
+    // PHASE 3 RELATIONSHIPS & METHODS
+    // ========================================
+
+    /**
+     * Agent subscriptions (add-ons)
+     */
+    public function agentSubscriptions()
+    {
+        return $this->hasMany(AgentSubscription::class);
+    }
+
+    /**
+     * Active agent subscriptions
+     */
+    public function activeAgentSubscriptions()
+    {
+        return $this->agentSubscriptions()->active();
+    }
+
+    /**
+     * Usage tracking records
+     */
+    public function usageTracking()
+    {
+        return $this->hasMany(AgentUsageTracking::class);
+    }
+
+    /**
+     * Get current month usage count
+     */
+    public function getCurrentMonthExecutions()
+    {
+        return $this->usageTracking()
+            ->currentMonth()
+            ->count();
+    }
+
+    /**
+     * Get subscribed agents (from add-ons)
+     */
+    public function subscribedAgents()
+    {
+        return $this->belongsToMany(Agent::class, 'agent_subscriptions')
+            ->wherePivot('status', 'active')
+            ->withPivot(['monthly_price', 'current_period_start', 'current_period_end']);
+    }
+
+    /**
+     * Check if tenant has specific agent subscription
+     */
+    public function hasAgentSubscription($agentId)
+    {
+        return $this->agentSubscriptions()
+            ->where('agent_id', $agentId)
+            ->active()
+            ->exists();
+    }
+
+    /**
+     * Get total monthly agent subscription cost
+     */
+    public function getMonthlyAgentCost()
+    {
+        return $this->activeAgentSubscriptions()
+            ->sum('monthly_price');
+    }
+
+    // ========================================
+    // PHASE 4 RELATIONSHIPS & METHODS
+    // ========================================
+
+    /**
+     * Invoices for this tenant
+     */
+    public function invoices()
+    {
+        return $this->hasMany(Invoice::class);
+    }
+
+    /**
+     * Pending invoices
+     */
+    public function pendingInvoices()
+    {
+        return $this->invoices()->pending();
+    }
+
+    /**
+     * Overdue invoices
+     */
+    public function overdueInvoices()
+    {
+        return $this->invoices()->overdue();
+    }
+
+    /**
+     * Get total outstanding balance
+     */
+    public function getOutstandingBalance()
+    {
+        return $this->pendingInvoices()->sum('total_amount');
+    }
+
+    /**
+     * Get most recent invoice
+     */
+    public function getLatestInvoice()
+    {
+        return $this->invoices()
+            ->latest()
+            ->first();
+    }
 }

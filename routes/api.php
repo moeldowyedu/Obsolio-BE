@@ -416,28 +416,81 @@ Route::middleware([
 });
 
 // =============================================================================
-// WEBHOOK ENDPOINTS (External Callbacks)
+// PRICING & BILLING API (Phase 5 - New Pricing Infrastructure)
 // =============================================================================
-Route::prefix('v1/webhooks')->group(function () {
 
-    // Agent Execution Callbacks
-    Route::post('/agents/callback', [AgentExecutionController::class, 'callback']);
+// Public Routes (No Auth)
+Route::prefix('v1/pricing')->group(function () {
+    // Subscription Plans
+    Route::get('/plans', [App\Http\Controllers\Api\SubscriptionController::class, 'plans']);
 
+    // Agent Marketplace (Public Catalog)
+    Route::get('/agents/marketplace', [App\Http\Controllers\Api\AgentMarketplaceController::class, 'publicCatalog']);
 });
 
-// =============================================================================
-// PAYMENT ENDPOINTS
-// =============================================================================
-Route::prefix('v1/payments')->middleware(['jwt.auth', 'smart_tenancy'])->group(function () {
-    Route::post('/subscription', [PaymentController::class, 'createSubscriptionPayment']);
-    Route::post('/refund/{invoice_id}', [PaymentController::class, 'refundPayment']);
-    Route::get('/response', [PaymentController::class, 'paymentResponse']);
-});
+// Paymob Webhook (No Auth - Verified by Signature)
+Route::post('/v1/webhooks/paymob', [App\Http\Controllers\Api\BillingController::class, 'paymobWebhook'])
+    ->name('webhooks.paymob');
+
+// Protected Routes (Require Auth + Tenant Context)
+Route::prefix('v1/pricing')
+    ->middleware(['jwt.auth', 'smart_tenancy'])
+    ->group(function () {
+
+        // =========================================================================
+        // SUBSCRIPTION MANAGEMENT
+        // =========================================================================
+        Route::prefix('subscriptions')->group(function () {
+            Route::get('/current', [App\Http\Controllers\Api\SubscriptionController::class, 'current']);
+            Route::post('/create', [App\Http\Controllers\Api\SubscriptionController::class, 'create']);
+            Route::post('/upgrade', [App\Http\Controllers\Api\SubscriptionController::class, 'upgrade']);
+            Route::post('/cancel', [App\Http\Controllers\Api\SubscriptionController::class, 'cancel']);
+            Route::post('/reactivate', [App\Http\Controllers\Api\SubscriptionController::class, 'reactivate']);
+            Route::get('/history', [App\Http\Controllers\Api\SubscriptionController::class, 'history']);
+        });
+
+        // =========================================================================
+        // AGENT MARKETPLACE
+        // =========================================================================
+        Route::prefix('agents')->group(function () {
+            Route::get('/marketplace', [App\Http\Controllers\Api\AgentMarketplaceController::class, 'index']);
+            Route::get('/marketplace/{agent}', [App\Http\Controllers\Api\AgentMarketplaceController::class, 'show']);
+            Route::post('/subscribe/{agent}', [App\Http\Controllers\Api\AgentMarketplaceController::class, 'subscribe']);
+            Route::post('/unsubscribe/{agent}', [App\Http\Controllers\Api\AgentMarketplaceController::class, 'unsubscribe']);
+            Route::get('/my-agents', [App\Http\Controllers\Api\AgentMarketplaceController::class, 'myAgents']);
+            Route::get('/available-slots', [App\Http\Controllers\Api\AgentMarketplaceController::class, 'availableSlots']);
+            Route::post('/can-add/{agent}', [App\Http\Controllers\Api\AgentMarketplaceController::class, 'canAddAgent']);
+        });
+
+        // =========================================================================
+        // BILLING & INVOICES
+        // =========================================================================
+        Route::prefix('billing')->group(function () {
+            Route::get('/invoices', [App\Http\Controllers\Api\BillingController::class, 'invoices']);
+            Route::get('/invoices/{invoice}', [App\Http\Controllers\Api\BillingController::class, 'invoice']);
+            Route::get('/invoices/{invoice}/download', [App\Http\Controllers\Api\BillingController::class, 'downloadInvoice']);
+            Route::get('/upcoming', [App\Http\Controllers\Api\BillingController::class, 'upcomingInvoice']);
+            Route::post('/payment-method', [App\Http\Controllers\Api\BillingController::class, 'updatePaymentMethod']);
+            Route::post('/invoices/{invoice}/retry', [App\Http\Controllers\Api\BillingController::class, 'retryPayment']);
+        });
+
+        // =========================================================================
+        // USAGE TRACKING
+        // =========================================================================
+        Route::prefix('usage')->group(function () {
+            Route::get('/current', [App\Http\Controllers\Api\UsageController::class, 'current']);
+            Route::get('/history', [App\Http\Controllers\Api\UsageController::class, 'history']);
+            Route::get('/by-agent', [App\Http\Controllers\Api\UsageController::class, 'byAgent']);
+            Route::get('/agent/{agent}', [App\Http\Controllers\Api\UsageController::class, 'agentUsage']);
+            Route::get('/trend', [App\Http\Controllers\Api\UsageController::class, 'dailyTrend']);
+        });
+    });
 
 // =============================================================================
 // INCLUDE SEPARATE ROUTE FILES
 // =============================================================================
 require __DIR__ . '/paymob_routes.php';
+
 
 // =============================================================================
 // BACKWARD COMPATIBILITY ROUTES (DEPRECATED - Will be removed in v2)

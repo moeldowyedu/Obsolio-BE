@@ -22,6 +22,7 @@ class Agent extends Model
     protected $fillable = [
         'name',
         'slug',
+        'tier_id',
         'description',
         'long_description',
         'icon_url',
@@ -62,6 +63,22 @@ class Agent extends Model
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by_user_id');
+    }
+
+    /**
+     * Get the tier this agent belongs to.
+     */
+    public function tier(): BelongsTo
+    {
+        return $this->belongsTo(AgentTier::class);
+    }
+
+    /**
+     * Get the pricing records for this agent.
+     */
+    public function pricing(): HasMany
+    {
+        return $this->hasMany(AgentPricing::class);
     }
 
     /**
@@ -177,5 +194,42 @@ class Agent extends Model
     public function scopeByRuntimeType($query, string $runtimeType)
     {
         return $query->where('runtime_type', $runtimeType);
+    }
+
+    // ========================================
+    // PHASE 3 RELATIONSHIPS & METHODS
+    // ========================================
+
+    /**
+     * Agent subscriptions (tenants subscribed to this agent)
+     */
+    public function subscriptions()
+    {
+        return $this->hasMany(AgentSubscription::class);
+    }
+
+    /**
+     * Usage tracking for this agent
+     */
+    public function usageTracking()
+    {
+        return $this->hasMany(AgentUsageTracking::class);
+    }
+
+    /**
+     * Get current active pricing
+     */
+    public function getCurrentPrice()
+    {
+        $activePricing = $this->pricing()->where('is_active', true)->first();
+        return $activePricing?->monthly_price ?? 0;
+    }
+
+    /**
+     * Get total subscriptions count
+     */
+    public function getSubscriptionsCount()
+    {
+        return $this->subscriptions()->active()->count();
     }
 }
