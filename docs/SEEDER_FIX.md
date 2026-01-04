@@ -1,29 +1,44 @@
-# SystemAdminSeeder Fix
+# SystemAdminSeeder - Final Fix
 
 ## Issue
-The `SystemAdminSeeder` was failing with a check constraint violation because it was trying to create a role with `guard_name = 'web'` and no `tenant_id`.
+The `roles` table has a check constraint that only allows:
+- `guard_name = 'console'` with `tenant_id IS NULL`
+- `guard_name = 'tenant'` with `tenant_id IS NOT NULL`
 
-## Root Cause
-The migration `2025_12_28_120916_add_tenant_id_to_roles_table.php` added a check constraint:
+But the User model uses guards `web` and `api`, causing a guard mismatch when assigning roles.
+
+## Solution
+Created migration `2026_01_04_150000_relax_roles_guard_constraint.php` to update the constraint:
+
 ```sql
 CHECK (
     (guard_name = 'console' AND tenant_id IS NULL) OR
-    (guard_name = 'tenant' AND tenant_id IS NOT NULL)
+    (guard_name = 'tenant' AND tenant_id IS NOT NULL) OR
+    (guard_name = 'web' AND tenant_id IS NULL) OR      -- Added
+    (guard_name = 'api' AND tenant_id IS NULL)          -- Added
 )
 ```
 
-This means:
-- `guard_name = 'console'` → System-level roles (no tenant_id)
-- `guard_name = 'tenant'` → Tenant-scoped roles (requires tenant_id)
-- `guard_name = 'web'` → **NOT ALLOWED** by the constraint
+## Steps to Fix
 
-## Solution
-Changed the SystemAdminSeeder to use `guard_name = 'console'` for system admin roles:
+1. **Run the new migration:**
+   ```bash
+   php artisan migrate --force
+   ```
 
-```php
-Role::create(['name' => 'Super Admin', 'guard_name' => 'console']);
-```
+2. **Run the seeder:**
+   ```bash
+   php artisan db:seed --class=SystemAdminSeeder --force
+   ```
 
-## Fixed
-✅ SystemAdminSeeder now creates roles with correct guard_name
-✅ Seeder will run successfully without constraint violations
+3. **Or run all seeders:**
+   ```bash
+   php artisan db:seed --force
+   ```
+
+## What Changed
+- SystemAdminSeeder now creates role with `guard_name = 'web'` (compatible with User model)
+- Role has `tenant_id = NULL` (system-level, not tenant-specific)
+- Constraint now allows `web` and `api` guards for system-level roles
+
+✅ This fixes the guard mismatch while maintaining proper tenant isolation!

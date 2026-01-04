@@ -14,12 +14,14 @@ class SystemAdminSeeder extends Seeder
      */
     public function run(): void
     {
-        // Check if role exists, if not create it (safe fallback)
-        // System-level roles must use 'console' guard (not 'web' or 'tenant')
+        // System admin role - use 'web' guard to match User model guards
         $roleName = 'Super Admin';
-        if (!Role::where('name', $roleName)->where('guard_name', 'console')->exists()) {
-            Role::create(['name' => $roleName, 'guard_name' => 'console']);
-        }
+
+        // Create role with 'web' guard and no tenant_id (system-level)
+        $role = Role::firstOrCreate(
+            ['name' => $roleName, 'guard_name' => 'web'],
+            ['name' => $roleName, 'guard_name' => 'web']
+        );
 
         $user = User::updateOrCreate(
             ['email' => 'mofree81@gmail.com'],
