@@ -15,9 +15,10 @@ class SystemAdminSeeder extends Seeder
     public function run(): void
     {
         // Check if role exists, if not create it (safe fallback)
+        // System-level roles must use 'console' guard (not 'web' or 'tenant')
         $roleName = 'Super Admin';
-        if (!Role::where('name', $roleName)->exists()) {
-            Role::create(['name' => $roleName, 'guard_name' => 'web']);
+        if (!Role::where('name', $roleName)->where('guard_name', 'console')->exists()) {
+            Role::create(['name' => $roleName, 'guard_name' => 'console']);
         }
 
         $user = User::updateOrCreate(
