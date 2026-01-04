@@ -33,9 +33,10 @@ class SystemAdminSeeder extends Seeder
             ]
         );
 
-        // Assign Super Admin role
-        if (!$user->hasRole($roleName)) {
-            $user->assignRole($roleName);
+        // Assign Super Admin role with correct guard
+        $role = Role::where('name', $roleName)->where('guard_name', 'console')->first();
+        if ($role && !$user->hasRole($role)) {
+            $user->assignRole($role);
         }
 
         $this->command->info('System Admin seeded successfully: Mohammed Salah (mofree81@gmail.com)');
