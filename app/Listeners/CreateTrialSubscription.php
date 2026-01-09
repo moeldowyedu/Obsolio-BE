@@ -8,6 +8,7 @@ use Illuminate\Auth\Events\Verified;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 
 class CreateTrialSubscription implements ShouldQueue
 {
@@ -48,16 +49,11 @@ class CreateTrialSubscription implements ShouldQueue
                 }
 
                 // Calculate trial end date based on plan's trial_days
-                $trialEndsAt = $defaultPlan->trial_days > 0
-                    ? now()->addDays($defaultPlan->trial_days)
-                    : null;
+                $trialDays = $defaultPlan->trial_days ?? 0;
+                $trialEndsAt = $trialDays > 0 ? now()->addDays($trialDays) : null;
 
                 // Determine subscription status
-                $status = $trialEndsAt ? 'trialing' : 'active';
-
-                // Calculate period dates
-                $currentPeriodStart = now();
-                $currentPeriodEnd = now()->addMonth(); // Default to monthly
+                $status = $trialDays > 0 ? 'trialing' : 'active';
 
                 // Create subscription
                 $subscription = Subscription::create([
@@ -67,8 +63,8 @@ class CreateTrialSubscription implements ShouldQueue
                     'billing_cycle' => 'monthly',
                     'starts_at' => now(),
                     'trial_ends_at' => $trialEndsAt,
-                    'current_period_start' => $currentPeriodStart,
-                    'current_period_end' => $currentPeriodEnd,
+                    'current_period_start' => now(),
+                    'current_period_end' => now()->addMonth(),
                     'metadata' => [
                         'created_via' => 'email_verification',
                         'user_id' => $user->id,
@@ -77,29 +73,28 @@ class CreateTrialSubscription implements ShouldQueue
                     ],
                 ]);
 
-                // Update tenant's organization_id if it's an organization type
+                Log::info('Trial subscription created', [
+                    'tenant_id' => $tenant->id,
+                    'subscription_id' => $subscription->id,
+                    'plan_name' => $defaultPlan->name,
+                    'status' => $status,
+                    'trial_days' => $trialDays,
+                    'trial_ends_at' => $trialEndsAt,
+                ]);
+
+                // Link organization to tenant if applicable
                 if ($tenant->type === 'organization') {
                     $organization = $tenant->organizations()->first();
                     if ($organization) {
                         $tenant->update(['organization_id' => $organization->id]);
                     }
                 }
-
-                Log::info('Trial subscription created automatically', [
-                    'tenant_id' => $tenant->id,
-                    'subscription_id' => $subscription->id,
-                    'plan_id' => $defaultPlan->id,
-                    'plan_name' => $defaultPlan->name,
-                    'trial_ends_at' => $trialEndsAt,
-                    'status' => $status,
-                ]);
             });
         } catch (\Exception $e) {
             Log::error('Failed to create trial subscription', [
                 'tenant_id' => $tenant->id,
-                'user_id' => $user->id,
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
+                'trace' => $e->getTraceAsString()
             ]);
         }
     }
@@ -109,25 +104,51 @@ class CreateTrialSubscription implements ShouldQueue
      */
     protected function getDefaultPlan(string $tenantType): ?SubscriptionPlan
     {
-        // Priority 1: Find plan marked as default for this type
-        $defaultPlan = SubscriptionPlan::where('type', $tenantType)
-            ->where('is_default', true)
-            ->where('is_active', true)
-            ->where('is_published', true)
-            ->first();
+        // Check if is_default column exists (backward compatibility)
+        $hasIsDefaultColumn = Schema::hasColumn('subscription_plans', 'is_default');
 
-        if ($defaultPlan) {
-            Log::info('Using default plan for new tenant', [
-                'plan_id' => $defaultPlan->id,
-                'plan_name' => $defaultPlan->name,
-                'plan_tier' => $defaultPlan->tier,
-                'tenant_type' => $tenantType,
-                'trial_days' => $defaultPlan->trial_days
+        if ($hasIsDefaultColumn) {
+            // Priority 1: Find plan marked as default for this type
+            $defaultPlan = SubscriptionPlan::where('type', $tenantType)
+                ->where('is_default', true)
+                ->where('is_active', true)
+                ->where('is_published', true)
+                ->first();
+
+            if ($defaultPlan) {
+                Log::info('Using default plan for new tenant', [
+                    'plan_id' => $defaultPlan->id,
+                    'plan_name' => $defaultPlan->name,
+                    'plan_tier' => $defaultPlan->tier,
+                    'tenant_type' => $tenantType,
+                    'trial_days' => $defaultPlan->trial_days
+                ]);
+                return $defaultPlan;
+            }
+        } else {
+            // Fallback to old hardcoded logic if column doesn't exist
+            Log::info('is_default column not found, using legacy plan selection', [
+                'tenant_type' => $tenantType
             ]);
-            return $defaultPlan;
+
+            $planMap = [
+                'personal' => ['type' => 'personal', 'tier' => 'free'],
+                'individual' => ['type' => 'personal', 'tier' => 'free'],
+                'organization' => ['type' => 'organization', 'tier' => 'team'],
+            ];
+
+            $criteria = $planMap[$tenantType] ?? null;
+
+            if ($criteria) {
+                return SubscriptionPlan::where('type', $criteria['type'])
+                    ->where('tier', $criteria['tier'])
+                    ->where('is_active', true)
+                    ->where('is_published', true)
+                    ->first();
+            }
         }
 
-        // Priority 2: Fallback to free tier (safety net)
+        // Final fallback to free tier
         Log::warning('No default plan found, falling back to free tier', [
             'tenant_type' => $tenantType
         ]);
