@@ -4,13 +4,16 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Services\PaymobService;
-use App\Models\BillingInvoice;
+use App\Models\Invoice;
+use App\Models\InvoiceLineItem;
 use App\Models\Subscription;
+use App\Models\SubscriptionPlan;
 use App\Models\Tenant;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Carbon\Carbon;
 
 class PaymentController extends Controller
 {
@@ -28,47 +31,42 @@ class PaymentController extends Controller
     {
         $request->validate([
             'plan_id' => 'required|uuid|exists:subscription_plans,id',
-            'billing_cycle' => 'required|in:monthly,annual',
         ]);
 
         try {
-            $tenant = Tenant::findOrFail(tenancy()->tenant->id);
-            $plan = \App\Models\SubscriptionPlan::findOrFail($request->plan_id);
+            $tenant = $request->user()->currentTenant;
+            $plan = SubscriptionPlan::with('billingCycle')->findOrFail($request->plan_id);
 
-            // Calculate amount based on billing cycle
-            $amount = $request->billing_cycle === 'monthly'
-                ? $plan->price_monthly
-                : $plan->price_annual;
+            // Get monthly equivalent price
+            $amountUSD = $plan->getMonthlyEquivalentPrice();
 
-            // Convert USD to EGP (you should use real exchange rate API)
-            $exchangeRate = 30.5; // Example rate
-            $amountEGP = $amount * $exchangeRate;
+            // Convert USD to EGP (TODO: use real exchange rate API)
+            $exchangeRate = 30.5;
+            $amountEGP = $amountUSD * $exchangeRate;
 
-            // Create invoice
-            $invoice = BillingInvoice::create([
-                'tenant_id' => $tenant->id,
-                'invoice_number' => 'INV-' . time(),
-                'subtotal' => $amount,
-                'tax' => 0,
-                'total' => $amount,
-                'currency' => 'USD',
-                'status' => 'pending',
-                'line_items' => [
-                    [
-                        'description' => "{$plan->name} Subscription ({$request->billing_cycle})",
-                        'quantity' => 1,
-                        'unit_price' => $amount,
-                        'amount' => $amount,
-                    ]
-                ],
-            ]);
+            // Define billing period
+            $periodStart = now()->startOfMonth();
+            $periodEnd = now()->endOfMonth();
+
+            // Create invoice using new Invoice model
+            $invoice = Invoice::createForTenant(
+                $tenant,
+                $periodStart,
+                $periodEnd
+            );
+
+            // Add base plan line item
+            InvoiceLineItem::createBasePlan($invoice, $plan, $amountUSD);
+
+            // Recalculate total
+            $invoice->recalculateTotal();
 
             // Prepare billing data
             $billingData = [
-                'first_name' => $tenant->name,
+                'first_name' => $tenant->name ?? 'Customer',
                 'last_name' => '',
                 'email' => $request->user()->email,
-                'phone_number' => $request->phone ?? '+201000000000',
+                'phone_number' => $tenant->phone ?? '+201000000000',
                 'apartment' => 'N/A',
                 'floor' => 'N/A',
                 'street' => 'N/A',
@@ -80,19 +78,19 @@ class PaymentController extends Controller
                 'state' => 'Cairo',
             ];
 
-            // Prepare items
+            // Prepare items for Paymob
             $items = [
                 [
                     'name' => $plan->name,
                     'amount_cents' => (int) ($amountEGP * 100),
-                    'description' => "Subscription - {$request->billing_cycle}",
+                    'description' => "Subscription - {$plan->billingCycle->name}",
                     'quantity' => 1,
                 ]
             ];
 
             // Create Paymob payment
             $payment = $this->paymobService->createPayment(
-                $invoice->id,
+                $invoice->invoice_number, // Use invoice_number as order ID
                 $amountEGP,
                 $billingData,
                 $items
@@ -106,18 +104,20 @@ class PaymentController extends Controller
                 ], 500);
             }
 
-            // Update invoice with payment key
-            $invoice->update([
+            Log::info('Payment created', [
+                'invoice_id' => $invoice->id,
+                'invoice_number' => $invoice->invoice_number,
                 'paymob_order_id' => $payment['order_id'],
-                'paymob_payment_key' => $payment['payment_key'],
+                'amount_egp' => $amountEGP,
             ]);
 
             return response()->json([
                 'success' => true,
                 'data' => [
                     'invoice_id' => $invoice->id,
+                    'invoice_number' => $invoice->invoice_number,
                     'iframe_url' => $payment['iframe_url'],
-                    'amount' => $amount,
+                    'amount_usd' => $amountUSD,
                     'amount_egp' => $amountEGP,
                     'currency' => 'EGP',
                 ],
@@ -139,80 +139,17 @@ class PaymentController extends Controller
     /**
      * Paymob callback webhook
      */
+    /**
+     * Paymob callback webhook (DEPRECATED - use BillingController@paymobWebhook)
+     * This method is kept for backward compatibility but should not be used
+     */
     public function paymobCallback(Request $request): JsonResponse
     {
-        try {
-            $data = $request->all();
+        Log::warning('Deprecated paymobCallback called - use BillingController@paymobWebhook instead');
 
-            // Process callback
-            $result = $this->paymobService->processCallback($data);
-
-            if (!$result['success']) {
-                Log::warning('Paymob payment failed', ['data' => $data]);
-
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Payment verification failed',
-                ]);
-            }
-
-            // Find invoice
-            $invoice = BillingInvoice::where('paymob_order_id', $result['order_id'])->first();
-
-            if (!$invoice) {
-                Log::error('Invoice not found for Paymob order', ['order_id' => $result['order_id']]);
-
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Invoice not found',
-                ]);
-            }
-
-            // Update invoice status
-            DB::transaction(function () use ($invoice, $result) {
-                $invoice->update([
-                    'status' => 'paid',
-                    'paid_at' => now(),
-                    'paymob_transaction_id' => $result['transaction_id'],
-                ]);
-
-                // Activate or update subscription
-                $subscription = Subscription::where('tenant_id', $invoice->tenant_id)
-                    ->latest()
-                    ->first();
-
-                if ($subscription) {
-                    $subscription->update([
-                        'status' => 'active',
-                        'starts_at' => now(),
-                        'current_period_start' => now(),
-                        'current_period_end' => $subscription->billing_cycle === 'monthly'
-                            ? now()->addMonth()
-                            : now()->addYear(),
-                    ]);
-                }
-            });
-
-            Log::info('Payment processed successfully', [
-                'invoice_id' => $invoice->id,
-                'transaction_id' => $result['transaction_id'],
-            ]);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Payment processed successfully',
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Paymob callback error', [
-                'error' => $e->getMessage(),
-                'data' => $request->all(),
-            ]);
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Callback processing failed',
-            ], 500);
-        }
+        // Redirect to new webhook handler
+        return app(\App\Http\Controllers\Api\BillingController::class)
+            ->paymobWebhook($request);
     }
 
     /**
@@ -221,20 +158,20 @@ class PaymentController extends Controller
     public function paymentResponse(Request $request): JsonResponse
     {
         $success = $request->query('success') === 'true';
-        $invoiceId = $request->query('invoice_id');
+        $invoiceNumber = $request->query('invoice_number');
 
-        if ($success && $invoiceId) {
-            $invoice = BillingInvoice::find($invoiceId);
+        if ($success && $invoiceNumber) {
+            $invoice = Invoice::where('invoice_number', $invoiceNumber)->first();
 
-            if ($invoice && $invoice->status === 'paid') {
+            if ($invoice && $invoice->isPaid()) {
                 return response()->json([
                     'success' => true,
                     'message' => 'Payment completed successfully',
                     'data' => [
                         'invoice_id' => $invoice->id,
                         'invoice_number' => $invoice->invoice_number,
-                        'amount' => $invoice->total,
-                        'currency' => $invoice->currency,
+                        'amount' => $invoice->total_amount,
+                        'status' => $invoice->status,
                     ],
                 ]);
             }
@@ -256,33 +193,44 @@ class PaymentController extends Controller
         ]);
 
         try {
-            $invoice = BillingInvoice::findOrFail($invoiceId);
+            $invoice = Invoice::findOrFail($invoiceId);
+            $tenant = $request->user()->currentTenant;
 
-            if ($invoice->status !== 'paid') {
+            // Verify invoice belongs to tenant
+            if ($invoice->tenant_id !== $tenant->id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invoice not found',
+                ], 404);
+            }
+
+            if (!$invoice->isPaid()) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Only paid invoices can be refunded',
                 ], 400);
             }
 
-            if (!$invoice->paymob_transaction_id) {
+            if (!$invoice->payment_transaction_id) {
                 return response()->json([
                     'success' => false,
                     'message' => 'No transaction ID found',
                 ], 400);
             }
 
-            // Process refund
-            $amountCents = (int) ($invoice->total * 100);
+            // Process refund (convert to cents for Paymob)
+            $amountCents = (int) ($invoice->total_amount * 100);
             $result = $this->paymobService->refund(
-                $invoice->paymob_transaction_id,
+                $invoice->payment_transaction_id,
                 $amountCents
             );
 
             if ($result['success']) {
-                $invoice->update([
-                    'status' => 'refunded',
-                    'notes' => $request->reason ?? 'Refunded',
+                $invoice->refund($request->reason ?? 'Refunded via API');
+
+                Log::info('Refund processed', [
+                    'invoice_id' => $invoice->id,
+                    'refund_id' => $result['refund_id'],
                 ]);
 
                 return response()->json([
@@ -290,6 +238,7 @@ class PaymentController extends Controller
                     'message' => 'Refund processed successfully',
                     'data' => [
                         'refund_id' => $result['refund_id'],
+                        'invoice_id' => $invoice->id,
                     ],
                 ]);
             }

@@ -27,6 +27,7 @@ class SubscriptionPlanSeeder extends Seeder
                 'storage_gb' => 1,
                 'trial_days' => 0,
                 'is_active' => true,
+                'is_default' => true,
                 'description' => 'Perfect for trying out OBSOLIO',
                 'features' => [
                     'Basic AI Agents',
@@ -79,6 +80,7 @@ class SubscriptionPlanSeeder extends Seeder
                 'storage_gb' => 50,
                 'trial_days' => 14,
                 'is_active' => true,
+                'is_default' => true,
                 'description' => 'For small teams getting started',
                 'features' => [
                     'All Pro features',

@@ -489,7 +489,8 @@ Route::prefix('v1/pricing')
 // =============================================================================
 // INCLUDE SEPARATE ROUTE FILES
 // =============================================================================
-require __DIR__ . '/paymob_routes.php';
+// Paymob routes moved to BillingController@paymobWebhook
+// require __DIR__ . '/paymob_routes.php';
 
 
 // =============================================================================

@@ -85,7 +85,7 @@ class AuthController extends Controller
             // 'type' is no longer required from user, we enforce 'organization'
             'fullName' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
-            'password' => 'required|string|min:8',
+            'password' => 'required|string|min:8|confirmed',
             'country' => 'required|string|max:100',
             'phone' => 'required|string|max:20',
             'subdomain' => [
@@ -107,7 +107,7 @@ class AuthController extends Controller
             // Organization fields are now always required
             'organizationFullName' => 'required|string|max:255',
             'organizationShortName' => 'nullable|string|max:50',
-            'organizationLogo' => 'nullable',
+            'organizationLogo' => 'nullable|file|image|mimes:jpeg,jpg,png,gif,webp|max:2048',
         ];
 
         $request->validate($rules);

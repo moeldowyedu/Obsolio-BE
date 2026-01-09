@@ -213,34 +213,81 @@ class BillingController extends Controller
      */
     public function paymobWebhook(Request $request)
     {
-        // TODO: Verify Paymob signature
-
         $data = $request->all();
 
         Log::info('Paymob webhook received', ['data' => $data]);
 
-        // Extract transaction details
-        $transactionId = $data['id'] ?? null;
-        $status = $data['success'] ?? false;
-        $invoiceNumber = $data['merchant_order_id'] ?? null;
+        // Verify HMAC signature using PaymobService
+        $paymobService = app(\App\Services\PaymobService::class);
 
-        if (!$invoiceNumber) {
-            return response()->json(['message' => 'Invalid webhook data'], 400);
+        if (!$paymobService->verifyHmac($data)) {
+            Log::error('Paymob HMAC verification failed', ['data' => $data]);
+            return response()->json(['message' => 'Invalid signature'], 400);
         }
 
-        $invoice = Invoice::where('invoice_number', $invoiceNumber)->first();
+        // Process callback
+        $result = $paymobService->processCallback($data);
+
+        if (!$result['success']) {
+            Log::warning('Paymob payment failed', ['data' => $data]);
+            return response()->json(['message' => 'Payment verification failed'], 400);
+        }
+
+        // Extract invoice number from order ID
+        $invoiceId = $result['order_id'];
+
+        // Find invoice by ID or invoice_number
+        $invoice = Invoice::where('id', $invoiceId)
+            ->orWhere('invoice_number', $invoiceId)
+            ->first();
 
         if (!$invoice) {
+            Log::error('Invoice not found for Paymob order', ['order_id' => $invoiceId]);
             return response()->json(['message' => 'Invoice not found'], 404);
         }
 
-        if ($status) {
-            $invoice->markAsPaid($transactionId, 'paymob');
+        // Update invoice based on payment status
+        if ($result['success']) {
+            $invoice->markAsPaid($result['transaction_id'], 'paymob');
+
+            Log::info('Payment processed successfully', [
+                'invoice_id' => $invoice->id,
+                'invoice_number' => $invoice->invoice_number,
+                'transaction_id' => $result['transaction_id'],
+                'amount' => $result['amount_cents'] / 100,
+            ]);
+
+            // If invoice has a subscription, activate it
+            if ($invoice->subscription_id) {
+                $subscription = $invoice->subscription;
+                if ($subscription && $subscription->status !== 'active') {
+                    $subscription->update([
+                        'status' => 'active',
+                        'current_period_start' => now(),
+                        'current_period_end' => $subscription->plan->billingCycle
+                            ? now()->addMonths($subscription->plan->billingCycle->months)
+                            : now()->addMonth(),
+                    ]);
+
+                    Log::info('Subscription activated', [
+                        'subscription_id' => $subscription->id,
+                        'tenant_id' => $subscription->tenant_id,
+                    ]);
+                }
+            }
         } else {
-            $invoice->markAsFailed('Payment failed via Paymob');
+            $invoice->markAsFailed('Payment failed via Paymob webhook');
+
+            Log::warning('Payment marked as failed', [
+                'invoice_id' => $invoice->id,
+                'invoice_number' => $invoice->invoice_number,
+            ]);
         }
 
-        return response()->json(['message' => 'Webhook processed']);
+        return response()->json([
+            'success' => true,
+            'message' => 'Webhook processed successfully'
+        ]);
     }
 
     /**

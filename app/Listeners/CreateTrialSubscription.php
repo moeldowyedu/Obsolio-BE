@@ -109,21 +109,31 @@ class CreateTrialSubscription implements ShouldQueue
      */
     protected function getDefaultPlan(string $tenantType): ?SubscriptionPlan
     {
-        // Map tenant types to default plans
-        $planMap = [
-            'personal' => ['type' => 'personal', 'tier' => 'free'],
-            'individual' => ['type' => 'personal', 'tier' => 'free'],
-            'organization' => ['type' => 'organization', 'tier' => 'team'],
-        ];
+        // Priority 1: Find plan marked as default for this type
+        $defaultPlan = SubscriptionPlan::where('type', $tenantType)
+            ->where('is_default', true)
+            ->where('is_active', true)
+            ->where('is_published', true)
+            ->first();
 
-        $criteria = $planMap[$tenantType] ?? null;
-
-        if (!$criteria) {
-            return null;
+        if ($defaultPlan) {
+            Log::info('Using default plan for new tenant', [
+                'plan_id' => $defaultPlan->id,
+                'plan_name' => $defaultPlan->name,
+                'plan_tier' => $defaultPlan->tier,
+                'tenant_type' => $tenantType,
+                'trial_days' => $defaultPlan->trial_days
+            ]);
+            return $defaultPlan;
         }
 
-        return SubscriptionPlan::where('type', $criteria['type'])
-            ->where('tier', $criteria['tier'])
+        // Priority 2: Fallback to free tier (safety net)
+        Log::warning('No default plan found, falling back to free tier', [
+            'tenant_type' => $tenantType
+        ]);
+
+        return SubscriptionPlan::where('type', $tenantType)
+            ->where('tier', 'free')
             ->where('is_active', true)
             ->where('is_published', true)
             ->first();

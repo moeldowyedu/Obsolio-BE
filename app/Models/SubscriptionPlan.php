@@ -37,6 +37,7 @@ class SubscriptionPlan extends Model
         'trial_days',
         'description',
         'metadata',
+        'is_default',
         // Phase 2 fields
         'billing_cycle_id',
         'base_price',
@@ -63,6 +64,7 @@ class SubscriptionPlan extends Model
         'is_active' => 'boolean',
         'is_published' => 'boolean',
         'is_archived' => 'boolean',
+        'is_default' => 'boolean',
         'price_monthly' => 'decimal:2',
         'price_annual' => 'decimal:2',
         // Phase 2 casts
@@ -205,6 +207,34 @@ class SubscriptionPlan extends Model
     {
         return $query->where('is_active', true)
             ->where('is_archived', false);
+    }
+
+    /**
+     * Scope to get default plan for a type.
+     */
+    public function scopeDefault($query, string $type)
+    {
+        return $query->where('type', $type)
+            ->where('is_default', true)
+            ->where('is_active', true)
+            ->where('is_published', true);
+    }
+
+    /**
+     * Set this plan as the default for its type.
+     * Unsets all other defaults for the same type.
+     */
+    public function setAsDefault(): bool
+    {
+        return \DB::transaction(function () {
+            // Unset all other defaults for this type
+            SubscriptionPlan::where('type', $this->type)
+                ->where('id', '!=', $this->id)
+                ->update(['is_default' => false]);
+
+            // Set this as default
+            return $this->update(['is_default' => true]);
+        });
     }
 
     /**
