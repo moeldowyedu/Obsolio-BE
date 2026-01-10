@@ -1,0 +1,105 @@
+<?php
+
+use Illuminate\Foundation\Application;
+use Illuminate\Foundation\Configuration\Exceptions;
+use Illuminate\Foundation\Configuration\Middleware;
+
+return Application::configure(basePath: dirname(__DIR__))
+    ->withRouting(
+        web: __DIR__ . '/../routes/web.php',
+        api: __DIR__ . '/../routes/api.php',
+        commands: __DIR__ . '/../routes/console.php',
+        health: '/up',
+        apiPrefix: 'api',
+    )
+    ->withMiddleware(function (Middleware $middleware): void {
+        // JWT authentication - no need for Sanctum middleware
+    
+        // Register middleware aliases
+        $middleware->alias([
+            'auth' => \Illuminate\Auth\Middleware\Authenticate::class,
+            'jwt.auth' => \Tymon\JWTAuth\Http\Middleware\Authenticate::class,
+            'jwt.refresh' => \Tymon\JWTAuth\Http\Middleware\RefreshToken::class,
+            'tenant.status' => \App\Http\Middleware\CheckTenantStatus::class,
+            'tenancy.header' => \App\Http\Middleware\InitializeTenancyByHeader::class,
+            'system_admin' => \App\Http\Middleware\EnsureIsSystemAdmin::class,
+            'check.subdomain' => \App\Http\Middleware\CheckSubdomain::class,
+            'tenant.scoped' => \App\Http\Middleware\TenantScopedAuthorization::class,
+
+            // ✅ Stancl's Built-in Middleware
+            'tenancy.domain' => \App\Http\Middleware\SmartInitializeTenancyByDomain::class,
+            'tenancy.prevent_central' => \Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains::class,
+        ]);
+
+        // Trust all proxies (CloudPanel/Nginx)
+        $middleware->trustProxies(at: '*', headers: \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_FOR | \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_HOST | \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_PORT | \Symfony\Component\HttpFoundation\Request::HEADER_X_FORWARDED_PROTO);
+
+
+        // Add global middleware
+        $middleware->append(\App\Http\Middleware\CDNHeaders::class);
+        $middleware->append(\App\Http\Middleware\CompressResponse::class);
+        $middleware->append(\App\Http\Middleware\AddTenantHeader::class); // ✅ Added Tenant Header Middleware
+    })
+    ->withSchedule(function (\Illuminate\Console\Scheduling\Schedule $schedule): void {
+        // ==========================================
+        // BILLING AUTOMATION JOBS
+        // ==========================================
+    
+        // Process monthly billing (1st of month at midnight)
+        $schedule->job(new \App\Jobs\Billing\ProcessMonthlyBillingJob())
+            ->monthlyOn(1, '00:00')
+            ->timezone('Africa/Cairo')
+            ->name('process-monthly-billing')
+            ->withoutOverlapping()
+            ->onSuccess(function () {
+            \Log::info('Monthly billing job completed successfully');
+        })
+            ->onFailure(function () {
+            \Log::error('Monthly billing job failed');
+        });
+
+        // Renew agent subscriptions (daily at 1 AM)
+        $schedule->job(new \App\Jobs\Billing\RenewAgentSubscriptionsJob())
+            ->dailyAt('01:00')
+            ->timezone('Africa/Cairo')
+            ->name('renew-agent-subscriptions')
+            ->withoutOverlapping();
+
+        // Reset usage quotas (1st of month at 2 AM)
+        $schedule->job(new \App\Jobs\Billing\ResetUsageQuotasJob())
+            ->monthlyOn(1, '02:00')
+            ->timezone('Africa/Cairo')
+            ->name('reset-usage-quotas')
+            ->withoutOverlapping();
+
+        // Send overdue invoice reminders (daily at 10 AM)
+        $schedule->job(new \App\Jobs\Billing\SendOverdueInvoiceRemindersJob())
+            ->dailyAt('10:00')
+            ->timezone('Africa/Cairo')
+            ->name('send-overdue-reminders')
+            ->withoutOverlapping();
+
+        // Retry failed payments (daily at 2 PM)
+        $schedule->job(new \App\Jobs\Billing\RetryFailedPaymentsJob())
+            ->dailyAt('14:00')
+            ->timezone('Africa/Cairo')
+            ->name('retry-failed-payments')
+            ->withoutOverlapping();
+
+        // Handle expired subscriptions (daily at 3 AM)
+        $schedule->job(new \App\Jobs\Billing\HandleExpiredSubscriptionsJob())
+            ->dailyAt('03:00')
+            ->timezone('Africa/Cairo')
+            ->name('handle-expired-subscriptions')
+            ->withoutOverlapping();
+
+        // Cleanup old invoices (monthly on 1st at 4 AM)
+        $schedule->job(new \App\Jobs\Billing\CleanupOldInvoicesJob())
+            ->monthlyOn(1, '04:00')
+            ->timezone('Africa/Cairo')
+            ->name('cleanup-old-invoices')
+            ->withoutOverlapping();
+    })
+    ->withExceptions(function (Exceptions $exceptions): void {
+        //
+    })->create();

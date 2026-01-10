@@ -267,15 +267,6 @@ class Tenant extends BaseTenant implements TenantWithDatabase
     // ========================================
     // PHASE 4 RELATIONSHIPS & METHODS
     // ========================================
-
-    /**
-     * Invoices for this tenant
-     */
-    public function invoices()
-    {
-        return $this->hasMany(Invoice::class);
-    }
-
     /**
      * Pending invoices
      */
