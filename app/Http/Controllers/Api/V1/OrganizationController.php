@@ -91,11 +91,15 @@ class OrganizationController extends Controller
     /**
      * Get the current tenant's organization details.
      * 
+     * This endpoint returns the organization associated with the current tenant.
+     * Each tenant has exactly one organization (1:1 relationship).
+     * 
      * @OA\Get(
      *     path="/api/v1/tenant/organization",
-     *     summary="Get current organization",
-     *     operationId="getCurrentOrganization",
-     *     tags={"Organizations"},
+     *     summary="Get current tenant's organization",
+     *     description="Returns the organization details for the authenticated tenant. Tenant = Organization (1:1 relationship).",
+     *     operationId="getTenantOrganization",
+     *     tags={"Tenant - Organization"},
      *     security={{"bearerAuth":{}}},
      *     @OA\Response(
      *         response=200,
@@ -105,14 +109,26 @@ class OrganizationController extends Controller
      *             @OA\Property(
      *                 property="data",
      *                 type="object",
-     *                 @OA\Property(property="id", type="string", format="uuid"),
-     *                 @OA\Property(property="name", type="string", example="Acme Corp"),
-     *                 @OA\Property(property="short_name", type="string", example="ACME"),
-     *                 @OA\Property(property="logo_url", type="string"),
-     *                 @OA\Property(property="users_count", type="integer")
+     *                 @OA\Property(property="id", type="string", format="uuid", example="550e8400-e29b-41d4-a716-446655440000"),
+     *                 @OA\Property(property="tenant_id", type="string", example="acme"),
+     *                 @OA\Property(property="name", type="string", example="Acme Corporation"),
+     *                 @OA\Property(property="short_name", type="string", example="ACME", nullable=true),
+     *                 @OA\Property(property="industry", type="string", example="Technology", nullable=true),
+     *                 @OA\Property(property="company_size", type="string", example="50-100", nullable=true),
+     *                 @OA\Property(property="country", type="string", example="USA", nullable=true),
+     *                 @OA\Property(property="phone", type="string", example="+1234567890", nullable=true),
+     *                 @OA\Property(property="timezone", type="string", example="UTC"),
+     *                 @OA\Property(property="logo_url", type="string", nullable=true),
+     *                 @OA\Property(property="description", type="string", nullable=true),
+     *                 @OA\Property(property="settings", type="object", nullable=true),
+     *                 @OA\Property(property="users_count", type="integer", example=5),
+     *                 @OA\Property(property="created_at", type="string", format="date-time"),
+     *                 @OA\Property(property="updated_at", type="string", format="date-time")
      *             )
      *         )
-     *     )
+     *     ),
+     *     @OA\Response(response=401, description="Unauthenticated"),
+     *     @OA\Response(response=404, description="Organization not found")
      * )
      */
     public function showCurrent(): OrganizationResource
@@ -120,9 +136,6 @@ class OrganizationController extends Controller
         $organization = tenant()->organization;
 
         if (!$organization) {
-            // Fallback or Auto-Create? 
-            // For now, return 404 or create default? 
-            // Given the registration flow ensures one, 404 implies data corruption.
             abort(404, 'Organization not found for this tenant.');
         }
 
@@ -136,23 +149,33 @@ class OrganizationController extends Controller
      * 
      * @OA\Put(
      *     path="/api/v1/tenant/organization",
-     *     summary="Update current organization",
-     *     operationId="updateCurrentOrganization",
-     *     tags={"Organizations"},
+     *     summary="Update current tenant's organization",
+     *     description="Update organization details for the authenticated tenant. Tenant = Organization (1:1 relationship).",
+     *     operationId="updateTenantOrganization",
+     *     tags={"Tenant - Organization"},
      *     security={{"bearerAuth":{}}},
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
-     *             @OA\Property(property="name", type="string"),
-     *             @OA\Property(property="short_name", type="string"),
-     *             @OA\Property(property="phone", type="string"),
-     *             @OA\Property(property="logo_url", type="string")
+     *             @OA\Property(property="name", type="string", maxLength=255, example="Acme Corporation"),
+     *             @OA\Property(property="short_name", type="string", maxLength=50, example="ACME", nullable=true),
+     *             @OA\Property(property="industry", type="string", maxLength=100, example="Technology", nullable=true),
+     *             @OA\Property(property="company_size", type="string", maxLength=50, example="50-100", nullable=true),
+     *             @OA\Property(property="country", type="string", maxLength=100, example="USA", nullable=true),
+     *             @OA\Property(property="phone", type="string", maxLength=20, example="+1234567890", nullable=true),
+     *             @OA\Property(property="timezone", type="string", maxLength=50, example="UTC", nullable=true),
+     *             @OA\Property(property="logo_url", type="string", format="binary", description="Logo file upload", nullable=true),
+     *             @OA\Property(property="description", type="string", example="A leading technology company", nullable=true),
+     *             @OA\Property(property="settings", type="object", nullable=true)
      *         )
      *     ),
      *     @OA\Response(
      *         response=200,
      *         description="Organization updated successfully"
-     *     )
+     *     ),
+     *     @OA\Response(response=401, description="Unauthenticated"),
+     *     @OA\Response(response=404, description="Organization not found"),
+     *     @OA\Response(response=422, description="Validation error")
      * )
      */
     public function updateCurrent(UpdateOrganizationRequest $request): OrganizationResource

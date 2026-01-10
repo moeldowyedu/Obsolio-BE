@@ -522,9 +522,10 @@ Route::prefix('v1')->middleware([
         // Legacy dashboard
         Route::get('/dashboard/stats', [DashboardController::class, 'dashboardStats']);
 
-        // Legacy organizations
-        Route::apiResource('organizations', OrganizationController::class);
-        Route::get('/organizations/{id}/dashboard', [OrganizationController::class, 'dashboard']);
+        // Legacy organizations - REMOVED
+        // The correct endpoint is /api/v1/tenant/organization (1:1 relationship)
+        // Route::apiResource('organizations', OrganizationController::class);
+        // Route::get('/organizations/{id}/dashboard', [OrganizationController::class, 'dashboard']);
 
         // Legacy activities
         Route::get('/activities', [UserActivityController::class, 'index']);
