@@ -21,7 +21,7 @@ class AgentMarketplaceController extends Controller
      * Public catalog (no auth required)
      * 
      * @OA\Get(
-     *     path="/api/v1/pricing/agents/marketplace",
+     *     path="/api/v1/pricing/agents/catalog",
      *     summary="Get public agent catalog",
      *     description="Returns all active agents grouped by tier (no authentication required)",
      *     tags={"Agent Marketplace"},

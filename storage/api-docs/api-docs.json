@@ -24,6 +24,1062 @@
         }
     ],
     "paths": {
+        "/api/v1/pricing/agents/catalog": {
+            "get": {
+                "tags": [
+                    "Agent Marketplace"
+                ],
+                "summary": "Get public agent catalog",
+                "description": "Returns all active agents grouped by tier (no authentication required)",
+                "operationId": "2a12c8d2f7aec2cab822216500345003",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/pricing/agents/marketplace": {
+            "get": {
+                "tags": [
+                    "Agent Marketplace"
+                ],
+                "summary": "Browse agents with tenant context",
+                "description": "Returns agents with subscription status and availability for the authenticated tenant",
+                "operationId": "8676ecbbe88d046b4221cf2f10425049",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/pricing/agents/marketplace/{agent}": {
+            "get": {
+                "tags": [
+                    "Agent Marketplace"
+                ],
+                "summary": "Get agent details",
+                "description": "Returns detailed information about a specific agent",
+                "operationId": "25a1980f1023eed89c1e968d0c04195d",
+                "parameters": [
+                    {
+                        "name": "agent",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "404": {
+                        "description": "Agent not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/pricing/agents/subscribe/{agent}": {
+            "post": {
+                "tags": [
+                    "Agent Marketplace"
+                ],
+                "summary": "Subscribe to agent",
+                "description": "Creates a new agent subscription (add-on) for the tenant",
+                "operationId": "1915f86f0c7b62dff6f9ad0e9c74ebee",
+                "parameters": [
+                    {
+                        "name": "agent",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Successfully subscribed to agent",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Already subscribed or plan limit reached"
+                    },
+                    "404": {
+                        "description": "Agent pricing not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/pricing/agents/unsubscribe/{agent}": {
+            "post": {
+                "tags": [
+                    "Agent Marketplace"
+                ],
+                "summary": "Unsubscribe from agent",
+                "description": "Cancels the agent subscription for the tenant",
+                "operationId": "3d8b5d13e1f578b53865ac6bc58915a7",
+                "parameters": [
+                    {
+                        "name": "agent",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully unsubscribed from agent"
+                    },
+                    "404": {
+                        "description": "Not subscribed to this agent"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/pricing/agents/my-agents": {
+            "get": {
+                "tags": [
+                    "Agent Marketplace"
+                ],
+                "summary": "Get subscribed agents",
+                "description": "Returns all active agent subscriptions for the tenant",
+                "operationId": "922b2a66d2e4af38e371cfb330af4bbf",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/pricing/agents/available-slots": {
+            "get": {
+                "tags": [
+                    "Agent Marketplace"
+                ],
+                "summary": "Get available agent slots",
+                "description": "Returns the number of available agent slots by tier for the tenant",
+                "operationId": "285b8433fda7f54d7c22f59a75f4d3e0",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "total_slots": {
+                                                    "type": "integer"
+                                                },
+                                                "used_slots": {
+                                                    "type": "integer"
+                                                },
+                                                "remaining_by_tier": {
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "No active subscription"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/pricing/agents/can-add/{agent}": {
+            "post": {
+                "tags": [
+                    "Agent Marketplace"
+                ],
+                "summary": "Check if can add agent",
+                "description": "Validates if the tenant can subscribe to a specific agent",
+                "operationId": "17f05861c8c7cd3a3060a4c55e25adaa",
+                "parameters": [
+                    {
+                        "name": "agent",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Validation result",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "can_add": {
+                                            "type": "boolean"
+                                        },
+                                        "reason": {
+                                            "type": "string",
+                                            "nullable": true
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/pricing/billing/invoices": {
+            "get": {
+                "tags": [
+                    "Billing"
+                ],
+                "summary": "List all invoices",
+                "description": "Returns paginated list of invoices for the tenant",
+                "operationId": "5d28b3b15908c2c696fc3dbcdd5d8a7c",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/pricing/billing/invoices/{invoice}": {
+            "get": {
+                "tags": [
+                    "Billing"
+                ],
+                "summary": "Get invoice details",
+                "description": "Returns detailed invoice information with line items",
+                "operationId": "3737a9b73130362a187911bdb63a09f6",
+                "parameters": [
+                    {
+                        "name": "invoice",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "404": {
+                        "description": "Invoice not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/pricing/billing/upcoming": {
+            "get": {
+                "tags": [
+                    "Billing"
+                ],
+                "summary": "Preview upcoming invoice",
+                "description": "Returns estimated charges for the next billing period",
+                "operationId": "5be92622519412724bc2f5f7ee789244",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "base_subscription": {
+                                                    "type": "number"
+                                                },
+                                                "agent_addons": {
+                                                    "type": "number"
+                                                },
+                                                "usage_overage": {
+                                                    "type": "number"
+                                                },
+                                                "total": {
+                                                    "type": "number"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "No active subscription"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/pricing/billing/payment-method": {
+            "post": {
+                "tags": [
+                    "Billing"
+                ],
+                "summary": "Update payment method",
+                "description": "Updates the default payment method for the tenant",
+                "operationId": "98ad7176c38f6d8bd4da983fd7423689",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "payment_method"
+                                ],
+                                "properties": {
+                                    "payment_method": {
+                                        "type": "string",
+                                        "enum": [
+                                            "paymob",
+                                            "bank_transfer"
+                                        ]
+                                    },
+                                    "payment_details": {
+                                        "type": "object"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Payment method updated"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/webhooks/paymob": {
+            "post": {
+                "tags": [
+                    "Billing"
+                ],
+                "summary": "Paymob payment webhook",
+                "description": "Handles payment notifications from Paymob (no authentication required - verified by signature)",
+                "operationId": "685fbe9a3ae99156cf0406a5610ea2bf",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "id": {
+                                        "type": "string"
+                                    },
+                                    "success": {
+                                        "type": "boolean"
+                                    },
+                                    "merchant_order_id": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Webhook processed"
+                    },
+                    "400": {
+                        "description": "Invalid webhook data"
+                    },
+                    "404": {
+                        "description": "Invoice not found"
+                    }
+                }
+            }
+        },
+        "/api/v1/pricing/billing/invoices/{invoice}/download": {
+            "get": {
+                "tags": [
+                    "Billing"
+                ],
+                "summary": "Download invoice PDF",
+                "description": "Downloads the invoice as a PDF file (not yet implemented)",
+                "operationId": "038f725181470d5af7d8ced923de990a",
+                "parameters": [
+                    {
+                        "name": "invoice",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "PDF file"
+                    },
+                    "404": {
+                        "description": "Invoice not found"
+                    },
+                    "501": {
+                        "description": "Not implemented"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/pricing/billing/invoices/{invoice}/retry": {
+            "post": {
+                "tags": [
+                    "Billing"
+                ],
+                "summary": "Retry failed payment",
+                "description": "Retries payment for a failed invoice (not yet implemented)",
+                "operationId": "615317de2ed091ce29803d9dcf817ef7",
+                "parameters": [
+                    {
+                        "name": "invoice",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Payment retry initiated"
+                    },
+                    "400": {
+                        "description": "Invoice is not in failed status"
+                    },
+                    "404": {
+                        "description": "Invoice not found"
+                    },
+                    "501": {
+                        "description": "Not implemented"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/pricing/plans": {
+            "get": {
+                "tags": [
+                    "Subscriptions"
+                ],
+                "summary": "Get all subscription plans",
+                "description": "Returns all active and published subscription plans grouped by name",
+                "operationId": "1e66d6c91d3212ef8310679bc9242fa3",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/pricing/subscriptions/current": {
+            "get": {
+                "tags": [
+                    "Subscriptions"
+                ],
+                "summary": "Get current subscription",
+                "description": "Returns the current active subscription for the authenticated tenant",
+                "operationId": "818e600644e119da055fa6d318897faf",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "subscription": {
+                                                    "type": "object"
+                                                },
+                                                "plan": {
+                                                    "type": "object"
+                                                },
+                                                "usage": {
+                                                    "type": "object"
+                                                },
+                                                "monthly_cost": {
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "No tenant selected"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/pricing/subscriptions/create": {
+            "post": {
+                "tags": [
+                    "Subscriptions"
+                ],
+                "summary": "Create new subscription",
+                "description": "Creates a new subscription for the tenant",
+                "operationId": "b6c486b36ba2cca0cd61cd9dda33c9eb",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "plan_id"
+                                ],
+                                "properties": {
+                                    "plan_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Subscription created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Tenant already has subscription"
+                    },
+                    "500": {
+                        "description": "Failed to create subscription"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/pricing/subscriptions/upgrade": {
+            "post": {
+                "tags": [
+                    "Subscriptions"
+                ],
+                "summary": "Upgrade subscription",
+                "description": "Upgrades the current subscription to a higher plan",
+                "operationId": "face676d795de62fc79ae6773d3583b1",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "new_plan_id"
+                                ],
+                                "properties": {
+                                    "new_plan_id": {
+                                        "type": "integer",
+                                        "example": 2
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Subscription upgraded successfully"
+                    },
+                    "400": {
+                        "description": "No active subscription to upgrade"
+                    },
+                    "500": {
+                        "description": "Failed to upgrade subscription"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/pricing/subscriptions/cancel": {
+            "post": {
+                "tags": [
+                    "Subscriptions"
+                ],
+                "summary": "Cancel subscription",
+                "description": "Cancels the current subscription",
+                "operationId": "e0bf078d5274529825835de501a61715",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "reason": {
+                                        "type": "string",
+                                        "example": "Too expensive"
+                                    },
+                                    "immediately": {
+                                        "type": "boolean",
+                                        "example": false
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Subscription cancelled successfully"
+                    },
+                    "400": {
+                        "description": "No active subscription to cancel"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/pricing/usage/current": {
+            "get": {
+                "tags": [
+                    "Usage"
+                ],
+                "summary": "Get current month usage",
+                "description": "Returns usage summary for the current billing period",
+                "operationId": "36d32ef99d57c5d8a73d25493af8a62a",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "quota": {
+                                                    "type": "integer"
+                                                },
+                                                "used": {
+                                                    "type": "integer"
+                                                },
+                                                "remaining": {
+                                                    "type": "integer"
+                                                },
+                                                "percentage": {
+                                                    "type": "number"
+                                                },
+                                                "overage": {
+                                                    "type": "integer"
+                                                },
+                                                "overage_cost": {
+                                                    "type": "number"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "No active subscription"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/pricing/usage/history": {
+            "get": {
+                "tags": [
+                    "Usage"
+                ],
+                "summary": "Get usage history",
+                "description": "Returns usage data for the last 6 months",
+                "operationId": "03a886db71554e8760f41dd53b626ccf",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/pricing/usage/by-agent": {
+            "get": {
+                "tags": [
+                    "Usage"
+                ],
+                "summary": "Get usage by agent",
+                "description": "Returns usage breakdown grouped by agent for current month",
+                "operationId": "2642bd4b7d919d3ed75b0c4ab5ca3a1a",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/pricing/usage/agent/{agent}": {
+            "get": {
+                "tags": [
+                    "Usage"
+                ],
+                "summary": "Get specific agent usage",
+                "description": "Returns usage statistics for a specific agent",
+                "operationId": "9b01ad6fe02210f1a6bd457faf247219",
+                "parameters": [
+                    {
+                        "name": "agent",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/pricing/usage/trend": {
+            "get": {
+                "tags": [
+                    "Usage"
+                ],
+                "summary": "Get daily usage trend",
+                "description": "Returns daily usage trend for the last 30 days",
+                "operationId": "bb93b47b66afd3c2a3b907f184ce65d6",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/v1/admin/agent-categories": {
             "get": {
                 "tags": [
@@ -3738,9 +4794,12 @@
                                         "type": "string",
                                         "example": "data-analyzer"
                                     },
-                                    "category": {
-                                        "type": "string",
-                                        "example": "analytics"
+                                    "categories": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "format": "uuid"
+                                        }
                                     },
                                     "description": {
                                         "type": "string"
@@ -3749,10 +4808,6 @@
                                         "type": "string"
                                     },
                                     "icon_url": {
-                                        "type": "string",
-                                        "format": "url"
-                                    },
-                                    "banner_url": {
                                         "type": "string",
                                         "format": "url"
                                     },
@@ -4485,6 +5540,348 @@
                 "responses": {
                     "200": {
                         "description": "List of console roles"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/admin/agents/{id}/categories": {
+            "get": {
+                "tags": [
+                    "Admin - Agents"
+                ],
+                "summary": "Get agent categories",
+                "description": "Get all categories assigned to an agent",
+                "operationId": "9010accb0de3b0e96c578c6e76f98e85",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Categories retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Admin - Agents"
+                ],
+                "summary": "Sync agent categories",
+                "description": "Replace all categories for an agent",
+                "operationId": "edfc2908c8e53abe86f5b5ead26b6742",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "categories"
+                                ],
+                                "properties": {
+                                    "categories": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "format": "uuid"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Categories synced successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Admin - Agents"
+                ],
+                "summary": "Add categories to agent",
+                "description": "Attach one or more categories to an agent (preserves existing)",
+                "operationId": "8638ca5c955d452bbc1ccda27e3cf772",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "categories"
+                                ],
+                                "properties": {
+                                    "categories": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "format": "uuid"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Categories added successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Admin - Agents"
+                ],
+                "summary": "Remove categories from agent",
+                "description": "Detach one or more categories from an agent",
+                "operationId": "e65c42e32095bc6d0b4bafa9aa250c84",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "categories"
+                                ],
+                                "properties": {
+                                    "categories": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "format": "uuid"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Categories removed successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "patch": {
+                "tags": [
+                    "Admin - Agents"
+                ],
+                "summary": "Sync agent categories (Alias)",
+                "description": "Alias for PUT - Replace all categories",
+                "operationId": "b5845f20ba9d242b01ea67196a596fab",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "categories"
+                                ],
+                                "properties": {
+                                    "categories": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "format": "uuid"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Categories synced successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     }
                 },
                 "security": [
@@ -6119,158 +7516,17 @@
                 }
             }
         },
-        "/api/v1/organizations": {
+        "/api/v1/tenant/organization": {
             "get": {
                 "tags": [
-                    "Organizations"
+                    "Tenant - Organization"
                 ],
-                "summary": "List organizations",
-                "description": "Display a listing of organizations.",
-                "operationId": "getOrganizations",
-                "parameters": [
-                    {
-                        "name": "per_page",
-                        "in": "query",
-                        "description": "Items per page",
-                        "required": false,
-                        "schema": {
-                            "type": "integer",
-                            "default": 15
-                        }
-                    }
-                ],
+                "summary": "Get current tenant's organization",
+                "description": "Returns the organization details for the authenticated tenant. Tenant = Organization (1:1 relationship).",
+                "operationId": "getTenantOrganization",
                 "responses": {
                     "200": {
                         "description": "Successful operation",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "properties": {
-                                                    "id": {
-                                                        "type": "string",
-                                                        "format": "uuid",
-                                                        "example": "98765432-1234-1234-1234-1234567890ab"
-                                                    },
-                                                    "name": {
-                                                        "type": "string",
-                                                        "example": "Acme Corp"
-                                                    },
-                                                    "short_name": {
-                                                        "type": "string",
-                                                        "example": "ACME"
-                                                    },
-                                                    "phone": {
-                                                        "type": "string",
-                                                        "example": "+1234567890"
-                                                    },
-                                                    "industry": {
-                                                        "type": "string",
-                                                        "example": "Technology"
-                                                    },
-                                                    "company_size": {
-                                                        "type": "string",
-                                                        "example": "100-500"
-                                                    },
-                                                    "country": {
-                                                        "type": "string",
-                                                        "example": "USA"
-                                                    },
-                                                    "timezone": {
-                                                        "type": "string",
-                                                        "example": "UTC"
-                                                    },
-                                                    "logo_url": {
-                                                        "type": "string",
-                                                        "example": "https://example.com/logo.png"
-                                                    },
-                                                    "description": {
-                                                        "type": "string",
-                                                        "example": "We make everything."
-                                                    },
-                                                    "created_at": {
-                                                        "type": "string",
-                                                        "format": "date-time"
-                                                    },
-                                                    "users_count": {
-                                                        "type": "integer",
-                                                        "example": 10
-                                                    }
-                                                },
-                                                "type": "object"
-                                            }
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            },
-            "post": {
-                "tags": [
-                    "Organizations"
-                ],
-                "summary": "Create organization",
-                "operationId": "createOrganization",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "required": [
-                                    "name"
-                                ],
-                                "properties": {
-                                    "name": {
-                                        "type": "string",
-                                        "example": "Acme Corp"
-                                    },
-                                    "short_name": {
-                                        "type": "string",
-                                        "example": "ACME"
-                                    },
-                                    "phone": {
-                                        "type": "string",
-                                        "example": "+1234567890"
-                                    },
-                                    "industry": {
-                                        "type": "string"
-                                    },
-                                    "company_size": {
-                                        "type": "string"
-                                    },
-                                    "country": {
-                                        "type": "string"
-                                    },
-                                    "timezone": {
-                                        "type": "string"
-                                    },
-                                    "description": {
-                                        "type": "string"
-                                    },
-                                    "logo_url": {
-                                        "type": "string",
-                                        "format": "uri"
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "201": {
-                        "description": "Organization created successfully",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -6280,31 +7536,40 @@
                                                 "id": {
                                                     "type": "string",
                                                     "format": "uuid",
-                                                    "example": "98765432-1234-1234-1234-1234567890ab"
+                                                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                                                },
+                                                "tenant_id": {
+                                                    "type": "string",
+                                                    "example": "acme"
                                                 },
                                                 "name": {
                                                     "type": "string",
-                                                    "example": "Acme Corp"
+                                                    "example": "Acme Corporation"
                                                 },
                                                 "short_name": {
                                                     "type": "string",
-                                                    "example": "ACME"
-                                                },
-                                                "phone": {
-                                                    "type": "string",
-                                                    "example": "+1234567890"
+                                                    "example": "ACME",
+                                                    "nullable": true
                                                 },
                                                 "industry": {
                                                     "type": "string",
-                                                    "example": "Technology"
+                                                    "example": "Technology",
+                                                    "nullable": true
                                                 },
                                                 "company_size": {
                                                     "type": "string",
-                                                    "example": "100-500"
+                                                    "example": "50-100",
+                                                    "nullable": true
                                                 },
                                                 "country": {
                                                     "type": "string",
-                                                    "example": "USA"
+                                                    "example": "USA",
+                                                    "nullable": true
+                                                },
+                                                "phone": {
+                                                    "type": "string",
+                                                    "example": "+1234567890",
+                                                    "nullable": true
                                                 },
                                                 "timezone": {
                                                     "type": "string",
@@ -6312,19 +7577,27 @@
                                                 },
                                                 "logo_url": {
                                                     "type": "string",
-                                                    "example": "https://example.com/logo.png"
+                                                    "nullable": true
                                                 },
                                                 "description": {
                                                     "type": "string",
-                                                    "example": "We make everything."
+                                                    "nullable": true
+                                                },
+                                                "settings": {
+                                                    "type": "object",
+                                                    "nullable": true
+                                                },
+                                                "users_count": {
+                                                    "type": "integer",
+                                                    "example": 5
                                                 },
                                                 "created_at": {
                                                     "type": "string",
                                                     "format": "date-time"
                                                 },
-                                                "users_count": {
-                                                    "type": "integer",
-                                                    "example": 10
+                                                "updated_at": {
+                                                    "type": "string",
+                                                    "format": "date-time"
                                                 }
                                             },
                                             "type": "object"
@@ -6335,102 +7608,8 @@
                             }
                         }
                     },
-                    "422": {
-                        "description": "Validation error"
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            }
-        },
-        "/api/v1/organizations/{organization}": {
-            "get": {
-                "tags": [
-                    "Organizations"
-                ],
-                "summary": "Get organization details",
-                "operationId": "getOrganization",
-                "parameters": [
-                    {
-                        "name": "organization",
-                        "in": "path",
-                        "description": "Organization ID",
-                        "required": true,
-                        "schema": {
-                            "type": "string",
-                            "format": "uuid"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Successful operation",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "data": {
-                                            "properties": {
-                                                "id": {
-                                                    "type": "string",
-                                                    "format": "uuid",
-                                                    "example": "98765432-1234-1234-1234-1234567890ab"
-                                                },
-                                                "name": {
-                                                    "type": "string",
-                                                    "example": "Acme Corp"
-                                                },
-                                                "short_name": {
-                                                    "type": "string",
-                                                    "example": "ACME"
-                                                },
-                                                "phone": {
-                                                    "type": "string",
-                                                    "example": "+1234567890"
-                                                },
-                                                "industry": {
-                                                    "type": "string",
-                                                    "example": "Technology"
-                                                },
-                                                "company_size": {
-                                                    "type": "string",
-                                                    "example": "100-500"
-                                                },
-                                                "country": {
-                                                    "type": "string",
-                                                    "example": "USA"
-                                                },
-                                                "timezone": {
-                                                    "type": "string",
-                                                    "example": "UTC"
-                                                },
-                                                "logo_url": {
-                                                    "type": "string",
-                                                    "example": "https://example.com/logo.png"
-                                                },
-                                                "description": {
-                                                    "type": "string",
-                                                    "example": "We make everything."
-                                                },
-                                                "created_at": {
-                                                    "type": "string",
-                                                    "format": "date-time"
-                                                },
-                                                "users_count": {
-                                                    "type": "integer",
-                                                    "example": 10
-                                                }
-                                            },
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
+                    "401": {
+                        "description": "Unauthenticated"
                     },
                     "404": {
                         "description": "Organization not found"
@@ -6444,22 +7623,11 @@
             },
             "put": {
                 "tags": [
-                    "Organizations"
+                    "Tenant - Organization"
                 ],
-                "summary": "Update organization",
-                "operationId": "updateOrganization",
-                "parameters": [
-                    {
-                        "name": "organization",
-                        "in": "path",
-                        "description": "Organization ID",
-                        "required": true,
-                        "schema": {
-                            "type": "string",
-                            "format": "uuid"
-                        }
-                    }
-                ],
+                "summary": "Update current tenant's organization",
+                "description": "Update organization details for the authenticated tenant. Tenant = Organization (1:1 relationship).",
+                "operationId": "updateTenantOrganization",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -6468,37 +7636,59 @@
                                 "properties": {
                                     "name": {
                                         "type": "string",
-                                        "example": "Acme Corp"
+                                        "maxLength": 255,
+                                        "example": "Acme Corporation"
                                     },
                                     "short_name": {
                                         "type": "string",
-                                        "example": "ACME"
+                                        "maxLength": 50,
+                                        "example": "ACME",
+                                        "nullable": true
+                                    },
+                                    "industry": {
+                                        "type": "string",
+                                        "maxLength": 100,
+                                        "example": "Technology",
+                                        "nullable": true
+                                    },
+                                    "company_size": {
+                                        "type": "string",
+                                        "maxLength": 50,
+                                        "example": "50-100",
+                                        "nullable": true
+                                    },
+                                    "country": {
+                                        "type": "string",
+                                        "maxLength": 100,
+                                        "example": "USA",
+                                        "nullable": true
                                     },
                                     "phone": {
                                         "type": "string",
-                                        "example": "+1234567890"
-                                    },
-                                    "industry": {
-                                        "type": "string"
-                                    },
-                                    "company_size": {
-                                        "type": "string"
-                                    },
-                                    "country": {
-                                        "type": "string"
+                                        "maxLength": 20,
+                                        "example": "+1234567890",
+                                        "nullable": true
                                     },
                                     "timezone": {
-                                        "type": "string"
-                                    },
-                                    "description": {
-                                        "type": "string"
+                                        "type": "string",
+                                        "maxLength": 50,
+                                        "example": "UTC",
+                                        "nullable": true
                                     },
                                     "logo_url": {
+                                        "description": "Logo file upload",
                                         "type": "string",
-                                        "format": "uri"
+                                        "format": "binary",
+                                        "nullable": true
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "A leading technology company",
+                                        "nullable": true
                                     },
                                     "settings": {
-                                        "type": "object"
+                                        "type": "object",
+                                        "nullable": true
                                     }
                                 },
                                 "type": "object"
@@ -6508,143 +7698,16 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "Organization updated successfully",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "data": {
-                                            "properties": {
-                                                "id": {
-                                                    "type": "string",
-                                                    "format": "uuid",
-                                                    "example": "98765432-1234-1234-1234-1234567890ab"
-                                                },
-                                                "name": {
-                                                    "type": "string",
-                                                    "example": "Acme Corp"
-                                                },
-                                                "short_name": {
-                                                    "type": "string",
-                                                    "example": "ACME"
-                                                },
-                                                "phone": {
-                                                    "type": "string",
-                                                    "example": "+1234567890"
-                                                },
-                                                "industry": {
-                                                    "type": "string",
-                                                    "example": "Technology"
-                                                },
-                                                "company_size": {
-                                                    "type": "string",
-                                                    "example": "100-500"
-                                                },
-                                                "country": {
-                                                    "type": "string",
-                                                    "example": "USA"
-                                                },
-                                                "timezone": {
-                                                    "type": "string",
-                                                    "example": "UTC"
-                                                },
-                                                "logo_url": {
-                                                    "type": "string",
-                                                    "example": "https://example.com/logo.png"
-                                                },
-                                                "description": {
-                                                    "type": "string",
-                                                    "example": "We make everything."
-                                                },
-                                                "created_at": {
-                                                    "type": "string",
-                                                    "format": "date-time"
-                                                },
-                                                "users_count": {
-                                                    "type": "integer",
-                                                    "example": 10
-                                                }
-                                            },
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
+                        "description": "Organization updated successfully"
                     },
-                    "422": {
-                        "description": "Validation error"
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            },
-            "delete": {
-                "tags": [
-                    "Organizations"
-                ],
-                "summary": "Delete organization",
-                "operationId": "deleteOrganization",
-                "parameters": [
-                    {
-                        "name": "organization",
-                        "in": "path",
-                        "description": "Organization ID",
-                        "required": true,
-                        "schema": {
-                            "type": "string",
-                            "format": "uuid"
-                        }
-                    }
-                ],
-                "responses": {
-                    "204": {
-                        "description": "Organization deleted successfully"
+                    "401": {
+                        "description": "Unauthenticated"
                     },
                     "404": {
                         "description": "Organization not found"
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            }
-        },
-        "/api/v1/organizations/{organization}/switch": {
-            "post": {
-                "tags": [
-                    "Organizations"
-                ],
-                "summary": "Switch organization context",
-                "operationId": "switchOrganization",
-                "parameters": [
-                    {
-                        "name": "organization",
-                        "in": "path",
-                        "description": "Organization ID",
-                        "required": true,
-                        "schema": {
-                            "type": "string",
-                            "format": "uuid"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Organization switched successfully",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object"
-                                }
-                            }
-                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
                     }
                 },
                 "security": [
@@ -8587,6 +9650,22 @@
     },
     "tags": [
         {
+            "name": "Agent Marketplace",
+            "description": "Agent browsing and subscription endpoints"
+        },
+        {
+            "name": "Billing",
+            "description": "Invoice and payment management endpoints"
+        },
+        {
+            "name": "Subscriptions",
+            "description": "Subscription management endpoints"
+        },
+        {
+            "name": "Usage",
+            "description": "Usage tracking and analytics endpoints"
+        },
+        {
             "name": "Admin - Agent Categories",
             "description": "System admin: Agent category management"
         },
@@ -8671,8 +9750,8 @@
             "description": "Dashboard"
         },
         {
-            "name": "Organizations",
-            "description": "Organizations"
+            "name": "Tenant - Organization",
+            "description": "Tenant - Organization"
         },
         {
             "name": "Permissions",
