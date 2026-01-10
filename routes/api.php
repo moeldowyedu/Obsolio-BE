@@ -319,6 +319,7 @@ Route::middleware([
     Route::prefix('organization')->group(function () {
         Route::get('/', [OrganizationController::class, 'showCurrent']);
         Route::put('/', [OrganizationController::class, 'updateCurrent']);
+        Route::post('/', [OrganizationController::class, 'updateCurrent']); // Alias for file uploads
     });
 
     // =========================================================================
