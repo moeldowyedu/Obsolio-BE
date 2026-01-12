@@ -25,6 +25,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'system_admin' => \App\Http\Middleware\EnsureIsSystemAdmin::class,
             'check.subdomain' => \App\Http\Middleware\CheckSubdomain::class,
             'tenant.scoped' => \App\Http\Middleware\TenantScopedAuthorization::class,
+            'smart_tenancy' => \App\Http\Middleware\SmartTenancy::class,
 
             // ✅ Stancl's Built-in Middleware
             'tenancy.domain' => \App\Http\Middleware\SmartInitializeTenancyByDomain::class,

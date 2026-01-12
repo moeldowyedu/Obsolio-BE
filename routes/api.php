@@ -274,9 +274,8 @@ Route::prefix('v1/admin')->middleware(['jwt.auth', 'system_admin'])->group(funct
 // TENANT ENDPOINTS (Tenant Dashboard)
 // =============================================================================
 Route::middleware([
-    InitializeTenancyByDomain::class,
-    PreventAccessFromCentralDomains::class,
     'jwt.auth',
+    'smart_tenancy',
     'tenant.status'
 ])->prefix('v1/tenant')->group(function () {
 
