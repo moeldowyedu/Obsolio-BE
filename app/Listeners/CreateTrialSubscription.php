@@ -2,6 +2,7 @@
 
 namespace App\Listeners;
 
+use App\Models\BillingInvoice;
 use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
 use Illuminate\Auth\Events\Verified;
@@ -9,6 +10,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 
 class CreateTrialSubscription implements ShouldQueue
 {
@@ -81,6 +83,9 @@ class CreateTrialSubscription implements ShouldQueue
                     'trial_days' => $trialDays,
                     'trial_ends_at' => $trialEndsAt,
                 ]);
+
+                // Generate invoice for the subscription (including free plans)
+                $invoice = $this->generateInvoice($tenant, $subscription, $defaultPlan, $trialDays);
 
                 // Link organization to tenant if applicable
                 if ($tenant->type === 'organization') {
@@ -158,5 +163,101 @@ class CreateTrialSubscription implements ShouldQueue
             ->where('is_active', true)
             ->where('is_published', true)
             ->first();
+    }
+
+    /**
+     * Generate invoice for the subscription (including $0.00 for free plans)
+     */
+    protected function generateInvoice($tenant, Subscription $subscription, SubscriptionPlan $plan, int $trialDays): ?BillingInvoice
+    {
+        try {
+            // Determine invoice amount based on plan
+            $isFree = $plan->isFree();
+            $amount = $isFree ? 0.00 : ($plan->price_monthly ?? 0.00);
+
+            // Generate unique invoice number
+            $invoiceNumber = $this->generateInvoiceNumber($tenant->id);
+
+            // Determine invoice description
+            $description = $isFree
+                ? "{$plan->name} - Free Plan (Trial Period)"
+                : "{$plan->name} - {$trialDays} Day Trial";
+
+            // Build line items
+            $lineItems = [
+                [
+                    'description' => $description,
+                    'quantity' => 1,
+                    'unit_price' => $amount,
+                    'total' => $amount,
+                    'period_start' => now()->format('Y-m-d'),
+                    'period_end' => $subscription->trial_ends_at ? $subscription->trial_ends_at->format('Y-m-d') : now()->addMonth()->format('Y-m-d'),
+                ]
+            ];
+
+            // Add trial information note for free plans
+            $notes = $isFree
+                ? "Welcome to OBSOLIO! Your {$plan->name} is now active. Enjoy {$trialDays} days of trial access with no payment required."
+                : "Welcome to OBSOLIO! Your {$plan->name} trial is now active. You won't be charged until {$subscription->trial_ends_at->format('M d, Y')}.";
+
+            // Create the invoice
+            $invoice = BillingInvoice::create([
+                'tenant_id' => $tenant->id,
+                'subscription_id' => $subscription->id,
+                'invoice_number' => $invoiceNumber,
+                'subtotal' => $amount,
+                'tax' => 0.00, // Free plans have no tax
+                'total' => $amount,
+                'currency' => 'USD',
+                'status' => $isFree ? 'paid' : 'draft', // Free plans are auto-paid, paid plans are draft until trial ends
+                'due_date' => $subscription->trial_ends_at ?? now(),
+                'paid_at' => $isFree ? now() : null, // Free plans are immediately "paid"
+                'line_items' => $lineItems,
+                'notes' => $notes,
+                'payment_method' => $isFree ? 'free_plan' : null,
+            ]);
+
+            Log::info('Invoice generated for subscription', [
+                'tenant_id' => $tenant->id,
+                'subscription_id' => $subscription->id,
+                'invoice_id' => $invoice->id,
+                'invoice_number' => $invoiceNumber,
+                'amount' => $amount,
+                'status' => $invoice->status,
+                'is_free_plan' => $isFree,
+            ]);
+
+            return $invoice;
+
+        } catch (\Exception $e) {
+            Log::error('Failed to generate invoice for subscription', [
+                'tenant_id' => $tenant->id,
+                'subscription_id' => $subscription->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            // Don't fail the entire subscription creation if invoice fails
+            return null;
+        }
+    }
+
+    /**
+     * Generate a unique invoice number
+     */
+    protected function generateInvoiceNumber(string $tenantId): string
+    {
+        // Format: INV-YYYYMMDD-XXXXX
+        $date = now()->format('Ymd');
+        $random = strtoupper(Str::random(5));
+        $invoiceNumber = "INV-{$date}-{$random}";
+
+        // Ensure uniqueness (rare collision check)
+        while (BillingInvoice::where('invoice_number', $invoiceNumber)->exists()) {
+            $random = strtoupper(Str::random(5));
+            $invoiceNumber = "INV-{$date}-{$random}";
+        }
+
+        return $invoiceNumber;
     }
 }
