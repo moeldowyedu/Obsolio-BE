@@ -2,9 +2,11 @@
 
 namespace App\Listeners;
 
+use App\Models\Agent;
 use App\Models\BillingInvoice;
 use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
+use App\Models\TenantAgent;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\DB;
@@ -86,6 +88,9 @@ class CreateTrialSubscription implements ShouldQueue
 
                 // Generate invoice for the subscription (including free plans)
                 $invoice = $this->generateInvoice($tenant, $subscription, $defaultPlan, $trialDays);
+
+                // Assign default agents to the new tenant
+                $this->assignDefaultAgents($tenant, $defaultPlan);
 
                 // Link organization to tenant if applicable
                 if ($tenant->type === 'organization') {
@@ -259,5 +264,155 @@ class CreateTrialSubscription implements ShouldQueue
         }
 
         return $invoiceNumber;
+    }
+
+    /**
+     * Assign default agents to new tenant based on their plan
+     */
+    protected function assignDefaultAgents($tenant, SubscriptionPlan $plan): void
+    {
+        try {
+            // Get the maximum number of agents allowed on this plan
+            $maxAgents = $plan->max_agents ?? 0;
+
+            // If plan doesn't allow agents, skip assignment
+            if ($maxAgents <= 0) {
+                Log::info('Plan does not allow agents, skipping assignment', [
+                    'tenant_id' => $tenant->id,
+                    'plan_name' => $plan->name,
+                    'max_agents' => $maxAgents,
+                ]);
+                return;
+            }
+
+            // Find suitable agents to assign
+            // Priority 1: Free agents
+            // Priority 2: Basic tier agents (tier_id = 1)
+            $agents = $this->findDefaultAgents($plan, $maxAgents);
+
+            if ($agents->isEmpty()) {
+                Log::warning('No suitable agents found for assignment', [
+                    'tenant_id' => $tenant->id,
+                    'plan_name' => $plan->name,
+                    'max_agents' => $maxAgents,
+                ]);
+                return;
+            }
+
+            $assignedCount = 0;
+
+            foreach ($agents as $agent) {
+                // Check if tenant already has this agent (rare, but check for idempotency)
+                $exists = TenantAgent::where('tenant_id', $tenant->id)
+                    ->where('agent_id', $agent->id)
+                    ->exists();
+
+                if ($exists) {
+                    Log::debug('Agent already assigned, skipping', [
+                        'tenant_id' => $tenant->id,
+                        'agent_id' => $agent->id,
+                    ]);
+                    continue;
+                }
+
+                // Create tenant-agent assignment
+                TenantAgent::create([
+                    'tenant_id' => $tenant->id,
+                    'agent_id' => $agent->id,
+                    'status' => 'active',
+                    'purchased_at' => now(),
+                    'activated_at' => now(),
+                    'configuration' => [
+                        'assigned_via' => 'auto_assignment',
+                        'plan_name' => $plan->name,
+                        'assigned_at' => now()->toISOString(),
+                    ],
+                    'metadata' => [
+                        'is_default_agent' => true,
+                        'agent_name' => $agent->name,
+                        'agent_tier' => $agent->tier_id ?? null,
+                    ],
+                ]);
+
+                $assignedCount++;
+
+                Log::debug('Agent assigned to tenant', [
+                    'tenant_id' => $tenant->id,
+                    'agent_id' => $agent->id,
+                    'agent_name' => $agent->name,
+                ]);
+            }
+
+            Log::info('Default agents assigned to tenant', [
+                'tenant_id' => $tenant->id,
+                'plan_name' => $plan->name,
+                'max_agents_allowed' => $maxAgents,
+                'agents_assigned' => $assignedCount,
+                'agent_names' => $agents->pluck('name')->toArray(),
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Failed to assign default agents', [
+                'tenant_id' => $tenant->id,
+                'plan_name' => $plan->name,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            // Don't fail the entire subscription creation if agent assignment fails
+        }
+    }
+
+    /**
+     * Find suitable default agents based on plan tier
+     */
+    protected function findDefaultAgents(SubscriptionPlan $plan, int $limit)
+    {
+        // Check if agent_tiers table exists (for backward compatibility)
+        $hasAgentTiersTable = Schema::hasTable('agent_tiers');
+
+        $query = Agent::where('is_active', true)
+            ->where('is_featured', true); // Only assign featured agents by default
+
+        if ($hasAgentTiersTable && Schema::hasColumn('agents', 'tier_id')) {
+            // New schema with agent tiers
+            // Priority: Free agents from Basic tier (tier_id = 1)
+            $query->where(function ($q) {
+                $q->where('price_model', 'free')
+                    ->orWhere('tier_id', 1); // Basic tier
+            });
+        } else {
+            // Legacy schema: Just use price_model
+            $query->where('price_model', 'free');
+        }
+
+        // Order by creation date (oldest first, assuming they are most stable)
+        $agents = $query->orderBy('created_at', 'asc')
+            ->limit($limit)
+            ->get();
+
+        // Fallback: If no featured free agents, get any free agents
+        if ($agents->isEmpty()) {
+            Log::info('No featured free agents found, trying non-featured', [
+                'plan_name' => $plan->name,
+            ]);
+
+            $query = Agent::where('is_active', true);
+
+            if ($hasAgentTiersTable && Schema::hasColumn('agents', 'tier_id')) {
+                $query->where(function ($q) {
+                    $q->where('price_model', 'free')
+                        ->orWhere('tier_id', 1);
+                });
+            } else {
+                $query->where('price_model', 'free');
+            }
+
+            $agents = $query->orderBy('created_at', 'asc')
+                ->limit($limit)
+                ->get();
+        }
+
+        return $agents;
     }
 }
