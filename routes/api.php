@@ -102,19 +102,9 @@ Route::prefix('v1/marketplace')->group(function () {
 // These routes are maintained for backward compatibility only
 Route::prefix('v1')->group(function () {
     Route::get('/subscription-plans', [SubscriptionPlanController::class, 'index'])
-        ->middleware(function ($request, $next) {
-            $response = $next($request);
-            $response->header('X-API-Deprecated', 'true');
-            $response->header('X-API-Deprecation-Info', 'Use /api/v1/pricing/plans instead. This endpoint will be removed in v2.0');
-            return $response;
-        });
+        ->middleware(\App\Http\Middleware\MarkAsDeprecated::class . ':/api/v1/pricing/plans,v2.0');
     Route::get('/subscription-plans/{id}', [SubscriptionPlanController::class, 'show'])
-        ->middleware(function ($request, $next) {
-            $response = $next($request);
-            $response->header('X-API-Deprecated', 'true');
-            $response->header('X-API-Deprecation-Info', 'Use /api/v1/pricing/plans/{id} instead. This endpoint will be removed in v2.0');
-            return $response;
-        });
+        ->middleware(\App\Http\Middleware\MarkAsDeprecated::class . ':/api/v1/pricing/plans/{id},v2.0');
 });
 
 // =============================================================================
