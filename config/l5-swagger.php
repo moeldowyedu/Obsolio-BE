@@ -5,7 +5,7 @@ return [
     'documentations' => [
         'default' => [
             'api' => [
-                'title' => 'L5 Swagger UI',
+                'title' => 'OBSOLIO API - Complete Documentation',
             ],
 
             'routes' => [
@@ -45,6 +45,57 @@ return [
                  */
                 'annotations' => [
                     base_path('app'),
+                ],
+            ],
+        ],
+
+        'admin' => [
+            'api' => [
+                'title' => 'OBSOLIO Admin Console API (console.obsolio.com)',
+            ],
+
+            'routes' => [
+                'api' => 'api/documentation/admin',
+            ],
+            'paths' => [
+                'use_absolute_path' => env('L5_SWAGGER_USE_ABSOLUTE_PATH', true),
+                'swagger_ui_assets_path' => env('L5_SWAGGER_UI_ASSETS_PATH', 'vendor/swagger-api/swagger-ui/dist/'),
+                'docs_json' => 'admin-api-docs.json',
+                'docs_yaml' => 'admin-api-docs.yaml',
+                'format_to_use_for_docs' => env('L5_FORMAT_TO_USE_FOR_DOCS', 'json'),
+                'annotations' => [
+                    base_path('app/Http/Controllers/Api/V1/Admin'),
+                    base_path('app/Http/Controllers/Api/V1/AdminController.php'),
+                    base_path('app/Http/Controllers/Controller.php'),
+                ],
+            ],
+        ],
+
+        'tenant' => [
+            'api' => [
+                'title' => 'OBSOLIO Tenant Dashboard API (*.obsolio.com)',
+            ],
+
+            'routes' => [
+                'api' => 'api/documentation/tenant',
+            ],
+            'paths' => [
+                'use_absolute_path' => env('L5_SWAGGER_USE_ABSOLUTE_PATH', true),
+                'swagger_ui_assets_path' => env('L5_SWAGGER_UI_ASSETS_PATH', 'vendor/swagger-api/swagger-ui/dist/'),
+                'docs_json' => 'tenant-api-docs.json',
+                'docs_yaml' => 'tenant-api-docs.yaml',
+                'format_to_use_for_docs' => env('L5_FORMAT_TO_USE_FOR_DOCS', 'json'),
+                'annotations' => [
+                    base_path('app/Http/Controllers/Api/V1/Tenant'),
+                    base_path('app/Http/Controllers/Api/V1/DashboardController.php'),
+                    base_path('app/Http/Controllers/Api/V1/OrganizationController.php'),
+                    base_path('app/Http/Controllers/Api/V1/AgentController.php'),
+                    base_path('app/Http/Controllers/Api/V1/AgentExecutionController.php'),
+                    base_path('app/Http/Controllers/Api/V1/BillingController.php'),
+                    base_path('app/Http/Controllers/Api/V1/SubscriptionController.php'),
+                    base_path('app/Http/Controllers/Api/V1/UserController.php'),
+                    base_path('app/Http/Controllers/Api/V1/UserActivityController.php'),
+                    base_path('app/Http/Controllers/Controller.php'),
                 ],
             ],
         ],

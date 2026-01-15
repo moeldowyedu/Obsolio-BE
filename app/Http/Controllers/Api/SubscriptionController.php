@@ -21,18 +21,22 @@ class SubscriptionController extends Controller
 {
     /**
      * Get all available subscription plans
-     * 
+     *
      * @OA\Get(
      *     path="/api/v1/pricing/plans",
      *     summary="Get all subscription plans",
-     *     description="Returns all active and published subscription plans grouped by name",
-     *     tags={"Subscriptions"},
+     *     description="Returns all active and published subscription plans grouped by name. This is the recommended endpoint for pricing information.",
+     *     tags={"Pricing"},
      *     @OA\Response(
      *         response=200,
      *         description="Successful operation",
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(property="data", type="object")
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 description="Plans grouped by name with their billing cycles"
+     *             )
      *         )
      *     )
      * )
@@ -55,12 +59,12 @@ class SubscriptionController extends Controller
 
     /**
      * Get current tenant subscription
-     * 
+     *
      * @OA\Get(
      *     path="/api/v1/pricing/subscriptions/current",
      *     summary="Get current subscription",
      *     description="Returns the current active subscription for the authenticated tenant",
-     *     tags={"Subscriptions"},
+     *     tags={"Tenant - Subscriptions"},
      *     security={{"bearerAuth":{}}},
      *     @OA\Response(
      *         response=200,
@@ -141,7 +145,7 @@ class SubscriptionController extends Controller
      *     path="/api/v1/pricing/subscriptions/create",
      *     summary="Create new subscription",
      *     description="Creates a new subscription for the tenant",
-     *     tags={"Subscriptions"},
+     *     tags={"Tenant - Subscriptions"},
      *     security={{"bearerAuth":{}}},
      *     @OA\RequestBody(
      *         required=true,
@@ -237,7 +241,7 @@ class SubscriptionController extends Controller
      *     path="/api/v1/pricing/subscriptions/upgrade",
      *     summary="Upgrade subscription",
      *     description="Upgrades the current subscription to a higher plan",
-     *     tags={"Subscriptions"},
+     *     tags={"Tenant - Subscriptions"},
      *     security={{"bearerAuth":{}}},
      *     @OA\RequestBody(
      *         required=true,
@@ -302,7 +306,7 @@ class SubscriptionController extends Controller
      *     path="/api/v1/pricing/subscriptions/cancel",
      *     summary="Cancel subscription",
      *     description="Cancels the current subscription",
-     *     tags={"Subscriptions"},
+     *     tags={"Tenant - Subscriptions"},
      *     security={{"bearerAuth":{}}},
      *     @OA\RequestBody(
      *         @OA\JsonContent(

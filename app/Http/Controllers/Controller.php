@@ -58,11 +58,20 @@ Public endpoints (auth, marketplace) do not require authentication.
  *     )
  * )
  * @OA\Server(
- *     url="https://api.obsolio.com",
- *     description="Production Server"
+ *     url="https://console.obsolio.com/api/v1",
+ *     description="Admin Console (Production)"
  * )
  * @OA\Server(
- *     url="http://localhost/api/v1",
+ *     url="https://{tenant}.obsolio.com/api/v1",
+ *     description="Tenant Dashboard (Production)",
+ *     @OA\ServerVariable(
+ *         serverVariable="tenant",
+ *         default="demo",
+ *         description="Your tenant subdomain (e.g., acme-corp)"
+ *     )
+ * )
+ * @OA\Server(
+ *     url="http://localhost:8000/api/v1",
  *     description="Local Development"
  * )
  * @OA\SecurityScheme(
@@ -79,6 +88,10 @@ Public endpoints (auth, marketplace) do not require authentication.
  * @OA\Tag(
  *     name="Marketplace",
  *     description="Public marketplace endpoints for browsing agents"
+ * )
+ * @OA\Tag(
+ *     name="Pricing",
+ *     description="Public pricing and subscription plans"
  * )
  * @OA\Tag(
  *     name="Admin - Tenants",
