@@ -15,8 +15,8 @@ This API provides a clear separation between different user contexts:
 
 ### Public Endpoints
 - `/auth/*` - Authentication and registration
-- `/marketplace/*` - Public AgentX for browsing agents
-- `/subscription-plans` - Pricing information
+- `/pricing/agents/*` - AgentX for browsing and subscribing to agents
+- `/pricing/plans` - Subscription pricing information
 
 ### Admin Endpoints (System Console)
 - `/admin/*` - System administration operations
@@ -58,17 +58,8 @@ Public endpoints (auth, AgentX) do not require authentication.
  *     )
  * )
  * @OA\Server(
- *     url="https://console.obsolio.com/api/v1",
- *     description="Admin Console (Production)"
- * )
- * @OA\Server(
- *     url="https://{tenant}.obsolio.com/api/v1",
- *     description="Tenant Dashboard (Production)",
- *     @OA\ServerVariable(
- *         serverVariable="tenant",
- *         default="demo",
- *         description="Your tenant subdomain (e.g., acme-corp)"
- *     )
+ *     url="https://api.obsolio.com/api/v1",
+ *     description="Production API Server"
  * )
  * @OA\Server(
  *     url="http://localhost:8000/api/v1",

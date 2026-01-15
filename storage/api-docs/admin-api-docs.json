@@ -2,7 +2,7 @@
     "openapi": "3.0.0",
     "info": {
         "title": "OBSOLIO API Documentation",
-        "description": "\n# OBSOLIO API - Organized Endpoint Structure\n\nThis API provides a clear separation between different user contexts:\n\n## Endpoint Organization\n\n### Public Endpoints\n- `/auth/*` - Authentication and registration\n- `/marketplace/*` - Public AgentX for browsing agents\n- `/subscription-plans` - Pricing information\n\n### Admin Endpoints (System Console)\n- `/admin/*` - System administration operations\n  - Tenant management\n  - User management\n  - Agent management (global)\n  - Analytics and reports\n  - Audit logs\n\n### Tenant Endpoints (Dashboard)\n- `/tenant/*` - Tenant-specific operations\n  - Profile and settings\n  - Dashboard and statistics\n  - Organizations\n  - Agents (installed)\n  - Subscriptions and billing\n  - Activities and sessions\n\n### Webhooks\n- `/webhooks/*` - External callback endpoints\n\n## Authentication\n\nMost endpoints require JWT Bearer token authentication. Include the token in the Authorization header:\n\n```\nAuthorization: Bearer <your-jwt-token>\n```\n\nPublic endpoints (auth, AgentX) do not require authentication.\n",
+        "description": "\n# OBSOLIO API - Organized Endpoint Structure\n\nThis API provides a clear separation between different user contexts:\n\n## Endpoint Organization\n\n### Public Endpoints\n- `/auth/*` - Authentication and registration\n- `/pricing/agents/*` - AgentX for browsing and subscribing to agents\n- `/pricing/plans` - Subscription pricing information\n\n### Admin Endpoints (System Console)\n- `/admin/*` - System administration operations\n  - Tenant management\n  - User management\n  - Agent management (global)\n  - Analytics and reports\n  - Audit logs\n\n### Tenant Endpoints (Dashboard)\n- `/tenant/*` - Tenant-specific operations\n  - Profile and settings\n  - Dashboard and statistics\n  - Organizations\n  - Agents (installed)\n  - Subscriptions and billing\n  - Activities and sessions\n\n### Webhooks\n- `/webhooks/*` - External callback endpoints\n\n## Authentication\n\nMost endpoints require JWT Bearer token authentication. Include the token in the Authorization header:\n\n```\nAuthorization: Bearer <your-jwt-token>\n```\n\nPublic endpoints (auth, AgentX) do not require authentication.\n",
         "contact": {
             "name": "OBSOLIO Support",
             "email": "admin@obsolio.com"
@@ -15,18 +15,8 @@
     },
     "servers": [
         {
-            "url": "https://console.obsolio.com/api/v1",
-            "description": "Admin Console (Production)"
-        },
-        {
-            "url": "https://{tenant}.obsolio.com/api/v1",
-            "description": "Tenant Dashboard (Production)",
-            "variables": {
-                "tenant": {
-                    "default": "demo",
-                    "description": "Your tenant subdomain (e.g., acme-corp)"
-                }
-            }
+            "url": "https://api.obsolio.com/api/v1",
+            "description": "Production API Server"
         },
         {
             "url": "http://localhost:8000/api/v1",
