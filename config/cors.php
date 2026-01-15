@@ -5,6 +5,8 @@ return [
         'api/*',
         'sanctum/csrf-cookie',
         'v1/*',
+        'docs',
+        'docs/*',
     ],
 
     'allowed_methods' => ['*'],
