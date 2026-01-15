@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * @OA\Tag(
- *     name="Agent Marketplace",
+ *     name="AgentX",
  *     description="Agent browsing and subscription endpoints"
  * )
  */
@@ -24,7 +24,7 @@ class AgentMarketplaceController extends Controller
      *     path="/api/v1/pricing/agents/catalog",
      *     summary="Get public agent catalog",
      *     description="Returns all active agents grouped by tier (no authentication required)",
-     *     tags={"Agent Marketplace"},
+     *     tags={"AgentX"},
      *     @OA\Response(
      *         response=200,
      *         description="Successful operation",
@@ -57,7 +57,7 @@ class AgentMarketplaceController extends Controller
      *     path="/api/v1/pricing/agents/marketplace",
      *     summary="Browse agents with tenant context",
      *     description="Returns agents with subscription status and availability for the authenticated tenant",
-     *     tags={"Agent Marketplace"},
+     *     tags={"AgentX"},
      *     security={{"bearerAuth":{}}},
      *     @OA\Response(
      *         response=200,
@@ -114,7 +114,7 @@ class AgentMarketplaceController extends Controller
      *     path="/api/v1/pricing/agents/marketplace/{agent}",
      *     summary="Get agent details",
      *     description="Returns detailed information about a specific agent",
-     *     tags={"Agent Marketplace"},
+     *     tags={"AgentX"},
      *     security={{"bearerAuth":{}}},
      *     @OA\Parameter(
      *         name="agent",
@@ -155,7 +155,7 @@ class AgentMarketplaceController extends Controller
      *     path="/api/v1/pricing/agents/subscribe/{agent}",
      *     summary="Subscribe to agent",
      *     description="Creates a new agent subscription (add-on) for the tenant",
-     *     tags={"Agent Marketplace"},
+     *     tags={"AgentX"},
      *     security={{"bearerAuth":{}}},
      *     @OA\Parameter(
      *         name="agent",
@@ -263,7 +263,7 @@ class AgentMarketplaceController extends Controller
      *     path="/api/v1/pricing/agents/unsubscribe/{agent}",
      *     summary="Unsubscribe from agent",
      *     description="Cancels the agent subscription for the tenant",
-     *     tags={"Agent Marketplace"},
+     *     tags={"AgentX"},
      *     security={{"bearerAuth":{}}},
      *     @OA\Parameter(
      *         name="agent",
@@ -307,7 +307,7 @@ class AgentMarketplaceController extends Controller
      *     path="/api/v1/pricing/agents/my-agents",
      *     summary="Get subscribed agents",
      *     description="Returns all active agent subscriptions for the tenant",
-     *     tags={"Agent Marketplace"},
+     *     tags={"AgentX"},
      *     security={{"bearerAuth":{}}},
      *     @OA\Response(response=200, description="Successful operation")
      * )
@@ -333,7 +333,7 @@ class AgentMarketplaceController extends Controller
      *     path="/api/v1/pricing/agents/available-slots",
      *     summary="Get available agent slots",
      *     description="Returns the number of available agent slots by tier for the tenant",
-     *     tags={"Agent Marketplace"},
+     *     tags={"AgentX"},
      *     security={{"bearerAuth":{}}},
      *     @OA\Response(
      *         response=200,
@@ -391,7 +391,7 @@ class AgentMarketplaceController extends Controller
      *     path="/api/v1/pricing/agents/can-add/{agent}",
      *     summary="Check if can add agent",
      *     description="Validates if the tenant can subscribe to a specific agent",
-     *     tags={"Agent Marketplace"},
+     *     tags={"AgentX"},
      *     security={{"bearerAuth":{}}},
      *     @OA\Parameter(
      *         name="agent",

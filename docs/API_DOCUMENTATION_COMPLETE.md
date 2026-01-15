@@ -18,8 +18,8 @@ OBSOLIO uses a multi-tenant architecture with two distinct dashboards:
 
 ### **Public Endpoints**
 - **Domain:** Any (no authentication required)
-- **Purpose:** Registration, marketplace browsing, pricing information
-- **Endpoints:** `/api/v1/auth/*`, `/api/v1/marketplace/*`, `/api/v1/pricing/*`
+- **Purpose:** Registration, agentx browsing, pricing information
+- **Endpoints:** `/api/v1/auth/*`, `/api/v1/agentx/*`, `/api/v1/pricing/*`
 
 ---
 
@@ -27,7 +27,7 @@ OBSOLIO uses a multi-tenant architecture with two distinct dashboards:
 
 1. [Public Endpoints](#public-endpoints)
    - [Authentication](#authentication)
-   - [Marketplace](#marketplace)
+   - [AgentX](#agentx)
    - [Pricing & Plans](#pricing--plans)
 2. [Admin Console Endpoints](#admin-console-endpoints)
    - [Tenant Management](#tenant-management)
@@ -219,14 +219,14 @@ GET /api/v1/auth/tenants/check-availability/{subdomain}
 
 ---
 
-### Marketplace
+### AgentX
 
-**Base URL:** `https://api.obsolio.com/api/v1/marketplace`
+**Base URL:** `https://api.obsolio.com/api/v1/agentx`
 
 #### Browse Agents
 
 ```http
-GET /api/v1/marketplace/agents
+GET /api/v1/agentx/agents
 ```
 
 **Query Parameters:**
@@ -270,7 +270,7 @@ GET /api/v1/marketplace/agents
 #### Featured Agents
 
 ```http
-GET /api/v1/marketplace/agents/featured
+GET /api/v1/agentx/agents/featured
 ```
 
 ---
@@ -278,7 +278,7 @@ GET /api/v1/marketplace/agents/featured
 #### Agent Details
 
 ```http
-GET /api/v1/marketplace/agents/{id}
+GET /api/v1/agentx/agents/{id}
 ```
 
 **Response:**
@@ -322,7 +322,7 @@ GET /api/v1/marketplace/agents/{id}
 #### Browse Categories
 
 ```http
-GET /api/v1/marketplace/categories
+GET /api/v1/agentx/categories
 ```
 
 **Response:**
@@ -347,7 +347,7 @@ GET /api/v1/marketplace/categories
 #### Agents by Category
 
 ```http
-GET /api/v1/marketplace/categories/{category}/agents
+GET /api/v1/agentx/categories/{category}/agents
 ```
 
 ---

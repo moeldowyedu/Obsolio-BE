@@ -52,8 +52,8 @@ The OBSOLIO API documentation has been professionally organized to clearly disti
 | Namespace | Domain | Purpose | Authentication |
 |-----------|--------|---------|----------------|
 | `/api/v1/auth/*` | Public | Registration, login, password reset | None |
-| `/api/v1/pricing/*` | Public | Pricing plans, public marketplace | None |
-| `/api/v1/marketplace/*` | Public | Browse agents, categories | None |
+| `/api/v1/pricing/*` | Public | Pricing plans, public agentx | None |
+| `/api/v1/agentx/*` | Public | Browse agents, categories | None |
 | `/api/v1/admin/*` | console.obsolio.com | System administration | JWT + admin role |
 | `/api/v1/tenant/*` | *.obsolio.com | Tenant operations | JWT + tenant context |
 
@@ -127,11 +127,11 @@ Authorization: Bearer <your-jwt-token>
 - **DEPRECATED:** `GET /api/v1/subscription-plans` (Use `/pricing/plans` instead)
 - **DEPRECATED:** `GET /api/v1/subscription-plans/{id}` (Use `/pricing/plans/{id}` instead)
 
-#### Marketplace (`/marketplace/*`)
+#### agentx (`/agentx/*`)
 - Browse agents
 - View featured agents
 - Search by category
-- View marketplace statistics
+- View agentx statistics
 
 ---
 
@@ -242,7 +242,7 @@ The API documentation is organized with the following tags:
 ### Public Tags
 - **Authentication** - Registration, login, password management
 - **Pricing** - Subscription plans and pricing
-- **Marketplace** - Public agent marketplace
+- **agentx** - Public agent agentx
 
 ### Admin Console Tags
 - **Admin - Tenants** - Tenant management
@@ -434,7 +434,7 @@ L5_FORMAT_TO_USE_FOR_DOCS=json     # json or yaml
 2. **Follow Naming Conventions**
    - Admin endpoints: `/api/v1/admin/*`
    - Tenant endpoints: `/api/v1/tenant/*`
-   - Public endpoints: `/api/v1/auth/*`, `/api/v1/pricing/*`, `/api/v1/marketplace/*`
+   - Public endpoints: `/api/v1/auth/*`, `/api/v1/pricing/*`, `/api/v1/agentx/*`
 
 3. **Test Documentation**
    - Generate Swagger docs locally

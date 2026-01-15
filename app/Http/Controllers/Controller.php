@@ -15,7 +15,7 @@ This API provides a clear separation between different user contexts:
 
 ### Public Endpoints
 - `/auth/*` - Authentication and registration
-- `/marketplace/*` - Public marketplace for browsing agents
+- `/marketplace/*` - Public AgentX for browsing agents
 - `/subscription-plans` - Pricing information
 
 ### Admin Endpoints (System Console)
@@ -46,7 +46,7 @@ Most endpoints require JWT Bearer token authentication. Include the token in the
 Authorization: Bearer <your-jwt-token>
 ```
 
-Public endpoints (auth, marketplace) do not require authentication.
+Public endpoints (auth, AgentX) do not require authentication.
 ",
  *     @OA\Contact(
  *         email="admin@obsolio.com",
@@ -86,8 +86,8 @@ Public endpoints (auth, marketplace) do not require authentication.
  *     description="Public authentication endpoints"
  * )
  * @OA\Tag(
- *     name="Marketplace",
- *     description="Public marketplace endpoints for browsing agents"
+ *     name="AgentX",
+ *     description="Public AgentX endpoints for browsing agents"
  * )
  * @OA\Tag(
  *     name="Pricing",
