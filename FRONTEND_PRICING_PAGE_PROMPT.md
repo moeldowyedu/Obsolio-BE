@@ -295,9 +295,19 @@ planNames.forEach(planName => {
    - Specialized: `max_specialized_agents`
    - Enterprise: `max_enterprise_agents`
 
-### 4. **Null Value Handling**
-- If `max_users`, `max_agents`, or `storage_gb` is `null`, display as "Unlimited"
-- Example: `plan.max_users ?? 'Unlimited'`
+### 4. **Unlimited Value Handling**
+- If `max_users`, `max_agents`, or `storage_gb` is `null` or `>= 999999`, display as "Unlimited"
+- The backend uses `999999` to represent unlimited (database has NOT NULL constraints)
+- Example:
+```javascript
+const isUnlimited = (value) => value === null || value >= 999999;
+const displayValue = (value, unit = '') =>
+  isUnlimited(value) ? 'Unlimited' : `${value}${unit}`;
+
+// Usage:
+displayValue(plan.max_users); // "Unlimited" or "10"
+displayValue(plan.storage_gb, 'GB'); // "Unlimited" or "50GB"
+```
 
 ---
 

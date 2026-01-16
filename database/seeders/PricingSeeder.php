@@ -345,14 +345,14 @@ class PricingSeeder extends Seeder
                 'price_annual' => null,
                 'included_executions' => 50000,
                 'overage_price_per_execution' => 0.0050,
-                'max_users' => null, // Unlimited
-                'max_agents' => null, // Unlimited
-                'max_agent_slots' => null, // Unlimited
-                'max_basic_agents' => null, // Unlimited
-                'max_professional_agents' => null, // Unlimited
-                'max_specialized_agents' => null, // Unlimited
-                'max_enterprise_agents' => null, // Unlimited
-                'storage_gb' => null, // Unlimited
+                'max_users' => 999999, // Unlimited (using large number)
+                'max_agents' => 999999, // Unlimited (using large number)
+                'max_agent_slots' => 999999, // Unlimited (using large number)
+                'max_basic_agents' => 999999, // Unlimited (using large number)
+                'max_professional_agents' => 999999, // Unlimited (using large number)
+                'max_specialized_agents' => 999999, // Unlimited (using large number)
+                'max_enterprise_agents' => 999999, // Unlimited (using large number)
+                'storage_gb' => 999999, // Unlimited (using large number)
                 'trial_days' => 30, // Enterprise gets 30-day trial
                 'features' => json_encode([
                     '50,000+ agent executions per month',
@@ -412,14 +412,14 @@ class PricingSeeder extends Seeder
                 'price_annual' => 4970.04,
                 'included_executions' => 50000,
                 'overage_price_per_execution' => 0.0050,
-                'max_users' => null, // Unlimited
-                'max_agents' => null, // Unlimited
-                'max_agent_slots' => null, // Unlimited
-                'max_basic_agents' => null, // Unlimited
-                'max_professional_agents' => null, // Unlimited
-                'max_specialized_agents' => null, // Unlimited
-                'max_enterprise_agents' => null, // Unlimited
-                'storage_gb' => null, // Unlimited
+                'max_users' => 999999, // Unlimited (using large number)
+                'max_agents' => 999999, // Unlimited (using large number)
+                'max_agent_slots' => 999999, // Unlimited (using large number)
+                'max_basic_agents' => 999999, // Unlimited (using large number)
+                'max_professional_agents' => 999999, // Unlimited (using large number)
+                'max_specialized_agents' => 999999, // Unlimited (using large number)
+                'max_enterprise_agents' => 999999, // Unlimited (using large number)
+                'storage_gb' => 999999, // Unlimited (using large number)
                 'trial_days' => 30, // Enterprise gets 30-day trial
                 'features' => json_encode([
                     '50,000+ agent executions per month',
