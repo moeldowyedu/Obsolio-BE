@@ -482,8 +482,11 @@ class TenantController extends Controller
      */
     public function findBySubdomain(string $subdomain): JsonResponse
     {
-        // Find tenant by ID (which is the subdomain/slug)
-        $tenant = Tenant::with('ownerMembership.user')->find($subdomain);
+        // Find tenant by ID (which is the subdomain/slug) OR subdomain_preference
+        $tenant = Tenant::with('ownerMembership.user')
+            ->where('id', $subdomain)
+            ->orWhere('subdomain_preference', $subdomain)
+            ->first();
 
         if (!$tenant) {
             return response()->json([
