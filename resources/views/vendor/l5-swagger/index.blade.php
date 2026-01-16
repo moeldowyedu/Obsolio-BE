@@ -126,7 +126,12 @@
         const urls = [];
 
         @foreach($urlsToDocs as $title => $url)
-            urls.push({name: "{{ $title }}", url: "{{ $url }}"});
+            @php
+                // Fix URL: if it contains ?filename, convert to /filename
+                $fixedUrl = preg_replace('/\?([^&]+\.json)$/', '/$1', $url);
+                $fixedUrl = preg_replace('/\?([^&]+\.yaml)$/', '/$1', $fixedUrl);
+            @endphp
+            urls.push({name: "{{ $title }}", url: "{{ $fixedUrl }}"});
         @endforeach
 
         // Build a system
