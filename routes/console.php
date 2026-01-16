@@ -13,3 +13,9 @@ Schedule::command('users:clean-unverified')
     ->daily()
     ->at('02:00')
     ->withoutOverlapping();
+
+// Handle trial expirations daily at 3 AM
+Schedule::job(new \App\Jobs\Billing\HandleTrialExpirationJob)
+    ->daily()
+    ->at('03:00')
+    ->withoutOverlapping();

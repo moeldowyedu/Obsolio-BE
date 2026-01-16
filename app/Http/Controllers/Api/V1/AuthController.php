@@ -108,6 +108,9 @@ class AuthController extends Controller
             'organizationFullName' => 'required|string|max:255',
             'organizationShortName' => 'nullable|string|max:50',
             'organizationLogo' => 'nullable|file|image|mimes:jpeg,jpg,png,gif,webp|max:2048',
+            // Subscription plan selection
+            'plan_id' => 'required|uuid|exists:subscription_plans,id',
+            'billing_cycle' => 'required|string|in:monthly,annual',
         ];
 
         $request->validate($rules);
@@ -125,6 +128,10 @@ class AuthController extends Controller
                     'short_name' => $request->organizationShortName ?? $request->subdomain,
                     'type' => 'organization', // Hardcoded
                     'status' => 'pending_verification', // ⚠️ IMPORTANT
+                    'plan_id' => $request->plan_id, // Store selected plan
+                    'data' => [
+                        'billing_cycle' => $request->billing_cycle, // Store billing cycle preference
+                    ],
                 ];
 
                 $tenant = Tenant::create($tenantData);

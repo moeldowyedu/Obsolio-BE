@@ -11,6 +11,7 @@ use App\Models\Subscription;
 use App\Models\Tenant;
 use App\Models\Invoice;
 use App\Models\InvoiceLineItem;
+use App\Services\PaymobService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
@@ -145,12 +146,98 @@ class ProcessMonthlyBillingJob implements ShouldQueue
 
             DB::commit();
 
-            // TODO: Send invoice to payment gateway (Paymob)
-            // TODO: Send invoice email to customer
+            // Generate Paymob payment link for the invoice
+            $this->generatePaymentLink($invoice, $tenant);
+
+            // TODO: Send invoice email to customer with payment link
+            // Mail::to($tenant->email)->send(new MonthlyInvoiceEmail($invoice, $paymentLink));
 
         } catch (\Exception $e) {
             DB::rollBack();
             throw $e;
+        }
+    }
+
+    /**
+     * Generate Paymob payment link for invoice
+     */
+    protected function generatePaymentLink($invoice, $tenant): void
+    {
+        try {
+            // Skip if invoice is $0.00 or already paid
+            if ($invoice->total <= 0 || $invoice->status === 'paid') {
+                return;
+            }
+
+            $paymobService = app(PaymobService::class);
+
+            // Prepare billing data
+            $billingData = [
+                'first_name' => $tenant->name ?? 'Customer',
+                'last_name' => '',
+                'email' => $tenant->email ?? 'noreply@obsolio.com',
+                'phone_number' => $tenant->phone ?? '+201000000000',
+                'apartment' => 'NA',
+                'floor' => 'NA',
+                'street' => 'NA',
+                'building' => 'NA',
+                'shipping_method' => 'NA',
+                'postal_code' => 'NA',
+                'city' => 'NA',
+                'country' => 'NA',
+                'state' => 'NA',
+            ];
+
+            // Prepare items for Paymob
+            $items = array_map(function ($item) {
+                return [
+                    'name' => $item['description'],
+                    'amount_cents' => ($item['total'] ?? 0) * 100,
+                    'description' => $item['description'],
+                    'quantity' => $item['quantity'] ?? 1,
+                ];
+            }, $invoice->line_items);
+
+            // Create payment order
+            $result = $paymobService->createPayment(
+                $invoice->invoice_number,
+                $invoice->total,
+                $billingData,
+                $items
+            );
+
+            if ($result['success'] ?? false) {
+                // Store payment link in invoice metadata
+                $invoice->update([
+                    'metadata' => array_merge($invoice->metadata ?? [], [
+                        'paymob_payment_url' => $result['iframe_url'],
+                        'paymob_payment_key' => $result['payment_key'],
+                        'paymob_order_id' => $result['order_id'],
+                        'payment_link_generated_at' => now()->toISOString(),
+                    ]),
+                ]);
+
+                Log::info("Payment link generated for invoice", [
+                    'invoice_id' => $invoice->id,
+                    'invoice_number' => $invoice->invoice_number,
+                    'payment_url' => $result['iframe_url'],
+                ]);
+            } else {
+                Log::error("Failed to generate payment link for invoice", [
+                    'invoice_id' => $invoice->id,
+                    'invoice_number' => $invoice->invoice_number,
+                    'error' => $result['error'] ?? 'Unknown error',
+                ]);
+            }
+
+        } catch (\Exception $e) {
+            Log::error("Exception generating payment link", [
+                'invoice_id' => $invoice->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            // Don't throw exception - invoice is still valid
+            // Payment link can be generated manually if needed
         }
     }
 }

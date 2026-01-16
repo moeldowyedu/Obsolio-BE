@@ -31,6 +31,8 @@ class RegisterRequest extends FormRequest
             'organizationDomain' => ['nullable', 'string', 'max:255', 'unique:tenants,domain'],
             'phone' => ['nullable', 'string', 'max:20'],
             'avatar_url' => ['nullable', 'url', 'max:500'],
+            'plan_id' => ['required', 'uuid', 'exists:subscription_plans,id'],
+            'billing_cycle' => ['required', 'string', Rule::in(['monthly', 'annual'])],
         ];
     }
 
@@ -52,6 +54,10 @@ class RegisterRequest extends FormRequest
             'organizationName.required_if' => 'Organization name is required for organization accounts.',
             'organizationDomain.unique' => 'This domain is already in use.',
             'avatar_url.url' => 'Please enter a valid avatar URL.',
+            'plan_id.required' => 'Please select a subscription plan.',
+            'plan_id.exists' => 'The selected plan does not exist.',
+            'billing_cycle.required' => 'Please select a billing cycle.',
+            'billing_cycle.in' => 'Billing cycle must be either monthly or annual.',
         ];
     }
 }

@@ -44,53 +44,79 @@ class CreateTrialSubscription implements ShouldQueue
 
         try {
             DB::transaction(function () use ($tenant, $user) {
-                // Determine default plan based on tenant type
-                $defaultPlan = $this->getDefaultPlan($tenant->type);
+                // Check if tenant has a plan selected during registration
+                $plan = null;
+                if ($tenant->plan_id) {
+                    $plan = SubscriptionPlan::find($tenant->plan_id);
+                    Log::info('Using plan selected during registration', [
+                        'tenant_id' => $tenant->id,
+                        'plan_id' => $tenant->plan_id,
+                        'plan_name' => $plan->name ?? 'Unknown'
+                    ]);
+                }
 
-                if (!$defaultPlan) {
-                    Log::error('No default plan found for tenant type', ['type' => $tenant->type]);
+                // Fallback to default plan if no plan was selected
+                if (!$plan) {
+                    $plan = $this->getDefaultPlan($tenant->type);
+                    Log::info('No plan selected during registration, using default', [
+                        'tenant_id' => $tenant->id,
+                        'plan_id' => $plan->id ?? null,
+                        'plan_name' => $plan->name ?? 'Unknown'
+                    ]);
+                }
+
+                if (!$plan) {
+                    Log::error('No plan found for tenant', ['tenant_id' => $tenant->id]);
                     return;
                 }
 
+                // Get billing cycle preference from tenant data
+                $billingCycle = $tenant->data['billing_cycle'] ?? 'monthly';
+
                 // Calculate trial end date based on plan's trial_days
-                $trialDays = $defaultPlan->trial_days ?? 0;
+                $trialDays = $plan->trial_days ?? 0;
                 $trialEndsAt = $trialDays > 0 ? now()->addDays($trialDays) : null;
 
                 // Determine subscription status
                 $status = $trialDays > 0 ? 'trialing' : 'active';
 
+                // Calculate period end based on billing cycle
+                $currentPeriodEnd = $billingCycle === 'annual' ? now()->addYear() : now()->addMonth();
+
                 // Create subscription
                 $subscription = Subscription::create([
                     'tenant_id' => $tenant->id,
-                    'plan_id' => $defaultPlan->id,
+                    'plan_id' => $plan->id,
                     'status' => $status,
-                    'billing_cycle' => 'monthly',
+                    'billing_cycle' => $billingCycle,
                     'starts_at' => now(),
                     'trial_ends_at' => $trialEndsAt,
                     'current_period_start' => now(),
-                    'current_period_end' => now()->addMonth(),
+                    'current_period_end' => $currentPeriodEnd,
                     'metadata' => [
                         'created_via' => 'email_verification',
                         'user_id' => $user->id,
-                        'plan_type' => $defaultPlan->type,
-                        'plan_tier' => $defaultPlan->tier,
+                        'plan_type' => $plan->type,
+                        'plan_tier' => $plan->tier,
+                        'selected_during_registration' => !empty($tenant->plan_id),
                     ],
                 ]);
 
                 Log::info('Trial subscription created', [
                     'tenant_id' => $tenant->id,
                     'subscription_id' => $subscription->id,
-                    'plan_name' => $defaultPlan->name,
+                    'plan_name' => $plan->name,
+                    'billing_cycle' => $billingCycle,
                     'status' => $status,
                     'trial_days' => $trialDays,
                     'trial_ends_at' => $trialEndsAt,
                 ]);
 
                 // Generate invoice for the subscription (including free plans)
-                $invoice = $this->generateInvoice($tenant, $subscription, $defaultPlan, $trialDays);
+                $invoice = $this->generateInvoice($tenant, $subscription, $plan, $trialDays);
 
                 // Assign default agents to the new tenant
-                $this->assignDefaultAgents($tenant, $defaultPlan);
+                $this->assignDefaultAgents($tenant, $plan);
 
                 // Link organization to tenant if applicable
                 if ($tenant->type === 'organization') {
@@ -171,22 +197,29 @@ class CreateTrialSubscription implements ShouldQueue
     }
 
     /**
-     * Generate invoice for the subscription (including $0.00 for free plans)
+     * Generate invoice for the subscription (including $0.00 for trial periods)
      */
     protected function generateInvoice($tenant, Subscription $subscription, SubscriptionPlan $plan, int $trialDays): ?BillingInvoice
     {
         try {
-            // Determine invoice amount based on plan
+            // During trial period, invoice should ALWAYS be $0.00 regardless of plan
+            $isTrialing = $trialDays > 0;
             $isFree = $plan->isFree();
-            $amount = $isFree ? 0.00 : ($plan->price_monthly ?? 0.00);
+
+            // Trial invoices are always $0.00, non-trial free plans are also $0.00
+            $amount = ($isTrialing || $isFree) ? 0.00 : ($plan->price_monthly ?? 0.00);
 
             // Generate unique invoice number
             $invoiceNumber = $this->generateInvoiceNumber($tenant->id);
 
-            // Determine invoice description
-            $description = $isFree
-                ? "{$plan->name} - Free Plan (Trial Period)"
-                : "{$plan->name} - {$trialDays} Day Trial";
+            // Determine invoice description based on trial status
+            if ($isTrialing) {
+                $description = "{$plan->name} - {$trialDays} Day Trial Period (No charge)";
+            } elseif ($isFree) {
+                $description = "{$plan->name} - Free Plan";
+            } else {
+                $description = "{$plan->name} - Monthly Subscription";
+            }
 
             // Build line items
             $lineItems = [
@@ -200,10 +233,25 @@ class CreateTrialSubscription implements ShouldQueue
                 ]
             ];
 
-            // Add trial information note for free plans
-            $notes = $isFree
-                ? "Welcome to OBSOLIO! Your {$plan->name} is now active. Enjoy {$trialDays} days of trial access with no payment required."
-                : "Welcome to OBSOLIO! Your {$plan->name} trial is now active. You won't be charged until {$subscription->trial_ends_at->format('M d, Y')}.";
+            // Determine notes based on trial and plan status
+            if ($isTrialing && !$isFree) {
+                // Paid plan with trial
+                $notes = "Welcome to OBSOLIO! Your {$plan->name} trial is now active. " .
+                         "You won't be charged until {$subscription->trial_ends_at->format('M d, Y')} when your trial ends. " .
+                         "This invoice shows $0.00 for the trial period.";
+            } elseif ($isTrialing && $isFree) {
+                // Free plan with trial (rare case)
+                $notes = "Welcome to OBSOLIO! Your {$plan->name} is now active. " .
+                         "Enjoy {$trialDays} days of trial access with no payment required.";
+            } elseif ($isFree) {
+                // Free plan without trial
+                $notes = "Welcome to OBSOLIO! Your {$plan->name} is now active. " .
+                         "This plan is free and requires no payment.";
+            } else {
+                // Paid plan without trial (immediate charge)
+                $notes = "Welcome to OBSOLIO! Your {$plan->name} subscription is now active. " .
+                         "Please complete payment to continue using the service.";
+            }
 
             // Create the invoice
             $invoice = BillingInvoice::create([
@@ -211,15 +259,18 @@ class CreateTrialSubscription implements ShouldQueue
                 'subscription_id' => $subscription->id,
                 'invoice_number' => $invoiceNumber,
                 'subtotal' => $amount,
-                'tax' => 0.00, // Free plans have no tax
+                'tax' => 0.00, // Trial and free plans have no tax
                 'total' => $amount,
                 'currency' => 'USD',
-                'status' => $isFree ? 'paid' : 'draft', // Free plans are auto-paid, paid plans are draft until trial ends
+                // Trial invoices are marked as 'paid' since they're $0.00
+                // Free plan invoices are marked as 'paid'
+                // Paid plan invoices without trial are marked as 'draft'
+                'status' => ($isTrialing || $isFree) ? 'paid' : 'draft',
                 'due_date' => $subscription->trial_ends_at ?? now(),
-                'paid_at' => $isFree ? now() : null, // Free plans are immediately "paid"
+                'paid_at' => ($isTrialing || $isFree) ? now() : null, // $0.00 invoices are immediately "paid"
                 'line_items' => $lineItems,
                 'notes' => $notes,
-                'payment_method' => $isFree ? 'free_plan' : null,
+                'payment_method' => ($isTrialing || $isFree) ? 'trial_period' : null,
             ]);
 
             Log::info('Invoice generated for subscription', [
