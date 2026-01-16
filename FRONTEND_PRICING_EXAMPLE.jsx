@@ -85,6 +85,15 @@ const PricingPage = () => {
     }).format(price);
   };
 
+  // Check if value represents unlimited
+  const isUnlimited = (value) => value === null || value >= 999999;
+
+  // Display value or "Unlimited"
+  const displayValue = (value, unit = '') => {
+    if (isUnlimited(value)) return 'Unlimited';
+    return `${value.toLocaleString()}${unit}`;
+  };
+
   // Handle plan selection
   const handleSelectPlan = (plan) => {
     // Build query parameters
@@ -225,7 +234,7 @@ const PricingPage = () => {
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                     </svg>
                     <span>
-                      {plan.included_executions === null
+                      {isUnlimited(plan.included_executions)
                         ? 'Unlimited agent executions'
                         : `${plan.included_executions.toLocaleString()} agent executions/month`}
                     </span>
@@ -237,9 +246,9 @@ const PricingPage = () => {
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                     </svg>
                     <span>
-                      {plan.max_agents === null
+                      {isUnlimited(plan.max_agents)
                         ? 'Unlimited agents (all tiers)'
-                        : `Up to ${plan.max_agents} agents`}
+                        : `Up to ${plan.max_agents.toLocaleString()} agents`}
                     </span>
                   </li>
 
@@ -249,14 +258,14 @@ const PricingPage = () => {
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                     </svg>
                     <span>
-                      {plan.storage_gb === null
+                      {isUnlimited(plan.storage_gb)
                         ? 'Unlimited storage'
                         : `${plan.storage_gb}GB storage`}
                     </span>
                   </li>
 
                   {/* Users */}
-                  {plan.max_users && (
+                  {!isUnlimited(plan.max_users) && (
                     <li className="feature-item">
                       <svg className="checkmark" viewBox="0 0 20 20" fill="currentColor">
                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
