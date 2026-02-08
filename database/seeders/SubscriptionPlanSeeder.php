@@ -160,7 +160,10 @@ class SubscriptionPlanSeeder extends Seeder
         ];
 
         foreach ($plans as $plan) {
-            SubscriptionPlan::create($plan);
+            SubscriptionPlan::firstOrCreate(
+                ['type' => $plan['type'], 'tier' => $plan['tier']],
+                $plan
+            );
         }
 
         $this->command->info('✅ Subscription plans seeded successfully!');
